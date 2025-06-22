@@ -1,3 +1,26 @@
+// === SFONDO BANDIERE ANIMATO ===
+const countryCodes = ["ad","ae","af","ag","ai","al","am","ao","aq","ar","as","at","au","aw","ax",
+"az","ba","bb","bd","be","bf","bg","bh","bi","bj","bl","bm","bn","bo","bq","br","bs","bt","bv","bw",
+"by","bz","ca","cc","cd","cf","cg","ch","ci","ck","cl","cm","cn","co","cr","cu","cv","cw","cx","cy",
+"cz","de","dj","dk","dm","do","dz","ec","ee","eg","eh","er","es","et","fi","fj","fk","fm","fo","fr",
+"ga","gb","gd","ge","gf","gg","gh","gi","gl","gm","gn","gp","gq","gr","gs","gt","gu","gw","gy","hk",
+"hm","hn","hr","ht","hu","id","ie","il","im","in","io","iq","ir","is","it","je","jm","jo","jp","ke",
+"kg","kh","ki","km","kn","kp","kr","kw","ky","kz","la","lb","lc","li","lk","lr","ls","lt","lu","lv",
+"ly","ma","mc","md","me","mf","mg","mh","mk","ml","mm","mn","mo","mp","mq","mr","ms","mt","mu","mv",
+"mw","mx","my","mz","na","nc","ne","nf","ng","ni","nl","no","np","nr","nu","nz","om","pa","pe","pf",
+"pg","ph","pk","pl","pm","pn","pr","ps","pt","pw","py","qa","re","ro","rs","ru","rw","sa","sb","sc",
+"sd","se","sg","sh","si","sj","sk","sl","sm","sn","so","sr","ss","st","sv","sx","sy","sz","tc","td",
+"tf","tg","th","tj","tk","tl","tm","tn","to","tr","tt","tv","tw","tz","ua","ug","um","us","uy","uz",
+"va","vc","ve","vg","vi","vn","vu","wf","ws","ye","yt","za","zm","zw"];
+const flags = countryCodes.map(code => `https://flagcdn.com/w320/${code}.png`);
+let flagIndex = 0;
+function changeFlagBackground() {
+  document.body.style.backgroundImage = `url('${flags[flagIndex]}')`;
+  flagIndex = (flagIndex + 1) % flags.length;
+}
+changeFlagBackground();
+setInterval(changeFlagBackground, 3000);
+
 // === TRADUZIONI MULTILINGUA ===
 const translations = {
   en: {
@@ -17,7 +40,8 @@ const translations = {
     invalidCode: "Invalid code. Please try again.",
     serverCreated: "Game created!",
     insertNation: "Enter the nation name.",
-    insertGov: "Choose a form of government."
+    insertGov: "Choose a form of government.",
+    placeholderNation: "Enter your nation name"
   },
   it: {
     title: "Geopolitical Game",
@@ -36,7 +60,8 @@ const translations = {
     invalidCode: "Codice non valido. Riprova.",
     serverCreated: "Partita creata!",
     insertNation: "Inserisci il nome della nazione.",
-    insertGov: "Scegli una forma di governo."
+    insertGov: "Scegli una forma di governo.",
+    placeholderNation: "Inserisci il nome della nazione"
   },
   es: {
     title: "Geopolitical Game",
@@ -55,7 +80,8 @@ const translations = {
     invalidCode: "Código no válido. Inténtalo de nuevo.",
     serverCreated: "¡Partida creada!",
     insertNation: "Introduce el nombre de la nación.",
-    insertGov: "Elige una forma de gobierno."
+    insertGov: "Elige una forma de gobierno.",
+    placeholderNation: "Introduce el nombre de la nación"
   },
   fr: {
     title: "Geopolitical Game",
@@ -74,7 +100,8 @@ const translations = {
     invalidCode: "Code invalide. Veuillez réessayer.",
     serverCreated: "Partie créée !",
     insertNation: "Entrez le nom de la nation.",
-    insertGov: "Choisissez une forme de gouvernement."
+    insertGov: "Choisissez une forme de gouvernement.",
+    placeholderNation: "Entrez le nom de la nation"
   },
   de: {
     title: "Geopolitical Game",
@@ -93,7 +120,8 @@ const translations = {
     invalidCode: "Ungültiger Code. Bitte versuche es erneut.",
     serverCreated: "Spiel erstellt!",
     insertNation: "Gib den Namen der Nation ein.",
-    insertGov: "Wähle eine Regierungsform."
+    insertGov: "Wähle eine Regierungsform.",
+    placeholderNation: "Gib den Namen der Nation ein"
   }
 };
 const flagMap = { en: "gb", it: "it", es: "es", fr: "fr", de: "de" };
@@ -112,6 +140,7 @@ function setLanguage(lang) {
   document.getElementById('option-anarchy').innerText = t.optionAnarchy;
   document.getElementById('create-game-btn').innerText = t.createGame;
   document.getElementById('join-game-btn').innerText = t.joinGame;
+  document.getElementById('nation-name').placeholder = t.placeholderNation;
   // Cambia la bandiera in base alla lingua selezionata
   const flagCode = flagMap[lang];
   document.getElementById('flag-current').src = `https://flagcdn.com/${flagCode}.svg`;
@@ -240,6 +269,3 @@ function generateGameCode(length = 6) {
     }
     return code;
 }
-
-// === FIREBASE CONFIG (devi avere il tuo oggetto di configurazione in index.html) ===
-// ...già incluso da index.html...
