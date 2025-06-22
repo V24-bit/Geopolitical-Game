@@ -6,6 +6,10 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <!-- Sfondo bandiera centrale -->
+    <div class="background-flag">
+        <img id="flag-bg-img" src="https://flagcdn.com/w320/it.png" alt="Bandiera" />
+    </div>
     <div class="center-container">
         <div class="main-ui">
             <!-- MENU LINGUA -->
@@ -73,6 +77,28 @@
     </div>
     <script src="https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/11.9.1/firebase-database.js"></script>
+    <script>
+    // BANDIERE: puoi aggiungere/rimuovere url qui!
+    const flags = [
+        "https://flagcdn.com/w320/it.png", // Italia
+        "https://flagcdn.com/w320/fr.png", // Francia
+        "https://flagcdn.com/w320/es.png", // Spagna
+        "https://flagcdn.com/w320/de.png", // Germania
+        "https://flagcdn.com/w320/gb.png", // UK
+        "https://flagcdn.com/w320/us.png", // USA
+        "https://flagcdn.com/w320/ru.png"  // Russia
+    ];
+    let flagIndex = 0;
+    setInterval(() => {
+        flagIndex = (flagIndex + 1) % flags.length;
+        const img = document.getElementById('flag-bg-img');
+        img.style.opacity = 0;
+        setTimeout(() => {
+            img.src = flags[flagIndex];
+            img.style.opacity = 1;
+        }, 500);
+    }, 3000);
+    </script>
     <script src="main.js"></script>
 </body>
 </html>
