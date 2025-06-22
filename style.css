@@ -10,46 +10,40 @@
 }
 
 html, body {
-    padding: 0;
-    margin: 0;
-    min-height: 100vh;
-    min-width: 100vw;
-    width: 100vw;
-    height: 100vh;
+    padding: 0; margin: 0;
+    min-width: 100vw; min-height: 100vh;
+    width: 100vw; height: 100vh;
     overflow-x: hidden;
 }
 
-/* Sfondo bandiere: copre tutto e combacia sempre con i bordi */
+/* Sfondo bandiere: griglia perfetta */
 #animated-flags-bg {
     position: fixed;
-    top: 0; left: 0; right: 0; bottom: 0;
+    inset: 0;
     z-index: 0;
-    width: 100vw;
-    height: 100vh;
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(90px, 1fr));
-    grid-template-rows: repeat(auto-fit, minmax(60px, 1fr));
+    width: 100vw; height: 100vh;
+    grid-template-columns: repeat(var(--flag-cols, 12), 1fr);
+    grid-template-rows: repeat(var(--flag-rows, 8), 1fr);
     pointer-events: none;
     background: #181818;
 }
 
 .flag-tile {
-    width: 100%;
-    height: 100%;
+    width: 100%; height: 100%;
     object-fit: cover;
-    opacity: 0.9;
+    aspect-ratio: 3/2;
+    opacity: 0.92;
     filter: saturate(1.2) blur(0.7px) brightness(0.92);
     user-select: none;
     pointer-events: none;
     background: #191919;
     display: block;
-    aspect-ratio: 3/2;
 }
 
-/* Overlay per readability */
+/* Overlay */
 .background-overlay {
-    position: fixed;
-    inset: 0;
+    position: fixed; inset: 0;
     background: radial-gradient(circle at 48% 22%, #18ffff44 0%, #ea00d933 49%, transparent 100%);
     z-index: 1;
     pointer-events: none;
@@ -78,4 +72,4 @@ body {
     margin: 4.5rem auto 2.8rem auto;
 }
 
-/* ... Tutto il resto del tuo CSS rimane uguale ... */
+/* ...Resto del tuo CSS UI (actions, h1, label, ecc) rimane invariato... */
