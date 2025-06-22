@@ -1,39 +1,47 @@
 <!DOCTYPE html>
-<html lang="it">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Geopolitical Game - Seleziona Nazione</title>
+    <title>Geopolitical Game - Select Nation</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <div class="language-select">
+        <label for="language-menu">
+            <img src="https://flagcdn.com/gb.svg" width="24" alt="English Flag" id="flag-current" style="vertical-align:middle; margin-right:5px;">
+        </label>
+        <select id="language-menu">
+            <option value="en" data-flag="gb">English</option>
+            <option value="it" data-flag="it">Italiano</option>
+            <option value="es" data-flag="es">Español</option>
+            <option value="fr" data-flag="fr">Français</option>
+            <option value="de" data-flag="de">Deutsch</option>
+        </select>
+    </div>
     <div class="container">
-        <h1>Crea la tua Nazione</h1>
+        <h1 id="title">Create your Nation</h1>
         <form id="nation-form">
-            <label for="nation-name">Nome della tua Nazione:</label>
+            <label for="nation-name" id="label-nation-name">Name your Nation:</label>
             <input type="text" id="nation-name" name="nation-name" required>
 
-            <label for="government-type">Forma di Governo:</label>
+            <label for="government-type" id="label-government-type">Form of Government:</label>
             <select id="government-type" name="government-type" required>
-                <option value="">Seleziona...</option>
-                <option value="dittatura">Dittatura</option>
-                <option value="repubblica">Repubblica</option>
-                <option value="monarchia">Monarchia</option>
-                <option value="teocrazia">Teocrazia</option>
-                <option value="oligarchia">Oligarchia</option>
-                <option value="anarchia">Anarchia</option>
+                <option value="" id="option-select">Select...</option>
+                <option value="dictatorship" id="option-dictatorship">Dictatorship</option>
+                <option value="republic" id="option-republic">Republic</option>
+                <option value="monarchy" id="option-monarchy">Monarchy</option>
+                <option value="theocracy" id="option-theocracy">Theocracy</option>
+                <option value="oligarchy" id="option-oligarchy">Oligarchy</option>
+                <option value="anarchy" id="option-anarchy">Anarchy</option>
             </select>
 
-            <button type="submit">Conferma</button>
+            <button type="submit" id="confirm-btn">Confirm</button>
         </form>
         <div id="output"></div>
     </div>
-
-    <!-- CREDIT -->
     <div class="credit">
         Made by <a href="https://github.com/V24-bit" target="_blank">V24-bit</a>
     </div>
-    <!-- END CREDIT -->
-
     <script src="main.js"></script>
 </body>
 </html>
