@@ -35,7 +35,7 @@ body {
     align-items: center;
     gap: 1.3rem;
     position: relative;
-    z-index: 10;
+    z-index: 100; /* Massima priorità visiva */
     font-size: 1.22rem;
     width: 100%;
     max-width: 510px;
@@ -195,7 +195,7 @@ body {
 
 /* Footer */
 .bottom-bar {
-    z-index: 3;
+    z-index: 101;
     position: fixed;
     width: 100%;
     bottom: 0;
@@ -211,3 +211,5 @@ body {
     color: var(--neon-blue);
     text-decoration: underline;
 }
+
+/* RIMUOVI OGNI RIFERIMENTO ALLE BANDIERE ANIMATE! */
