@@ -47,17 +47,23 @@ button:hover {
     background: #f9fafc;
 }
 
-/* CREDIT BOTTOM RIGHT */
-.credit {
+/* CREDIT & BOTTOM BAR */
+.bottom-bar {
     position: fixed;
     right: 16px;
     bottom: 16px;
+    z-index: 100;
+    display: flex;
+    flex-direction: row;
+    align-items: flex-end;
+    gap: 18px;
+}
+.credit {
     font-size: 1rem;
     color: #fffffe;
     background: rgba(35, 41, 70, 0.8);
     padding: 6px 13px;
     border-radius: 6px;
-    z-index: 100;
     font-family: inherit;
     box-shadow: 0 2px 6px rgba(0,0,0,0.18);
 }
@@ -71,10 +77,11 @@ button:hover {
     color: #ffd6e0;
 }
 
+/* LANGUAGE MENU IN ALTO A SINISTRA */
 .language-select {
     position: fixed;
     top: 16px;
-    right: 16px;
+    left: 16px;
     background: rgba(35,41,70,0.9);
     padding: 6px 13px;
     border-radius: 6px;
@@ -83,6 +90,7 @@ button:hover {
     font-family: inherit;
     display: flex;
     align-items: center;
+    margin-bottom: 2px;
 }
 .language-select select {
     background: transparent;
@@ -91,6 +99,9 @@ button:hover {
     font-size: 1rem;
     outline: none;
     padding-left: 0.5rem;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
 }
 .language-select option {
     color: #232946;
