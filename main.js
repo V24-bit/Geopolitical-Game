@@ -221,7 +221,6 @@ function setLanguage(lang) {
   document.getElementById('game-title') && (document.getElementById('game-title').innerText = t.gameTitle);
   document.getElementById('flag-current').src = `https://flagcdn.com/${flagMap[lang]}.svg`;
   document.getElementById('flag-current').alt = lang;
-  // aggiorna altri elementi se necessario
 }
 
 let currentLang = "it";
@@ -251,20 +250,36 @@ const joinBtn = document.getElementById('join-game-btn');
 const joinForm = document.getElementById('join-form');
 const codeDisplay = document.getElementById('game-code-display');
 const outputDiv = document.getElementById('output');
+const playerNameInput = document.getElementById('player-name-input');
+const playersListDiv = document.getElementById('players-list');
+const playersUl = document.getElementById('players-ul');
 let myGameCode = null;
 let myPlayerId = null;
 let isHost = false;
 
+function updatePlayersList(playersObj) {
+    playersUl.innerHTML = '';
+    Object.values(playersObj).forEach(p => {
+        const li = document.createElement('li');
+        li.textContent = p.name || '(senza nome)';
+        if (p.isHost) li.textContent += ' (Host)';
+        playersUl.appendChild(li);
+    });
+    playersListDiv.style.display = 'block';
+}
+
 createBtn.addEventListener('click', function() {
+    const playerName = playerNameInput.value.trim() || 'Host';
     const code = generateGameCode();
     myGameCode = code;
     myPlayerId = "host-" + Math.random().toString(36).substr(2, 9);
     isHost = true;
-    // Salva la partita su Firebase
+
     firebase.database().ref('games/' + code).set({
         createdAt: Date.now(),
         players: {
             [myPlayerId]: {
+                name: playerName,
                 joinedAt: Date.now(),
                 isHost: true
             }
@@ -276,6 +291,10 @@ createBtn.addEventListener('click', function() {
         outputDiv.textContent = translations[currentLang].serverCreated + " " + translations[currentLang].waitingPlayer;
         localStorage.setItem('gameCode', code);
         localStorage.setItem('playerId', myPlayerId);
+        // Ascolta aggiornamenti giocatori
+        firebase.database().ref('games/' + code + '/players').on('value', snap => {
+            if (snap.exists()) updatePlayersList(snap.val());
+        });
     }).catch(err => {
         outputDiv.textContent = "Errore nella creazione della partita: " + err.message;
     });
@@ -289,17 +308,19 @@ joinBtn.addEventListener('click', function() {
 joinForm.addEventListener('submit', function(e) {
     e.preventDefault();
     const code = document.getElementById('game-code-input').value.trim().toUpperCase();
+    const playerName = playerNameInput.value.trim() || 'Guest';
     if (!code) {
         outputDiv.textContent = translations[currentLang].invalidCode;
         return;
     }
-    // Verifica se la partita esiste su Firebase
     firebase.database().ref('games/' + code).once('value').then(snapshot => {
         if (snapshot.exists()) {
             myGameCode = code;
             myPlayerId = "user-" + Math.random().toString(36).substr(2, 9);
             isHost = false;
+            // Aggiungi il giocatore con il nome
             firebase.database().ref('games/' + code + '/players/' + myPlayerId).set({
+                name: playerName,
                 joinedAt: Date.now(),
                 isHost: false
             });
@@ -308,6 +329,10 @@ joinForm.addEventListener('submit', function(e) {
             joinForm.style.display = "none";
             localStorage.setItem('gameCode', code);
             localStorage.setItem('playerId', myPlayerId);
+            // Ascolta aggiornamenti giocatori
+            firebase.database().ref('games/' + code + '/players').on('value', snap => {
+                if (snap.exists()) updatePlayersList(snap.val());
+            });
         } else {
             outputDiv.textContent = translations[currentLang].invalidCode;
         }
