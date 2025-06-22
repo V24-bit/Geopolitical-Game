@@ -7,61 +7,193 @@
     --glass-blur: blur(18px);
     --white: #fff;
     --input-bg: rgba(255,255,255,0.12);
+    --form-bg: rgba(24,24,24,0.89);
 }
 
 html, body {
-    padding: 0; 
+    padding: 0;
     margin: 0;
-    min-width: 100vw; 
-    min-height: 100vh;
-    width: 100vw; 
+    width: 100vw;
     height: 100vh;
-    overflow: auto;
+    min-width: 100vw;
+    min-height: 100vh;
+    background: #151820 radial-gradient(circle at 65% 18%, #18ffff22 0%, #ea00d933 69%, transparent 100%);
+    box-sizing: border-box;
+    overflow: hidden;
+}
+
+body {
     display: flex;
     align-items: center;
     justify-content: center;
-    background: #181818;
-    box-sizing: border-box;
+    min-height: 100vh;
 }
 
-#animated-flags-bg {
-    position: fixed;
-    inset: 0;
-    z-index: 0;
-    display: grid;
-    width: 100vw; height: 100vh;
-    grid-template-columns: repeat(var(--flag-cols, 12), 1fr);
-    grid-template-rows: repeat(var(--flag-rows, 8), 1fr);
-    pointer-events: none;
-    background: #181818;
+.main-ui {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.3rem;
+    position: relative;
+    z-index: 10;
+    font-size: 1.22rem;
+    width: 100%;
+    max-width: 510px;
+    margin: 0 auto;
+    padding: 2.1rem 1.1rem 1.4rem 1.1rem;
+    animation: fade-in-ui 1.2s cubic-bezier(.48,1.58,.47,1) both;
+    background: var(--form-bg);
+    border-radius: 30px;
+    box-shadow: 0 8px 46px 0 #18ffff33, 0 2px 10px #ea00d955;
 }
 
-.flag-tile {
-    width: 100%; height: 100%;
-    object-fit: cover;
-    aspect-ratio: 3/2;
-    opacity: 0.92;
-    filter: saturate(1.2) blur(0.7px) brightness(0.92);
-    user-select: none;
-    pointer-events: none;
-    background: #191919;
-    display: block;
+@keyframes fade-in-ui {
+    0% { opacity:0; transform: scale(0.95);}
+    100% { opacity:1; transform: scale(1);}
 }
 
-/* Overlay */
-.background-overlay {
-    position: fixed; inset: 0;
-    background: radial-gradient(circle at 48% 22%, #18ffff44 0%, #ea00d933 49%, transparent 100%);
-    z-index: 1;
-    pointer-events: none;
-    mix-blend-mode: lighten;
+/* Animazione pulsante pulsazione */
+@keyframes pulse-btn {
+    0%, 100% { box-shadow: 0 2px 18px #18ffff77, 0 1.5px 9px #ea00d999; }
+    50% { box-shadow: 0 5px 28px #ea00d9cc, 0 3.5px 16px #18ffffcc; }
 }
 
-/* Rimosso lo stile .container! */
-/* Se vuoi mantenere un po' di padding agli elementi, puoi aggiungere qui sotto eventuali regole. */
-/* Ad esempio, puoi aggiungere margin-top ai singoli elementi se serve spacing. */
+/* Animazione titolo flottante */
+@keyframes float-title {
+    0%, 100% { transform: translateY(0);}
+    50% { transform: translateY(-7px);}
+}
 
-/* Adatta la bottom-bar allo zoom */
+/* Menu lingua in alto, ben visibile */
+.language-select {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    margin-bottom: 0.7rem;
+}
+
+.language-select select {
+    font-size: 1.1em;
+    padding: 0.18em 0.6em;
+    border-radius: 6px;
+    border: 1px solid #18ffff77;
+    background: var(--glass-bg);
+    color: #fff;
+    outline: none;
+    cursor: pointer;
+}
+
+.flag-icon {
+    vertical-align: middle;
+    border-radius: 3px;
+    box-shadow: 0 0 7px #18ffff33;
+}
+
+#title {
+    color: var(--neon-blue);
+    font-size: 2.2em;
+    font-weight: bold;
+    margin-bottom: 0.8rem;
+    text-shadow: 0 3px 18px #18ffff66;
+    animation: float-title 2.5s ease-in-out infinite;
+}
+
+/* Form elementi */
+#nation-form {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.85rem;
+    width: 100%;
+    animation: fade-in-ui 1.5s 0.2s both;
+}
+
+#nation-form label {
+    color: #fff;
+    font-size: 1.04em;
+    margin-bottom: 0.2em;
+}
+
+#nation-form input, #nation-form select {
+    font-size: 1.07em;
+    padding: 0.26em 0.75em;
+    border-radius: 7px;
+    border: 1.2px solid #18ffff99;
+    background: var(--input-bg);
+    color: #fff;
+    margin-bottom: 0.4em;
+    outline: none;
+    width: 80%;
+    max-width: 280px;
+    transition: box-shadow 0.18s;
+}
+#nation-form input:focus, #nation-form select:focus {
+    box-shadow: 0 0 0 2px var(--neon-blue), 0 2px 14px #18ffff66;
+}
+
+.actions {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    gap: 1.1rem;
+    margin-top: 0.5rem;
+    margin-bottom: 0.7rem;
+}
+
+.animated-btn {
+    font-size: 1.1em;
+    padding: 0.38em 1.2em;
+    border-radius: 8px;
+    border: none;
+    background: linear-gradient(90deg, #18ffffcc, #ea00d9cc);
+    color: #222;
+    font-weight: bold;
+    cursor: pointer;
+    animation: pulse-btn 2.1s infinite;
+    box-shadow: 0 2px 14px #18ffff77;
+    transition: transform 0.13s, box-shadow 0.13s;
+}
+.animated-btn:hover {
+    transform: scale(1.08);
+    box-shadow: 0 5px 25px #ea00d977, 0 1.5px 9px #18ffff77;
+}
+
+#join-form {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    animation: fade-in-ui 1.5s 0.35s both;
+}
+
+#game-code-input {
+    font-size: 1.05em;
+    padding: 0.22em 0.9em;
+    border-radius: 7px;
+    border: 1.2px solid #ea00d9bb;
+    background: var(--input-bg);
+    color: #fff;
+    outline: none;
+    width: 80%;
+    max-width: 220px;
+}
+
+#game-code-panel {
+    margin-top: 0.7em;
+    margin-bottom: 0.4em;
+    color: #fff;
+    font-size: 1.08em;
+}
+
+.output {
+    min-height: 1.2em;
+    color: #ffee00;
+    font-size: 1.08em;
+    margin-top: 0.3em;
+}
+
+/* Footer */
 .bottom-bar {
     z-index: 3;
     position: fixed;
@@ -75,5 +207,7 @@ html, body {
     font-size: 1rem;
     pointer-events: auto;
 }
-
-/* ...Resto del tuo CSS UI (actions, h1, label, ecc) rimane invariato... */
+.credit .v24-blue {
+    color: var(--neon-blue);
+    text-decoration: underline;
+}
