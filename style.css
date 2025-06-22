@@ -73,6 +73,17 @@ button:hover {
     font-weight: bold;
     transition: color 0.2s;
 }
+/* V24-bit blu acceso */
+.credit a.v24-blue {
+    color: #0090ff !important;
+    text-shadow: 0 0 3px #0090ff80;
+    font-weight: bold;
+}
+/* Effetto hover rosa anche per V24-bit */
+.credit a.v24-blue:hover {
+    color: #ffd6e0 !important;
+}
+
 .credit a:hover {
     color: #ffd6e0;
 }
@@ -147,4 +158,13 @@ button:hover {
 #players-list {
     margin-top: 1.2rem;
     font-size: 1.13rem;
+}
+
+@media (max-width: 600px) {
+    .credit {
+        font-size: 12px;
+        padding: 5px 8px;
+        right: 5px;
+        bottom: 5px;
+    }
 }
