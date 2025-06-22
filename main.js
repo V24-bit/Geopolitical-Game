@@ -38,7 +38,6 @@ const translations = {
     optionRepublic: "Republic",
     optionMonarchy: "Monarchy",
     optionTheocracy: "Theocracy",
-    optionOligarchy: "Oligarchy",
     optionAnarchy: "Anarchy",
     confirm: "Confirm",
     createdNation: "Nation created:",
@@ -54,7 +53,6 @@ const translations = {
     optionRepublic: "Repubblica",
     optionMonarchy: "Monarchia",
     optionTheocracy: "Teocrazia",
-    optionOligarchy: "Oligarchia",
     optionAnarchy: "Anarchia",
     confirm: "Conferma",
     createdNation: "Nazione creata:",
@@ -70,7 +68,6 @@ const translations = {
     optionRepublic: "República",
     optionMonarchy: "Monarquía",
     optionTheocracy: "Teocracia",
-    optionOligarchy: "Oligarquía",
     optionAnarchy: "Anarquía",
     confirm: "Confirmar",
     createdNation: "Nación creada:",
@@ -86,7 +83,6 @@ const translations = {
     optionRepublic: "République",
     optionMonarchy: "Monarchie",
     optionTheocracy: "Théocratie",
-    optionOligarchy: "Oligarchie",
     optionAnarchy: "Anarchie",
     confirm: "Confirmer",
     createdNation: "Nation créée:",
@@ -102,7 +98,6 @@ const translations = {
     optionRepublic: "Republik",
     optionMonarchy: "Monarchie",
     optionTheocracy: "Theokratie",
-    optionOligarchy: "Oligarchie",
     optionAnarchy: "Anarchie",
     confirm: "Bestätigen",
     createdNation: "Nation erstellt:",
@@ -111,7 +106,6 @@ const translations = {
   }
 };
 
-// Mappa lingue/codice bandiera
 const flagMap = {
   en: "gb",
   it: "it",
@@ -120,42 +114,32 @@ const flagMap = {
   de: "de"
 };
 
-// Funzione per cambiare lingua
 function setLanguage(lang) {
   const t = translations[lang];
   document.getElementById('title').innerText = t.title;
   document.getElementById('label-nation-name').innerText = t.labelNation;
   document.getElementById('label-government-type').innerText = t.labelGovernment;
-
-  // Opzioni select
   document.getElementById('option-select').innerText = t.optionSelect;
   document.getElementById('option-dictatorship').innerText = t.optionDictatorship;
   document.getElementById('option-republic').innerText = t.optionRepublic;
   document.getElementById('option-monarchy').innerText = t.optionMonarchy;
   document.getElementById('option-theocracy').innerText = t.optionTheocracy;
-  document.getElementById('option-oligarchy').innerText = t.optionOligarchy;
   document.getElementById('option-anarchy').innerText = t.optionAnarchy;
-
   document.getElementById('confirm-btn').innerText = t.confirm;
-
-  // Aggiorna la bandiera nella tendina
   document.getElementById('flag-current').src = `https://flagcdn.com/${flagMap[lang]}.svg`;
   document.getElementById('flag-current').alt = lang;
 }
 
-// Cambia lingua all'avvio
 let currentLang = "en";
 setLanguage(currentLang);
 
-// Menu a tendina lingue
 document.getElementById("language-menu").addEventListener('change', function() {
   const lang = this.value;
   setLanguage(lang);
   currentLang = lang;
-  document.getElementById("output").innerHTML = ""; // Pulisci output a cambio lingua
+  document.getElementById("output").innerHTML = "";
 });
 
-// Gestione form (output tradotto)
 document.getElementById('nation-form').addEventListener('submit', function(e) {
     e.preventDefault();
     const nationName = document.getElementById('nation-name').value.trim();
