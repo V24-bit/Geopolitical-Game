@@ -6,8 +6,6 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <!-- Sfondo bandiera a schermo intero -->
-    <div class="background-flag"></div>
     <div class="center-container">
         <div class="main-ui">
             <!-- MENU LINGUA -->
@@ -76,25 +74,20 @@
     <script src="https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/11.9.1/firebase-database.js"></script>
     <script>
-    // BANDIERE: aggiungi o rimuovi url a piacere!
-    const flags = [
-        "https://flagcdn.com/w1920/it.png", // Italia
-        "https://flagcdn.com/w1920/fr.png", // Francia
-        "https://flagcdn.com/w1920/es.png", // Spagna
-        "https://flagcdn.com/w1920/de.png", // Germania
-        "https://flagcdn.com/w1920/gb.png", // UK
-        "https://flagcdn.com/w1920/us.png", // USA
-        "https://flagcdn.com/w1920/ru.png"  // Russia
-    ];
-    let flagIndex = 0;
-    function setFlagBg(url) {
-        document.querySelector('.background-flag').style.backgroundImage = `url('${url}')`;
-    }
-    setFlagBg(flags[flagIndex]);
-    setInterval(() => {
-        flagIndex = (flagIndex + 1) % flags.length;
-        setFlagBg(flags[flagIndex]);
-    }, 3000);
+    // Aggiorna la bandiera accanto al menu quando cambi lingua
+    document.getElementById('language-menu').addEventListener('change', function() {
+        const flagMap = {
+            en: 'gb',
+            it: 'it',
+            es: 'es',
+            fr: 'fr',
+            de: 'de'
+        };
+        var lang = this.value;
+        var flagCode = flagMap[lang] || 'gb';
+        document.getElementById('flag-current').src = `https://flagcdn.com/${flagCode}.svg`;
+        document.getElementById('flag-current').alt = this.options[this.selectedIndex].text;
+    });
     </script>
     <script src="main.js"></script>
 </body>
