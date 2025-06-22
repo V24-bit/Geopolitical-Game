@@ -29,7 +29,7 @@ function changeFlagBackground() {
   flagIndex = (flagIndex + 1) % flags.length;
 }
 changeFlagBackground(); // Mostra subito la prima bandiera
-setInterval(changeFlagBackground, 1500); // Cambia ogni 1.5 secondi
+setInterval(changeFlagBackground, 3000); // Cambia ogni 3 secondi
 
 // Variabile globale per il nome della nazione
 let nationName = "";
