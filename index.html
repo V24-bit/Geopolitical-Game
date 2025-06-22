@@ -1,41 +1,69 @@
 <!DOCTYPE html>
-<html lang="it">
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Geopolitical Game</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <!-- Collegamento al tuo CSS -->
-  <link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8">
+    <title>Geopolitical Game - Select Nation</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <!-- CONTENUTO DELLA TUA PAGINA -->
-  <h1>Geopolitical Game</h1>
-  <div id="game-container">
-    <!-- Qui puoi aggiungere il markup del tuo gioco -->
-  </div>
+    <div class="language-select">
+        <label for="language-menu">
+            <img src="https://flagcdn.com/gb.svg" width="24" alt="English Flag" id="flag-current" style="vertical-align:middle; margin-right:5px;">
+        </label>
+        <select id="language-menu">
+            <option value="en" data-flag="gb">&#127468;&#127463; English</option>
+            <option value="it" data-flag="it">&#127470;&#127481; Italiano</option>
+            <option value="es" data-flag="es">&#127466;&#127480; Español</option>
+            <option value="fr" data-flag="fr">&#127467;&#127479; Français</option>
+            <option value="de" data-flag="de">&#127465;&#127466; Deutsch</option>
+        </select>
+    </div>
+    <div class="container">
+        <h1 id="title">Create your Nation</h1>
+        <form id="nation-form">
+            <label for="nation-name" id="label-nation-name">Name your Nation:</label>
+            <input type="text" id="nation-name" name="nation-name" required>
 
-  <!-- INTEGRAZIONE FIREBASE -->
-  <script src="https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/11.9.1/firebase-database.js"></script>
-  <script>
-    // Configurazione Firebase
-    const firebaseConfig = {
-      apiKey: "AIzaSyC-nxzpcf5I_NHkKbWbLXRFRRzQLv9ilWU",
-      authDomain: "geopolitical-game-5f135.firebaseapp.com",
-      databaseURL: "https://geopolitical-game-5f135-default-rtdb.europe-west1.firebasedatabase.app",
-      projectId: "geopolitical-game-5f135",
-      storageBucket: "geopolitical-game-5f135.appspot.com",
-      messagingSenderId: "537294174901",
-      appId: "1:537294174901:web:0c0eebedfd927cc8e65cfc"
-    };
-    // Inizializza Firebase
-    firebase.initializeApp(firebaseConfig);
-    // Inizializza Database
-    const database = firebase.database();
-    // Ora puoi usare "database" dentro main.js per leggere/scrivere dati!
-  </script>
+            <label for="government-type" id="label-government-type">Form of Government:</label>
+            <select id="government-type" name="government-type" required>
+                <option value="" id="option-select">Select...</option>
+                <option value="dictatorship" id="option-dictatorship">Dictatorship</option>
+                <option value="republic" id="option-republic">Republic</option>
+                <option value="monarchy" id="option-monarchy">Monarchy</option>
+                <option value="theocracy" id="option-theocracy">Theocracy</option>
+                <option value="anarchy" id="option-anarchy">Anarchy</option>
+            </select>
 
-  <!-- IL TUO SCRIPT JS PRINCIPALE -->
-  <script src="main.js"></script>
+            <button type="submit" id="confirm-btn">Confirm</button>
+        </form>
+        <div id="output"></div>
+    </div>
+    <div class="credit">
+        Made by <a href="https://github.com/V24-bit" target="_blank">V24-bit</a>
+    </div>
+
+    <!-- INTEGRAZIONE FIREBASE -->
+    <script src="https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/11.9.1/firebase-database.js"></script>
+    <script>
+      // Configurazione Firebase
+      const firebaseConfig = {
+        apiKey: "AIzaSyC-nxzpcf5I_NHkKbWbLXRFRRzQLv9ilWU",
+        authDomain: "geopolitical-game-5f135.firebaseapp.com",
+        databaseURL: "https://geopolitical-game-5f135-default-rtdb.europe-west1.firebasedatabase.app",
+        projectId: "geopolitical-game-5f135",
+        storageBucket: "geopolitical-game-5f135.appspot.com",
+        messagingSenderId: "537294174901",
+        appId: "1:537294174901:web:0c0eebedfd927cc8e65cfc"
+      };
+      // Inizializza Firebase
+      firebase.initializeApp(firebaseConfig);
+      // Inizializza Database
+      const database = firebase.database();
+      // Ora puoi usare "database" dentro main.js per leggere/scrivere dati!
+    </script>
+
+    <!-- IL TUO SCRIPT JS PRINCIPALE -->
+    <script src="main.js"></script>
 </body>
 </html>
