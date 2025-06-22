@@ -3,48 +3,66 @@
     --neon-pink: #ea00d9;
     --neon-yellow: #ffee00;
     --neon-lime: #00ffb3;
-    --main-bg: #12062a;
     --glass-bg: rgba(255,255,255, 0.13);
     --glass-blur: blur(18px);
     --white: #fff;
     --input-bg: rgba(255,255,255,0.12);
 }
 
-/* Sfondo a mosaico di bandiere animate */
+html, body {
+    padding: 0;
+    margin: 0;
+    min-height: 100vh;
+    min-width: 100vw;
+    width: 100vw;
+    height: 100vh;
+    overflow-x: hidden;
+}
+
+/* Sfondo bandiere: copre tutto e combacia sempre con i bordi */
 #animated-flags-bg {
     position: fixed;
-    inset: 0;
+    top: 0; left: 0; right: 0; bottom: 0;
     z-index: 0;
+    width: 100vw;
+    height: 100vh;
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
-    grid-template-rows: repeat(auto-fill, minmax(70px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(90px, 1fr));
+    grid-template-rows: repeat(auto-fit, minmax(60px, 1fr));
     pointer-events: none;
-    gap: 0;
     background: #181818;
 }
+
 .flag-tile {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    opacity: 0.92;
-    filter: saturate(1.4) blur(0.5px) brightness(0.95);
-    transition: filter 0.3s;
+    opacity: 0.9;
+    filter: saturate(1.2) blur(0.7px) brightness(0.92);
     user-select: none;
     pointer-events: none;
     background: #191919;
+    display: block;
+    aspect-ratio: 3/2;
 }
 
 /* Overlay per readability */
 .background-overlay {
     position: fixed;
     inset: 0;
-    background: radial-gradient(circle at 48% 22%, #18ffff33 0%, #ea00d933 40%, transparent 100%);
+    background: radial-gradient(circle at 48% 22%, #18ffff44 0%, #ea00d933 49%, transparent 100%);
     z-index: 1;
     pointer-events: none;
     mix-blend-mode: lighten;
 }
 
-/* Card centrale: glass effect ultra trasparente */
+/* UI centrale e responsive */
+body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
 .container {
     background: var(--glass-bg);
     border-radius: 28px;
@@ -52,257 +70,12 @@
     padding: 2.5rem 2rem 2.2rem 2rem;
     max-width: 430px;
     width: 96vw;
-    margin: 4.5rem auto 2.8rem auto;
     text-align: center;
     position: relative;
     z-index: 2;
     backdrop-filter: var(--glass-blur) saturate(1.3);
     border: 2.5px solid #18ffff77;
+    margin: 4.5rem auto 2.8rem auto;
 }
 
-/* Nessun background nelle actions */
-.actions {
-    background: transparent;
-    box-shadow: none;
-    display: flex;
-    flex-direction: column;
-    gap: 18px;
-    margin-bottom: 1.7rem;
-}
-
-/* Titolo brillante e gradient */
-h1 {
-    font-size: 2.3rem;
-    font-weight: 900;
-    margin-bottom: 2rem;
-    letter-spacing: 1.5px;
-    background: linear-gradient(90deg, #18ffff 10%, #ea00d9 60%, #ffee00 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    text-fill-color: transparent;
-    text-shadow: 0 2px 18px #ffee00, 0 2px 12px #18ffff, 0 4px 24px #ea00d9;
-}
-
-/* Label neon */
-label {
-    font-weight: 700;
-    margin-bottom: 0.4rem;
-    color: var(--neon-lime);
-    text-align: left;
-    font-size: 1.09rem;
-    text-shadow: 0 2px 8px #18ffff44;
-}
-
-/* Input & select: vetro e neon */
-input, select {
-    width: 100%;
-    padding: 0.85rem 1.15rem;
-    margin-bottom: 1.4rem;
-    font-size: 1.15rem;
-    border: 2.5px solid #18ffff66;
-    border-radius: 15px;
-    outline: none;
-    background: var(--input-bg);
-    color: #fff;
-    box-shadow: 0 2px 18px #ea00d933;
-    transition: background 0.24s, box-shadow 0.25s, border 0.19s;
-    font-weight: 500;
-    letter-spacing: 0.03em;
-}
-
-input:focus, select:focus {
-    background: #d500f933;
-    box-shadow: 0 4px 28px #ffee0077, 0 2px 18px #18ffff99;
-    border: 2.6px solid #ffee00;
-    color: #fff;
-}
-
-/* Bottoni: gradienti neon */
-.animated-btn {
-    padding: 1.1rem 1.18rem;
-    font-size: 1.19rem;
-    font-weight: 900;
-    border: none;
-    border-radius: 19px;
-    cursor: pointer;
-    background: linear-gradient(270deg, #ff8c00, #ea00d9, #18ffff, #ffee00, #ff8c00);
-    background-size: 1700% 1000%;
-    color: #fff;
-    transition: transform 0.11s, box-shadow 0.17s;
-    box-shadow: 0 2px 24px #18ffff66, 0 2px 12px #ea00d977;
-    outline: none;
-    animation: gradientLoop 4s ease-in-out infinite;
-    text-shadow: 0 2px 10px #000b, 0 2px 18px #18ffff66;
-    margin-bottom: 0.3rem;
-    letter-spacing: 0.06em;
-}
-.animated-btn:hover {
-    transform: scale(1.055);
-    box-shadow: 0 8px 44px #ffee0099, 0 4px 21px #ea00d988;
-}
-@keyframes gradientLoop {
-    0%   {background-position:0% 50%;}
-    50%  {background-position:100% 50%;}
-    100% {background-position:0% 50%;}
-}
-
-/* Codice partita: badge colorato */
-#game-code-panel {
-    margin: 2.1rem 0 0.7rem 0;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.42rem;
-    background: transparent;
-    box-shadow: none;
-}
-
-.game-code-label {
-    color: #ffee00;
-    font-size: 1.16rem;
-    letter-spacing: 0.09em;
-    font-weight: bold;
-    text-shadow: 0 1px 9px #18ffff, 0 2px 8px #ea00d9;
-    background: transparent;
-}
-
-.game-code-value {
-    font-size: 1.8rem;
-    font-weight: bold;
-    letter-spacing: 0.28em;
-    color: #fff;
-    background: linear-gradient(90deg, #18ffff 30%, #ea00d9 70%);
-    padding: 0.77rem 2.2rem;
-    border-radius: 19px;
-    box-shadow: 0 6px 36px #ffee00, 0 2px 12px #ea00d9;
-    text-shadow: 0 2px 20px #18ffff, 0 1px 10px #ffee00;
-    border: 2.4px solid #ffee00;
-}
-
-/* Output */
-.output {
-    margin-top: 1.2rem;
-    font-size: 1.19rem;
-    min-height: 2em;
-    color: #fff;
-    text-shadow: 0 1px 9px #191e38;
-    font-weight: 500;
-    background: transparent;
-}
-
-/* Credit fluttuante */
-.bottom-bar {
-    position: fixed;
-    right: 23px;
-    bottom: 23px;
-    z-index: 100;
-    display: flex;
-    flex-direction: row;
-    align-items: flex-end;
-    gap: 19px;
-}
-.credit {
-    font-size: 1.07rem;
-    color: #fff;
-    background: linear-gradient(90deg, #18ffff 10%, #ea00d9 90%);
-    padding: 8px 20px;
-    border-radius: 10px;
-    font-family: inherit;
-    box-shadow: 0 2px 8px #18ffff35;
-    font-weight: 700;
-    border: 2px solid #ffee00;
-    text-shadow: 0 1px 7px #12062a;
-}
-.credit a {
-    color: #12062a;
-    text-decoration: none;
-    font-weight: bold;
-    transition: color 0.18s;
-}
-.credit a.v24-blue {
-    color: #00e6e6 !important;
-    text-shadow: 0 0 5px #00cfff60;
-    font-weight: bold;
-}
-.credit a.v24-blue:hover {
-    color: #ea00d9 !important;
-}
-.credit a:hover {
-    color: #ffee00;
-}
-
-/* Navbar lingua neon */
-.language-select {
-    position: fixed;
-    top: 30px;
-    left: 34px;
-    z-index: 10;
-    display: flex;
-    align-items: center;
-    background: var(--glass-bg);
-    border-radius: 18px;
-    box-shadow: 0 1px 12px 0 var(--neon-pink), 0 4px 16px 0 #18ffff88;
-    padding: 8px 22px 8px 12px;
-    gap: 11px;
-    border: 2.5px solid #18ffff;
-    font-family: inherit;
-    backdrop-filter: var(--glass-blur);
-    animation: navGlow 3s infinite alternate;
-}
-@keyframes navGlow {
-    0% { box-shadow: 0 1px 12px 0 var(--neon-pink), 0 4px 16px 0 #18ffff88; }
-    100% { box-shadow: 0 2px 18px 0 var(--neon-lime), 0 4px 24px 0 #ea00d988; }
-}
-
-.language-select select {
-    background: transparent;
-    color: #fff;
-    border: none;
-    font-size: 1.2rem;
-    outline: none;
-    padding: 0.22rem 1rem 0.22rem 0.5rem;
-    border-radius: 10px;
-    font-family: inherit;
-    font-weight: bold;
-    text-shadow: 0 1px 5px #000c;
-}
-.language-select option {
-    color: #12062a;
-    background: #fff;
-    font-weight: bold;
-}
-.language-select label img {
-    vertical-align: middle;
-    border-radius: 8px;
-    box-shadow: 0 1px 9px #18ffff99, 0 2px 10px #ea00d955;
-}
-
-@media (max-width: 600px) {
-    .container {
-        padding: 1.3rem 0.4rem 1.4rem 0.4rem;
-        min-width: unset;
-    }
-    .credit {
-        font-size: 13px;
-        padding: 5px 9px;
-        right: 5px;
-        bottom: 5px;
-    }
-    #game-code-panel .game-code-value {
-        font-size: 1.09rem;
-        padding: 0.37rem 0.9rem;
-    }
-    .language-select {
-        top: 8px;
-        left: 8px;
-        padding: 6px 11px;
-        font-size: 14px;
-    }
-    .language-select select {
-        font-size: 1.01rem;
-    }
-    .language-select label img {
-        width: 23px;
-    }
-}
+/* ... Tutto il resto del tuo CSS rimane uguale ... */
