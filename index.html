@@ -22,7 +22,7 @@
         background: rgba(34, 40, 49, 0.92);
         box-shadow: 0 8px 32px 0 rgba(0,0,0,0.37);
         border-radius: 16px;
-        padding: 2.5rem 2rem;
+        padding: 2.5rem 2rem 2.2rem 2rem;
         max-width: 380px;
         width: 95vw;
         text-align: center;
@@ -115,6 +115,46 @@
         color: #90a4ae;
         opacity: 0.6;
     }
+
+    .language-select-ui {
+        position: absolute;
+        top: 22px;
+        left: 22px;
+        z-index: 20;
+        display: flex;
+        align-items: center;
+        background: rgba(34,40,49,0.95);
+        border-radius: 10px;
+        box-shadow: 0 2px 10px #0005;
+        padding: 6px 13px 6px 8px;
+        gap: 8px;
+        font-family: inherit;
+    }
+    .language-select-ui select {
+        background: linear-gradient(135deg, #232946 70%, #141e30 100%);
+        color: #fff;
+        border: none;
+        font-size: 1.07rem;
+        padding: 0.42rem 1.1rem 0.42rem 0.7rem;
+        border-radius: 8px;
+        outline: none;
+        appearance: none;
+        box-shadow: 0 1px 6px #0002;
+        font-family: inherit;
+        transition: background 0.25s;
+    }
+    .language-select-ui select:focus {
+        background: linear-gradient(135deg, #39406a 70%, #232946 100%);
+    }
+    .language-select-ui option {
+        color: #232946;
+        font-weight: bold;
+    }
+    .language-select-ui .flag-icon {
+        vertical-align: middle;
+        border-radius: 6px;
+        box-shadow: 0 1px 4px #0003;
+    }
     @media (max-width: 600px) {
         .container {
             padding: 1.2rem 0.35rem 2.2rem 0.35rem;
@@ -122,13 +162,38 @@
         }
         .credit { right: 8px; bottom: 8px; font-size: 0.8rem;}
         h1 { font-size: 1.2rem; }
+        .language-select-ui {
+            top: 7px;
+            left: 7px;
+            padding: 4px 5px 4px 5px;
+            font-size: 13px;
+        }
+        .language-select-ui select {
+            font-size: 0.98rem;
+            padding: 0.25rem 0.6rem 0.25rem 0.5rem;
+        }
+        .language-select-ui .flag-icon {
+            width: 21px;
+        }
     }
     </style>
 </head>
 <body>
+    <div class="language-select-ui">
+        <label for="language-menu">
+            <img src="https://flagcdn.com/gb.svg" width="28" alt="English Flag" id="flag-current" class="flag-icon">
+        </label>
+        <select id="language-menu">
+            <option value="en" data-flag="gb">&#127468;&#127463; English</option>
+            <option value="it" data-flag="it">&#127470;&#127481; Italiano</option>
+            <option value="es" data-flag="es">&#127466;&#127480; Español</option>
+            <option value="fr" data-flag="fr">&#127467;&#127479; Français</option>
+            <option value="de" data-flag="de">&#127465;&#127466; Deutsch</option>
+        </select>
+    </div>
     <div class="container">
         <h1 id="title">Geopolitical Game</h1>
-        <form id="nation-form">
+        <form id="nation-form" autocomplete="off">
             <label for="nation-name" id="label-nation-name">Nome della Nazione:</label>
             <input type="text" id="nation-name" name="nation-name" placeholder="Inserisci il nome della nazione" required maxlength="20">
 
@@ -141,23 +206,21 @@
                 <option value="theocracy" id="option-theocracy">Teocrazia</option>
                 <option value="anarchy" id="option-anarchy">Anarchia</option>
             </select>
-
-            <div class="actions">
-                <button type="button" id="create-game-btn" class="animated-btn">Crea partita</button>
-                <button type="button" id="join-game-btn" class="animated-btn">Unisciti a partita</button>
-            </div>
-            <div id="join-form" style="display:none; flex-direction:column; gap:12px; align-items:center; margin:0 0 1.3rem 0;">
-                <input type="text" id="game-code-input" placeholder="Inserisci codice partita" maxlength="8" style="margin-bottom: 0;">
-                <button type="button" id="join-submit-btn" class="animated-btn" style="margin-top:8px;">Entra</button>
-            </div>
-            <div class="code-display" id="game-code-display" style="display:none;"></div>
-            <div class="output" id="output"></div>
         </form>
+        <div class="actions">
+            <button type="button" id="create-game-btn" class="animated-btn">Crea partita</button>
+            <button type="button" id="join-game-btn" class="animated-btn">Unisciti a partita</button>
+        </div>
+        <div id="join-form" style="display:none; flex-direction:column; gap:12px; align-items:center; margin:0 0 1.3rem 0;">
+            <input type="text" id="game-code-input" placeholder="Inserisci codice partita" maxlength="8" style="margin-bottom: 0;">
+            <button type="button" id="join-submit-btn" class="animated-btn" style="margin-top:8px;">Entra</button>
+        </div>
+        <div class="code-display" id="game-code-display" style="display:none;"></div>
+        <div class="output" id="output"></div>
         <div class="credit">
             Made by <a href="https://github.com/V24-bit" style="color:#ff8c00;font-weight:bold;" target="_blank">V24-bit</a>
         </div>
     </div>
-
     <!-- FIREBASE -->
     <script src="https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/11.9.1/firebase-database.js"></script>
