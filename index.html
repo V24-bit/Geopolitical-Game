@@ -6,63 +6,65 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="main-ui">
-        <!-- MENU LINGUA -->
-        <div class="language-select">
-            <label for="language-menu" style="margin-right:6px;">
-                <img src="https://flagcdn.com/it.svg" width="28" alt="Italiano" id="flag-current" class="flag-icon">
-            </label>
-            <select id="language-menu">
-                <option value="en" data-flag="gb">&#127468;&#127463; English</option>
-                <option value="it" data-flag="it">&#127470;&#127481; Italiano</option>
-                <option value="es" data-flag="es">&#127466;&#127480; Español</option>
-                <option value="fr" data-flag="fr">&#127467;&#127479; Français</option>
-                <option value="de" data-flag="de">&#127465;&#127466; Deutsch</option>
-            </select>
-        </div>
-
-        <!-- TITOLO -->
-        <h1 id="title">Geopolitical Game</h1>
-
-        <!-- FORM NAZIONE E GOVERNO -->
-        <form id="nation-form" autocomplete="off">
-            <div class="form-group">
-                <label for="nation-name" id="label-nation-name">Nome della Nazione</label>
-                <input type="text" id="nation-name" name="nation-name" placeholder="Inserisci il nome della nazione" required maxlength="20">
-            </div>
-            <div class="form-group">
-                <label for="government-type" id="label-government-type">Forma di Governo</label>
-                <select id="government-type" name="government-type" required>
-                    <option value="" id="option-select">Seleziona...</option>
-                    <option value="dictatorship" id="option-dictatorship">Dittatura</option>
-                    <option value="republic" id="option-republic">Repubblica</option>
-                    <option value="monarchy" id="option-monarchy">Monarchia</option>
-                    <option value="theocracy" id="option-theocracy">Teocrazia</option>
-                    <option value="anarchy" id="option-anarchy">Anarchia</option>
+    <div class="center-container">
+        <div class="main-ui">
+            <!-- MENU LINGUA -->
+            <div class="language-select">
+                <label for="language-menu" style="margin-right:6px;">
+                    <img src="https://flagcdn.com/it.svg" width="28" alt="Italiano" id="flag-current" class="flag-icon">
+                </label>
+                <select id="language-menu">
+                    <option value="en" data-flag="gb">&#127468;&#127463; English</option>
+                    <option value="it" data-flag="it">&#127470;&#127481; Italiano</option>
+                    <option value="es" data-flag="es">&#127466;&#127480; Español</option>
+                    <option value="fr" data-flag="fr">&#127467;&#127479; Français</option>
+                    <option value="de" data-flag="de">&#127465;&#127466; Deutsch</option>
                 </select>
             </div>
-        </form>
 
-        <!-- PULSANTI COLORATI -->
-        <div class="actions">
-            <button type="button" id="create-game-btn" class="action-btn potato-yellow">Crea partita</button>
-            <button type="button" id="join-game-btn" class="action-btn sky-blue">Unisciti a partita</button>
+            <!-- TITOLO -->
+            <h1 id="title">Geopolitical Game</h1>
+
+            <!-- FORM NAZIONE E GOVERNO -->
+            <form id="nation-form" autocomplete="off">
+                <div class="form-group">
+                    <label for="nation-name" id="label-nation-name">Nome della Nazione</label>
+                    <input type="text" id="nation-name" name="nation-name" placeholder="Inserisci il nome della nazione" required maxlength="20">
+                </div>
+                <div class="form-group">
+                    <label for="government-type" id="label-government-type">Forma di Governo</label>
+                    <select id="government-type" name="government-type" required>
+                        <option value="" id="option-select">Seleziona...</option>
+                        <option value="dictatorship" id="option-dictatorship">Dittatura</option>
+                        <option value="republic" id="option-republic">Repubblica</option>
+                        <option value="monarchy" id="option-monarchy">Monarchia</option>
+                        <option value="theocracy" id="option-theocracy">Teocrazia</option>
+                        <option value="anarchy" id="option-anarchy">Anarchia</option>
+                    </select>
+                </div>
+            </form>
+
+            <!-- PULSANTI COLORATI -->
+            <div class="actions">
+                <button type="button" id="create-game-btn" class="action-btn potato-yellow">Crea partita</button>
+                <button type="button" id="join-game-btn" class="action-btn sky-blue">Unisciti a partita</button>
+            </div>
+
+            <!-- FORM UNISCITI -->
+            <div id="join-form" style="display:none;">
+                <input type="text" id="game-code-input" placeholder="Inserisci codice partita" maxlength="8">
+                <button type="button" id="join-submit-btn" class="action-btn sky-blue">Entra</button>
+            </div>
+
+            <!-- PANEL CODICE PARTITA -->
+            <div id="game-code-panel" style="display:none;">
+                <div class="game-code-label" id="game-code-label"></div>
+                <div class="game-code-value" id="game-code-value"></div>
+            </div>
+
+            <!-- OUTPUT -->
+            <div class="output" id="output"></div>
         </div>
-
-        <!-- FORM UNISCITI -->
-        <div id="join-form" style="display:none;">
-            <input type="text" id="game-code-input" placeholder="Inserisci codice partita" maxlength="8">
-            <button type="button" id="join-submit-btn" class="action-btn sky-blue">Entra</button>
-        </div>
-
-        <!-- PANEL CODICE PARTITA -->
-        <div id="game-code-panel" style="display:none;">
-            <div class="game-code-label" id="game-code-label"></div>
-            <div class="game-code-value" id="game-code-value"></div>
-        </div>
-
-        <!-- OUTPUT -->
-        <div class="output" id="output"></div>
     </div>
     <div class="bottom-bar">
         <div class="credit">
