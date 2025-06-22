@@ -8,21 +8,32 @@
     --input-bg: rgba(255,255,255,0.12);
 }
 
-/* Sfondo bandiera intera copre tutto, sotto la UI */
+/* Sfondo bandiera a schermo intero sotto la UI */
 .background-flag {
     position: fixed;
-    z-index: 1;
     inset: 0;
     width: 100vw;
     height: 100vh;
-    background-size: cover;
-    background-position: center center;
-    background-repeat: no-repeat;
-    opacity: 0.33;
-    filter: blur(2px) brightness(0.9);
-    transition: background-image 0.7s cubic-bezier(.7,.18,.42,1.01);
+    z-index: 1;
     pointer-events: none;
     user-select: none;
+    overflow: hidden;
+}
+.background-flag img {
+    position: fixed;
+    inset: 0;
+    width: 100vw;
+    height: 100vh;
+    min-width: 100vw;
+    min-height: 100vh;
+    object-fit: cover;
+    object-position: center;
+    opacity: 0.33;
+    transition: opacity 0.5s;
+    filter: blur(2px) brightness(0.9);
+    pointer-events: none;
+    user-select: none;
+    z-index: 1;
 }
 
 html, body {
