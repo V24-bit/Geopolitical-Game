@@ -27,12 +27,173 @@ function changeFlagBackground() {
 changeFlagBackground();
 setInterval(changeFlagBackground, 3000);
 
-// === MULTILINGUA + SERVER ===
+// === MULTILINGUA ===
 const translations = {
-  //... [le tue traduzioni, come già presenti] ...
-  // -- lascia uguale tutto il blocco delle traduzioni --
-  // Copia qui l'intero blocco translations dal tuo file attuale, non serve riscriverlo
-  // ...
+  en: {
+    title: "Geopolitical Game",
+    labelNation: "Nation name:",
+    labelGovernment: "Form of Government:",
+    optionSelect: "Select...",
+    optionDictatorship: "Dictatorship",
+    optionRepublic: "Republic",
+    optionMonarchy: "Monarchy",
+    optionTheocracy: "Theocracy",
+    optionAnarchy: "Anarchy",
+    confirm: "Confirm",
+    createdNation: "Nation created:",
+    name: "Name:",
+    government: "Form of Government:",
+    createGame: "Create Game",
+    joinGame: "Join Game",
+    serverCreated: "Game created!",
+    yourServerCode: "Your game code:",
+    waitingPlayer: "Waiting for a player to join...",
+    insertCode: "Insert game code:",
+    join: "Join",
+    back: "Back",
+    invalidCode: "Invalid code. Please try again.",
+    gameTitle: "Game Room",
+    di: "of",
+    forms: {
+      dictatorship: "The dictatorship of",
+      republic: "The republic of",
+      monarchy: "The kingdom of",
+      theocracy: "The theocracy of",
+      anarchy: "The anarchy of"
+    }
+  },
+  it: {
+    title: "Geopolitical Game",
+    labelNation: "Nome della Nazione:",
+    labelGovernment: "Forma di Governo:",
+    optionSelect: "Seleziona...",
+    optionDictatorship: "Dittatura",
+    optionRepublic: "Repubblica",
+    optionMonarchy: "Monarchia",
+    optionTheocracy: "Teocrazia",
+    optionAnarchy: "Anarchia",
+    confirm: "Conferma",
+    createdNation: "Nazione creata:",
+    name: "Nome:",
+    government: "Forma di governo:",
+    createGame: "Crea partita",
+    joinGame: "Unisciti a partita",
+    serverCreated: "Partita creata!",
+    yourServerCode: "Codice partita:",
+    waitingPlayer: "In attesa che un giocatore si unisca...",
+    insertCode: "Inserisci codice partita:",
+    join: "Entra",
+    back: "Indietro",
+    invalidCode: "Codice non valido. Riprova.",
+    gameTitle: "Stanza di gioco",
+    di: "di",
+    forms: {
+      dictatorship: "La dittatura di",
+      republic: "La repubblica di",
+      monarchy: "Il regno di",
+      theocracy: "La teocrazia di",
+      anarchy: "L'anarchia di"
+    }
+  },
+  es: {
+    title: "Geopolitical Game",
+    labelNation: "Nombre de la Nación:",
+    labelGovernment: "Forma de Gobierno:",
+    optionSelect: "Selecciona...",
+    optionDictatorship: "Dictadura",
+    optionRepublic: "República",
+    optionMonarchy: "Monarquía",
+    optionTheocracy: "Teocracia",
+    optionAnarchy: "Anarquía",
+    confirm: "Confirmar",
+    createdNation: "Nación creada:",
+    name: "Nombre:",
+    government: "Forma de Gobierno:",
+    createGame: "Crear partida",
+    joinGame: "Unirse a partida",
+    serverCreated: "¡Partida creada!",
+    yourServerCode: "Código de la partida:",
+    waitingPlayer: "Esperando a que un jugador se una...",
+    insertCode: "Introduce el código de la partida:",
+    join: "Unirse",
+    back: "Atrás",
+    invalidCode: "Código no válido. Inténtalo de nuevo.",
+    gameTitle: "Sala de juego",
+    di: "de",
+    forms: {
+      dictatorship: "La dictadura de",
+      republic: "La república de",
+      monarchy: "El reino de",
+      theocracy: "La teocracia de",
+      anarchy: "La anarquía de"
+    }
+  },
+  fr: {
+    title: "Geopolitical Game",
+    labelNation: "Nom de la Nation:",
+    labelGovernment: "Forme de gouvernement:",
+    optionSelect: "Sélectionner...",
+    optionDictatorship: "Dictature",
+    optionRepublic: "République",
+    optionMonarchy: "Monarchie",
+    optionTheocracy: "Théocratie",
+    optionAnarchy: "Anarchie",
+    confirm: "Confirmer",
+    createdNation: "Nation créée:",
+    name: "Nom:",
+    government: "Forme de gouvernement:",
+    createGame: "Créer une partie",
+    joinGame: "Rejoindre une partie",
+    serverCreated: "Partie créée !",
+    yourServerCode: "Code de la partie :",
+    waitingPlayer: "En attente qu'un joueur rejoigne...",
+    insertCode: "Insérez le code de la partie :",
+    join: "Rejoindre",
+    back: "Retour",
+    invalidCode: "Code invalide. Veuillez réessayer.",
+    gameTitle: "Salle de jeu",
+    di: "de",
+    forms: {
+      dictatorship: "La dictature de",
+      republic: "La république de",
+      monarchy: "Le royaume de",
+      theocracy: "La théocratie de",
+      anarchy: "L'anarchie de"
+    }
+  },
+  de: {
+    title: "Geopolitical Game",
+    labelNation: "Name der Nation:",
+    labelGovernment: "Regierungsform:",
+    optionSelect: "Auswählen...",
+    optionDictatorship: "Diktatur",
+    optionRepublic: "Republik",
+    optionMonarchy: "Monarchie",
+    optionTheocracy: "Theokratie",
+    optionAnarchy: "Anarchie",
+    confirm: "Bestätigen",
+    createdNation: "Nation erstellt:",
+    name: "Name:",
+    government: "Regierungsform:",
+    createGame: "Spiel erstellen",
+    joinGame: "Spiel beitreten",
+    serverCreated: "Spiel erstellt!",
+    yourServerCode: "Dein Spielcode:",
+    waitingPlayer: "Warten auf einen Mitspieler...",
+    insertCode: "Spielcode eingeben:",
+    join: "Beitreten",
+    back: "Zurück",
+    invalidCode: "Ungültiger Code. Bitte versuche es erneut.",
+    gameTitle: "Spielraum",
+    di: "von",
+    forms: {
+      dictatorship: "Die Diktatur von",
+      republic: "Die Republik von",
+      monarchy: "Das Königreich von",
+      theocracy: "Die Theokratie von",
+      anarchy: "Die Anarchie von"
+    }
+  }
 };
 
 const flagMap = {
@@ -55,160 +216,116 @@ function setLanguage(lang) {
   document.getElementById('option-theocracy').innerText = t.optionTheocracy;
   document.getElementById('option-anarchy').innerText = t.optionAnarchy;
   document.getElementById('confirm-btn').innerText = t.confirm;
-  document.getElementById('create-server-btn').innerText = t.createServer;
-  document.getElementById('join-server-btn').innerText = t.joinServer;
-  document.getElementById('server-created-msg').innerText = t.serverCreated;
-  document.getElementById('server-code-label').innerText = t.yourServerCode;
-  document.getElementById('wait-player-msg').innerText = t.waitingPlayer;
-  document.getElementById('insert-code-label').innerText = t.insertCode;
-  document.getElementById('submit-join-btn').innerText = t.join;
-  document.getElementById('back-btn-1').innerText = t.back;
-  document.getElementById('back-btn-2').innerText = t.back;
-  document.getElementById('game-title').innerText = t.gameTitle;
+  document.getElementById('create-game-btn').innerText = t.createGame;
+  document.getElementById('join-game-btn').innerText = t.joinGame;
+  document.getElementById('game-title') && (document.getElementById('game-title').innerText = t.gameTitle);
   document.getElementById('flag-current').src = `https://flagcdn.com/${flagMap[lang]}.svg`;
   document.getElementById('flag-current').alt = lang;
+  // aggiorna altri elementi se necessario
 }
+
+let currentLang = "it";
+if (localStorage.getItem('lang')) currentLang = localStorage.getItem('lang');
+setLanguage(currentLang);
 
 document.getElementById("language-menu").addEventListener('change', function() {
   const lang = this.value;
   setLanguage(lang);
   currentLang = lang;
+  localStorage.setItem('lang', lang);
   document.getElementById("output").innerHTML = "";
 });
 
-let currentLang = "en";
-setLanguage(currentLang);
-
-// === SERVER LOBBY MULTI-DISPOSITIVO CON FIREBASE ===
-
-function generateServerCode() {
-    const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-    let code = "";
-    for (let i = 0; i < 6; i++) code += chars[Math.floor(Math.random() * chars.length)];
+// === LOBBY CON FIREBASE ===
+function generateGameCode(length = 6) {
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    let code = '';
+    for (let i = 0; i < length; i++) {
+        code += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
     return code;
 }
-let myServerCode = null;
-let myRole = null; // "creator" or "guest"
-let myInfo = null;
-let pendingJoin = false;
 
-// CREA SERVER
-document.getElementById('create-server-btn').onclick = function() {
-    document.getElementById('server-actions').style.display = 'none';
-    document.getElementById('server-panel').style.display = '';
-    document.getElementById('server-create-panel').style.display = '';
-    document.getElementById('server-join-panel').style.display = 'none';
-    myServerCode = generateServerCode();
-    document.getElementById('server-code').innerText = myServerCode;
-    myRole = "creator";
-    // Crea la stanza su Firebase
-    firebase.database().ref('games/' + myServerCode).set({
-        creator: null,
-        guest: null,
-        createdAt: Date.now()
+const createBtn = document.getElementById('create-game-btn');
+const joinBtn = document.getElementById('join-game-btn');
+const joinForm = document.getElementById('join-form');
+const codeDisplay = document.getElementById('game-code-display');
+const outputDiv = document.getElementById('output');
+let myGameCode = null;
+let myPlayerId = null;
+let isHost = false;
+
+createBtn.addEventListener('click', function() {
+    const code = generateGameCode();
+    myGameCode = code;
+    myPlayerId = "host-" + Math.random().toString(36).substr(2, 9);
+    isHost = true;
+    // Salva la partita su Firebase
+    firebase.database().ref('games/' + code).set({
+        createdAt: Date.now(),
+        players: {
+            [myPlayerId]: {
+                joinedAt: Date.now(),
+                isHost: true
+            }
+        }
+    }).then(() => {
+        codeDisplay.textContent = translations[currentLang].yourServerCode + " " + code;
+        codeDisplay.style.display = "block";
+        joinForm.style.display = "none";
+        outputDiv.textContent = translations[currentLang].serverCreated + " " + translations[currentLang].waitingPlayer;
+        localStorage.setItem('gameCode', code);
+        localStorage.setItem('playerId', myPlayerId);
+    }).catch(err => {
+        outputDiv.textContent = "Errore nella creazione della partita: " + err.message;
     });
-};
+});
 
-// UNISCITI SERVER
-document.getElementById('join-server-btn').onclick = function() {
-    document.getElementById('server-actions').style.display = 'none';
-    document.getElementById('server-panel').style.display = '';
-    document.getElementById('server-create-panel').style.display = 'none';
-    document.getElementById('server-join-panel').style.display = '';
-    myRole = "guest";
-};
+joinBtn.addEventListener('click', function() {
+    joinForm.style.display = "flex";
+    codeDisplay.style.display = "none";
+});
 
-// TORNA INDIETRO
-document.getElementById('back-btn-1').onclick = document.getElementById('back-btn-2').onclick = function() {
-    document.getElementById('server-actions').style.display = '';
-    document.getElementById('server-panel').style.display = 'none';
-    document.getElementById('server-create-panel').style.display = 'none';
-    document.getElementById('server-join-panel').style.display = 'none';
-    document.getElementById('join-error').innerText = '';
-    myServerCode = null;
-    myRole = null;
-    pendingJoin = false;
-};
+joinForm.addEventListener('submit', function(e) {
+    e.preventDefault();
+    const code = document.getElementById('game-code-input').value.trim().toUpperCase();
+    if (!code) {
+        outputDiv.textContent = translations[currentLang].invalidCode;
+        return;
+    }
+    // Verifica se la partita esiste su Firebase
+    firebase.database().ref('games/' + code).once('value').then(snapshot => {
+        if (snapshot.exists()) {
+            myGameCode = code;
+            myPlayerId = "user-" + Math.random().toString(36).substr(2, 9);
+            isHost = false;
+            firebase.database().ref('games/' + code + '/players/' + myPlayerId).set({
+                joinedAt: Date.now(),
+                isHost: false
+            });
+            outputDiv.textContent = translations[currentLang].waitingPlayer;
+            codeDisplay.style.display = "none";
+            joinForm.style.display = "none";
+            localStorage.setItem('gameCode', code);
+            localStorage.setItem('playerId', myPlayerId);
+        } else {
+            outputDiv.textContent = translations[currentLang].invalidCode;
+        }
+    }).catch(err => {
+        outputDiv.textContent = "Errore durante la verifica: " + err.message;
+    });
+});
 
-// CREA LA NAZIONE
+// NAZIONE
 document.getElementById('nation-form').addEventListener('submit', function(e) {
     e.preventDefault();
     const nationName = document.getElementById('nation-name').value.trim();
     const government = document.getElementById('government-type').value;
     const t = translations[currentLang];
     if (nationName && government) {
-        myInfo = { name: nationName, gov: government };
-        if (myRole === "creator" && myServerCode) {
-            // Salva info creator su Firebase
-            firebase.database().ref('games/' + myServerCode + '/creator').set(myInfo).then(()=>{
-                showGameInterface(myServerCode);
-            });
-        } else if (myRole === "guest" && pendingJoin && myServerCode) {
-            // Salva info guest su Firebase
-            firebase.database().ref('games/' + myServerCode + '/guest').set(myInfo).then(()=>{
-                showGameInterface(myServerCode);
-            });
-        } else if (myRole === "guest" && myServerCode) {
-            pendingJoin = true;
-            document.getElementById('nation-form').style.display = 'none';
-            document.getElementById('output').style.display = '';
-            document.getElementById('output').innerHTML = "Now click 'Join' to enter the server.";
-        } else {
-            document.getElementById('output').innerHTML =
-                `<h2>${t.createdNation}</h2>
-                 <p><strong>${t.name}</strong> ${nationName}</p>
-                 <p><strong>${t.government}</strong> ${document.getElementById('government-type').options[document.getElementById('government-type').selectedIndex].text}</p>`;
-        }
+        outputDiv.innerHTML =
+            `<h2>${t.createdNation}</h2>
+             <p><strong>${t.name}</strong> ${nationName}</p>
+             <p><strong>${t.government}</strong> ${document.getElementById('government-type').options[document.getElementById('government-type').selectedIndex].text}</p>`;
     }
 });
-
-// UNISCITI (VERIFICA IL CODICE E SCRIVI SU FIREBASE)
-document.getElementById('submit-join-btn').onclick = function() {
-    const code = document.getElementById('join-code').value.toUpperCase();
-    const t = translations[currentLang];
-    firebase.database().ref('games/' + code).once('value').then(snapshot => {
-        if (snapshot.exists() && !snapshot.val().guest) {
-            myServerCode = code;
-            if (!myInfo) {
-                // Chiedi di compilare il form
-                document.getElementById('server-panel').style.display = 'none';
-                document.getElementById('nation-form').style.display = '';
-                document.getElementById('output').style.display = 'none';
-                pendingJoin = true;
-            } else {
-                firebase.database().ref('games/' + code + '/guest').set(myInfo).then(()=>{
-                    showGameInterface(code);
-                });
-            }
-            document.getElementById('join-error').innerText = '';
-        } else {
-            document.getElementById('join-error').innerText = t.invalidCode;
-        }
-    });
-};
-
-// MOSTRA INTERFACCIA DI GIOCO E AGGIORNA IN TEMPO REALE LA LOBBY
-function showGameInterface(code) {
-    document.getElementById('server-actions').style.display = 'none';
-    document.getElementById('server-panel').style.display = 'none';
-    document.getElementById('nation-form').style.display = 'none';
-    document.getElementById('output').style.display = 'none';
-    document.getElementById('game-interface').style.display = '';
-    firebase.database().ref('games/' + code).on('value', function(snapshot) {
-        updatePlayersList(snapshot.val());
-    });
-}
-
-function updatePlayersList(server) {
-    const t = translations[currentLang];
-    let html = "";
-    if (server && server.creator) {
-        html += `<div>${t.forms[server.creator.gov]} ${server.creator.name}</div>`;
-    }
-    if (server && server.guest) {
-        html += `<div>${t.forms[server.guest.gov]} ${server.guest.name}</div>`;
-    } else if (myRole === "creator") {
-        html += `<div style="opacity:.6">${t.waitingPlayer}</div>`;
-    }
-    document.getElementById('players-list').innerHTML = html;
-}
