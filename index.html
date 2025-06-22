@@ -23,37 +23,37 @@
             </div>
 
             <!-- TITOLO -->
-            <h1 id="title">Geopolitical Game</h1>
+            <h1 id="title" data-i18n="title">Geopolitical Game</h1>
 
             <!-- FORM NAZIONE E GOVERNO -->
             <form id="nation-form" autocomplete="off">
                 <div class="form-group">
-                    <label for="nation-name" id="label-nation-name">Nome della Nazione</label>
-                    <input type="text" id="nation-name" name="nation-name" placeholder="Inserisci il nome della nazione" required maxlength="20">
+                    <label for="nation-name" id="label-nation-name" data-i18n="nation_name_label">Nome della Nazione</label>
+                    <input type="text" id="nation-name" name="nation-name" placeholder="Inserisci il nome della nazione" required maxlength="20" data-i18n-placeholder="nation_name_placeholder">
                 </div>
                 <div class="form-group">
-                    <label for="government-type" id="label-government-type">Forma di Governo</label>
+                    <label for="government-type" id="label-government-type" data-i18n="government_type_label">Forma di Governo</label>
                     <select id="government-type" name="government-type" required>
-                        <option value="" id="option-select">Seleziona...</option>
-                        <option value="dictatorship" id="option-dictatorship">Dittatura</option>
-                        <option value="republic" id="option-republic">Repubblica</option>
-                        <option value="monarchy" id="option-monarchy">Monarchia</option>
-                        <option value="theocracy" id="option-theocracy">Teocrazia</option>
-                        <option value="anarchy" id="option-anarchy">Anarchia</option>
+                        <option value="" id="option-select" data-i18n="select_option">Seleziona...</option>
+                        <option value="dictatorship" id="option-dictatorship" data-i18n="dictatorship">Dittatura</option>
+                        <option value="republic" id="option-republic" data-i18n="republic">Repubblica</option>
+                        <option value="monarchy" id="option-monarchy" data-i18n="monarchy">Monarchia</option>
+                        <option value="theocracy" id="option-theocracy" data-i18n="theocracy">Teocrazia</option>
+                        <option value="anarchy" id="option-anarchy" data-i18n="anarchy">Anarchia</option>
                     </select>
                 </div>
             </form>
 
             <!-- PULSANTI COLORATI -->
             <div class="actions">
-                <button type="button" id="create-game-btn" class="action-btn potato-yellow">Crea partita</button>
-                <button type="button" id="join-game-btn" class="action-btn sky-blue">Unisciti a partita</button>
+                <button type="button" id="create-game-btn" class="action-btn potato-yellow" data-i18n="create_game">Crea partita</button>
+                <button type="button" id="join-game-btn" class="action-btn sky-blue" data-i18n="join_game">Unisciti a partita</button>
             </div>
 
             <!-- FORM UNISCITI -->
             <div id="join-form" style="display:none;">
-                <input type="text" id="game-code-input" placeholder="Inserisci codice partita" maxlength="8">
-                <button type="button" id="join-submit-btn" class="action-btn sky-blue">Entra</button>
+                <input type="text" id="game-code-input" placeholder="Inserisci codice partita" maxlength="8" data-i18n-placeholder="game_code_placeholder">
+                <button type="button" id="join-submit-btn" class="action-btn sky-blue" data-i18n="enter_button">Entra</button>
             </div>
 
             <!-- PANEL CODICE PARTITA -->
@@ -71,10 +71,108 @@
             Made by <a href="https://github.com/V24-bit" class="v24-blue" target="_blank">V24-bit</a>
         </div>
     </div>
-    <script src="https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/11.9.1/firebase-database.js"></script>
     <script>
-    // Bandiera aggiornata sia al caricamento che al cambio lingua
+    // Dizionario traduzioni
+    const translations = {
+        en: {
+            title: "Geopolitical Game",
+            nation_name_label: "Nation Name",
+            nation_name_placeholder: "Enter nation name",
+            government_type_label: "Government Type",
+            select_option: "Select...",
+            dictatorship: "Dictatorship",
+            republic: "Republic",
+            monarchy: "Monarchy",
+            theocracy: "Theocracy",
+            anarchy: "Anarchy",
+            create_game: "Create Game",
+            join_game: "Join Game",
+            game_code_placeholder: "Enter game code",
+            enter_button: "Enter"
+        },
+        it: {
+            title: "Geopolitical Game",
+            nation_name_label: "Nome della Nazione",
+            nation_name_placeholder: "Inserisci il nome della nazione",
+            government_type_label: "Forma di Governo",
+            select_option: "Seleziona...",
+            dictatorship: "Dittatura",
+            republic: "Repubblica",
+            monarchy: "Monarchia",
+            theocracy: "Teocrazia",
+            anarchy: "Anarchia",
+            create_game: "Crea partita",
+            join_game: "Unisciti a partita",
+            game_code_placeholder: "Inserisci codice partita",
+            enter_button: "Entra"
+        },
+        es: {
+            title: "Geopolitical Game",
+            nation_name_label: "Nombre de la Nación",
+            nation_name_placeholder: "Introduce el nombre de la nación",
+            government_type_label: "Forma de Gobierno",
+            select_option: "Seleccionar...",
+            dictatorship: "Dictadura",
+            republic: "República",
+            monarchy: "Monarquía",
+            theocracy: "Teocracia",
+            anarchy: "Anarquía",
+            create_game: "Crear partida",
+            join_game: "Unirse a partida",
+            game_code_placeholder: "Introduce código de partida",
+            enter_button: "Entrar"
+        },
+        fr: {
+            title: "Geopolitical Game",
+            nation_name_label: "Nom de la Nation",
+            nation_name_placeholder: "Entrez le nom de la nation",
+            government_type_label: "Type de Gouvernement",
+            select_option: "Sélectionner...",
+            dictatorship: "Dictature",
+            republic: "République",
+            monarchy: "Monarchie",
+            theocracy: "Théocratie",
+            anarchy: "Anarchie",
+            create_game: "Créer une partie",
+            join_game: "Rejoindre une partie",
+            game_code_placeholder: "Entrez le code de la partie",
+            enter_button: "Entrer"
+        },
+        de: {
+            title: "Geopolitical Game",
+            nation_name_label: "Name der Nation",
+            nation_name_placeholder: "Namen der Nation eingeben",
+            government_type_label: "Staatsform",
+            select_option: "Auswählen...",
+            dictatorship: "Diktatur",
+            republic: "Republik",
+            monarchy: "Monarchie",
+            theocracy: "Theokratie",
+            anarchy: "Anarchie",
+            create_game: "Spiel erstellen",
+            join_game: "Spiel beitreten",
+            game_code_placeholder: "Spielcode eingeben",
+            enter_button: "Beitreten"
+        }
+    };
+
+    // Funzione traduzione dinamica
+    function translatePage(lang) {
+        document.querySelectorAll('[data-i18n]').forEach(el => {
+            const key = el.getAttribute('data-i18n');
+            if (translations[lang] && translations[lang][key]) {
+                el.textContent = translations[lang][key];
+            }
+        });
+        document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+            const key = el.getAttribute('data-i18n-placeholder');
+            if (translations[lang] && translations[lang][key]) {
+                el.placeholder = translations[lang][key];
+            }
+        });
+    }
+
+    // Cambio bandiera e lingua
     document.addEventListener('DOMContentLoaded', function() {
         const flagMap = {
             en: 'gb',
@@ -86,15 +184,16 @@
         const langMenu = document.getElementById('language-menu');
         const flagImg = document.getElementById('flag-current');
 
-        function updateFlag() {
+        function updateFlagAndLang() {
             const lang = langMenu.value;
             const flagCode = flagMap[lang] || 'gb';
             flagImg.src = `https://flagcdn.com/${flagCode}.svg`;
             flagImg.alt = langMenu.options[langMenu.selectedIndex].text;
+            translatePage(lang);
         }
 
-        langMenu.addEventListener('change', updateFlag);
-        updateFlag(); // aggiorna subito anche al caricamento
+        langMenu.addEventListener('change', updateFlagAndLang);
+        updateFlagAndLang(); // All'avvio
     });
     </script>
     <script src="main.js"></script>
