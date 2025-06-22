@@ -1,28 +1,16 @@
 :root {
-    --main-bg: #12062a;
-    --glass-bg: rgba(25, 11, 54, 0.82);
-    --glass-blur: blur(8px);
     --neon-blue: #18ffff;
     --neon-pink: #ea00d9;
     --neon-yellow: #ffee00;
     --neon-lime: #00ffb3;
-    --gradient-main: linear-gradient(90deg, #18ffff 0%, #ea00d9 60%, #ffee00 100%);
-    --gradient-btn: linear-gradient(90deg, #18ffff 0%, #ea00d9 50%, #ffee00 100%);
+    --main-bg: #12062a;
+    --glass-bg: rgba(255,255,255, 0.13);
+    --glass-blur: blur(18px);
     --white: #fff;
-    --dark: #12062a;
-    --input-bg: rgba(30,30,50,0.95);
+    --input-bg: rgba(255,255,255,0.12);
 }
 
-body {
-    background: var(--main-bg);
-    min-height: 100vh;
-    margin: 0;
-    color: var(--white);
-    font-family: 'Segoe UI', Arial, sans-serif;
-    position: relative;
-    overflow-x: hidden;
-}
-
+/* Sfondo bandiere animato */
 #animated-bg {
     position: fixed;
     inset: 0;
@@ -30,19 +18,209 @@ body {
     background-repeat: no-repeat;
     background-size: cover;
     background-position: center;
-    filter: saturate(1.7) blur(1.2px) brightness(0.88);
+    filter: saturate(1.6) blur(1px) brightness(0.90);
     transition: background-image 1s cubic-bezier(.86,.01,.38,1.03);
 }
 
+/* Overlay solo per readability minima, ma trasparente! */
 .background-overlay {
     position: fixed;
     inset: 0;
-    background: radial-gradient(circle at 48% 22%, #18ffff33 0%, #ea00d933 40%, #12062aee 90%);
+    background: radial-gradient(circle at 48% 22%, #18ffff33 0%, #ea00d933 40%, transparent 100%);
     z-index: 1;
     pointer-events: none;
     mix-blend-mode: lighten;
 }
 
+/* Card centrale: glass effect ultra trasparente */
+.container {
+    background: var(--glass-bg);
+    border-radius: 28px;
+    box-shadow: 0 8px 64px 0 #18ffff44, 0 2px 10px #ea00d955;
+    padding: 2.5rem 2rem 2.2rem 2rem;
+    max-width: 430px;
+    width: 96vw;
+    margin: 4.5rem auto 2.8rem auto;
+    text-align: center;
+    position: relative;
+    z-index: 2;
+    backdrop-filter: var(--glass-blur) saturate(1.3);
+    border: 2.5px solid #18ffff77;
+}
+
+/* Nessun background nelle actions */
+.actions {
+    background: transparent;
+    box-shadow: none;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    margin-bottom: 1.7rem;
+}
+
+/* Titolo brillante e gradient */
+h1 {
+    font-size: 2.3rem;
+    font-weight: 900;
+    margin-bottom: 2rem;
+    letter-spacing: 1.5px;
+    background: linear-gradient(90deg, #18ffff 10%, #ea00d9 60%, #ffee00 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-fill-color: transparent;
+    text-shadow: 0 2px 18px #ffee00, 0 2px 12px #18ffff, 0 4px 24px #ea00d9;
+}
+
+/* Label neon */
+label {
+    font-weight: 700;
+    margin-bottom: 0.4rem;
+    color: var(--neon-lime);
+    text-align: left;
+    font-size: 1.09rem;
+    text-shadow: 0 2px 8px #18ffff44;
+}
+
+/* Input & select: vetro e neon */
+input, select {
+    width: 100%;
+    padding: 0.85rem 1.15rem;
+    margin-bottom: 1.4rem;
+    font-size: 1.15rem;
+    border: 2.5px solid #18ffff66;
+    border-radius: 15px;
+    outline: none;
+    background: var(--input-bg);
+    color: #fff;
+    box-shadow: 0 2px 18px #ea00d933;
+    transition: background 0.24s, box-shadow 0.25s, border 0.19s;
+    font-weight: 500;
+    letter-spacing: 0.03em;
+}
+
+input:focus, select:focus {
+    background: #d500f933;
+    box-shadow: 0 4px 28px #ffee0077, 0 2px 18px #18ffff99;
+    border: 2.6px solid #ffee00;
+    color: #fff;
+}
+
+/* Bottoni: gradienti neon */
+.animated-btn {
+    padding: 1.1rem 1.18rem;
+    font-size: 1.19rem;
+    font-weight: 900;
+    border: none;
+    border-radius: 19px;
+    cursor: pointer;
+    background: linear-gradient(270deg, #ff8c00, #ea00d9, #18ffff, #ffee00, #ff8c00);
+    background-size: 1700% 1000%;
+    color: #fff;
+    transition: transform 0.11s, box-shadow 0.17s;
+    box-shadow: 0 2px 24px #18ffff66, 0 2px 12px #ea00d977;
+    outline: none;
+    animation: gradientLoop 4s ease-in-out infinite;
+    text-shadow: 0 2px 10px #000b, 0 2px 18px #18ffff66;
+    margin-bottom: 0.3rem;
+    letter-spacing: 0.06em;
+}
+.animated-btn:hover {
+    transform: scale(1.055);
+    box-shadow: 0 8px 44px #ffee0099, 0 4px 21px #ea00d988;
+}
+@keyframes gradientLoop {
+    0%   {background-position:0% 50%;}
+    50%  {background-position:100% 50%;}
+    100% {background-position:0% 50%;}
+}
+
+/* Codice partita: badge colorato */
+#game-code-panel {
+    margin: 2.1rem 0 0.7rem 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.42rem;
+    background: transparent;
+    box-shadow: none;
+}
+
+.game-code-label {
+    color: #ffee00;
+    font-size: 1.16rem;
+    letter-spacing: 0.09em;
+    font-weight: bold;
+    text-shadow: 0 1px 9px #18ffff, 0 2px 8px #ea00d9;
+    background: transparent;
+}
+
+.game-code-value {
+    font-size: 1.8rem;
+    font-weight: bold;
+    letter-spacing: 0.28em;
+    color: #fff;
+    background: linear-gradient(90deg, #18ffff 30%, #ea00d9 70%);
+    padding: 0.77rem 2.2rem;
+    border-radius: 19px;
+    box-shadow: 0 6px 36px #ffee00, 0 2px 12px #ea00d9;
+    text-shadow: 0 2px 20px #18ffff, 0 1px 10px #ffee00;
+    border: 2.4px solid #ffee00;
+}
+
+/* Output */
+.output {
+    margin-top: 1.2rem;
+    font-size: 1.19rem;
+    min-height: 2em;
+    color: #fff;
+    text-shadow: 0 1px 9px #191e38;
+    font-weight: 500;
+    background: transparent;
+}
+
+/* Credit fluttuante */
+.bottom-bar {
+    position: fixed;
+    right: 23px;
+    bottom: 23px;
+    z-index: 100;
+    display: flex;
+    flex-direction: row;
+    align-items: flex-end;
+    gap: 19px;
+}
+.credit {
+    font-size: 1.07rem;
+    color: #fff;
+    background: linear-gradient(90deg, #18ffff 10%, #ea00d9 90%);
+    padding: 8px 20px;
+    border-radius: 10px;
+    font-family: inherit;
+    box-shadow: 0 2px 8px #18ffff35;
+    font-weight: 700;
+    border: 2px solid #ffee00;
+    text-shadow: 0 1px 7px #12062a;
+}
+.credit a {
+    color: #12062a;
+    text-decoration: none;
+    font-weight: bold;
+    transition: color 0.18s;
+}
+.credit a.v24-blue {
+    color: #00e6e6 !important;
+    text-shadow: 0 0 5px #00cfff60;
+    font-weight: bold;
+}
+.credit a.v24-blue:hover {
+    color: #ea00d9 !important;
+}
+.credit a:hover {
+    color: #ffee00;
+}
+
+/* Navbar lingua neon */
 .language-select {
     position: fixed;
     top: 30px;
@@ -86,184 +264,6 @@ body {
     vertical-align: middle;
     border-radius: 8px;
     box-shadow: 0 1px 9px #18ffff99, 0 2px 10px #ea00d955;
-}
-
-.container {
-    position: relative;
-    z-index: 2;
-    margin: 4.5rem auto 2.8rem auto;
-    max-width: 430px;
-    width: 96vw;
-    background: var(--glass-bg);
-    border-radius: 28px;
-    box-shadow: 0 8px 64px 0 #18ffff55, 0 2px 10px #ea00d988;
-    padding: 2.8rem 2.2rem 2.3rem 2.2rem;
-    text-align: center;
-    backdrop-filter: var(--glass-blur);
-    border: 3px solid #18ffffcc;
-}
-
-h1 {
-    font-size: 2.3rem;
-    font-weight: 900;
-    margin-bottom: 2rem;
-    letter-spacing: 1.5px;
-    background: var(--gradient-main);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    text-fill-color: transparent;
-    text-shadow: 0 2px 12px var(--neon-pink), 0 4px 24px #18ffff;
-}
-
-label {
-    font-weight: 700;
-    margin-bottom: 0.4rem;
-    color: var(--neon-lime);
-    text-align: left;
-    font-size: 1.09rem;
-    text-shadow: 0 2px 8px #18ffff44;
-}
-
-input, select {
-    width: 100%;
-    padding: 0.82rem 1.18rem;
-    margin-bottom: 1.4rem;
-    font-size: 1.12rem;
-    border: 2.5px solid #18ffff66;
-    border-radius: 15px;
-    outline: none;
-    background: var(--input-bg);
-    color: #fff;
-    box-shadow: 0 2px 18px #ea00d933;
-    transition: background 0.24s, box-shadow 0.25s, border 0.19s;
-    font-weight: 500;
-    letter-spacing: 0.03em;
-}
-
-input:focus, select:focus {
-    background: #1c1c55;
-    box-shadow: 0 4px 28px #ffee0077, 0 2px 18px #18ffff99;
-    border: 2.6px solid #ffee00;
-}
-
-select option {
-    color: #12062a;
-    background: #fff;
-    font-weight: 600;
-}
-
-.actions {
-    display: flex;
-    flex-direction: column;
-    gap: 18px;
-    margin-bottom: 1.7rem;
-}
-
-.animated-btn {
-    padding: 1.1rem 1.18rem;
-    font-size: 1.19rem;
-    font-weight: 900;
-    border: none;
-    border-radius: 19px;
-    cursor: pointer;
-    background: var(--gradient-btn);
-    background-size: 1700% 1000%;
-    color: #fff;
-    transition: transform 0.11s, box-shadow 0.17s;
-    box-shadow: 0 2px 24px #18ffff66, 0 2px 12px #ea00d977;
-    outline: none;
-    animation: gradientLoop 4s ease-in-out infinite;
-    text-shadow: 0 2px 10px #000b, 0 2px 18px #18ffff66;
-    margin-bottom: 0.3rem;
-    letter-spacing: 0.06em;
-}
-.animated-btn:hover {
-    transform: scale(1.055);
-    box-shadow: 0 8px 44px #ffee0099, 0 4px 21px #ea00d988;
-}
-@keyframes gradientLoop {
-    0%   {background-position:0% 50%;}
-    50%  {background-position:100% 50%;}
-    100% {background-position:0% 50%;}
-}
-
-#game-code-panel {
-    margin: 2.1rem 0 0.7rem 0;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.42rem;
-}
-
-.game-code-label {
-    color: #ffee00;
-    font-size: 1.16rem;
-    letter-spacing: 0.09em;
-    font-weight: bold;
-    text-shadow: 0 1px 9px #18ffff, 0 2px 8px #ea00d9;
-}
-
-.game-code-value {
-    font-size: 1.8rem;
-    font-weight: bold;
-    letter-spacing: 0.28em;
-    color: #fff;
-    background: linear-gradient(90deg, #18ffff 30%, #ea00d9 70%);
-    padding: 0.77rem 2.2rem;
-    border-radius: 19px;
-    box-shadow: 0 6px 36px #ffee00, 0 2px 12px #ea00d9;
-    text-shadow: 0 2px 20px #18ffff, 0 1px 10px #ffee00;
-    border: 2.4px solid #ffee00;
-}
-
-.output {
-    margin-top: 1.2rem;
-    font-size: 1.19rem;
-    min-height: 2em;
-    color: #fff;
-    text-shadow: 0 1px 9px #191e38;
-    font-weight: 500;
-}
-
-.bottom-bar {
-    position: fixed;
-    right: 23px;
-    bottom: 23px;
-    z-index: 100;
-    display: flex;
-    flex-direction: row;
-    align-items: flex-end;
-    gap: 19px;
-}
-.credit {
-    font-size: 1.07rem;
-    color: #fff;
-    background: linear-gradient(90deg, #18ffff 10%, #ea00d9 90%);
-    padding: 8px 20px;
-    border-radius: 10px;
-    font-family: inherit;
-    box-shadow: 0 2px 8px #18ffff35;
-    font-weight: 700;
-    border: 2px solid #ffee00;
-    text-shadow: 0 1px 7px #12062a;
-}
-.credit a {
-    color: #12062a;
-    text-decoration: none;
-    font-weight: bold;
-    transition: color 0.18s;
-}
-.credit a.v24-blue {
-    color: #00e6e6 !important;
-    text-shadow: 0 0 5px #00cfff60;
-    font-weight: bold;
-}
-.credit a.v24-blue:hover {
-    color: #ea00d9 !important;
-}
-.credit a:hover {
-    color: #ffee00;
 }
 
 @media (max-width: 600px) {
