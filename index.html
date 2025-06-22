@@ -1,67 +1,136 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="it">
 <head>
     <meta charset="UTF-8">
     <title>Geopolitical Game - Select Nation</title>
     <link rel="stylesheet" href="style.css">
     <style>
-        /* Crediti in basso a destra */
-        .credit {
-            position: fixed;
-            right: 20px;
-            bottom: 10px;
-            font-size: 14px;
-            color: #444;
-            background: rgba(255,255,255,0.7);
-            border-radius: 8px 0 0 0;
-            padding: 6px 12px;
-            z-index: 100;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+    html, body {
+        height: 100%;
+    }
+    body {
+        font-family: 'Segoe UI', Arial, sans-serif;
+        background: linear-gradient(135deg, #141e30 0%, #243b55 100%);
+        min-height: 100vh;
+        margin: 0;
+        color: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .container {
+        background: rgba(34, 40, 49, 0.92);
+        box-shadow: 0 8px 32px 0 rgba(0,0,0,0.37);
+        border-radius: 16px;
+        padding: 2.5rem 2rem;
+        max-width: 380px;
+        width: 95vw;
+        text-align: center;
+        position: relative;
+    }
+    h1 {
+        font-size: 2.1rem;
+        font-weight: 900;
+        margin-bottom: 2rem;
+        letter-spacing: 1px;
+        color: #f2f2f2;
+        text-shadow: 0 4px 12px #0008;
+    }
+    label {
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        display: block;
+        color: #e9e9ee;
+        text-align: left;
+    }
+    input, select {
+        width: 100%;
+        padding: 0.7rem 1rem;
+        margin-bottom: 1rem;
+        font-size: 1.1rem;
+        border: none;
+        border-radius: 8px;
+        outline: none;
+        background: #232946;
+        color: #fff;
+        box-shadow: 0 2px 10px #0003;
+        transition: background 0.2s;
+    }
+    input:focus, select:focus {
+        background: #39406a;
+    }
+    .actions {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        margin-bottom: 1.5rem;
+    }
+    .animated-btn {
+        padding: 0.85rem 1rem;
+        font-size: 1.15rem;
+        font-weight: bold;
+        border: none;
+        border-radius: 12px;
+        cursor: pointer;
+        background: linear-gradient(270deg, #ff8c00, #e52e71, #008cff, #5efce8, #ff8c00);
+        background-size: 1000% 1000%;
+        color: #fff;
+        transition: transform 0.1s, box-shadow 0.1s;
+        box-shadow: 0 2px 12px #0003;
+        outline: none;
+        animation: gradientLoop 5s ease-in-out infinite;
+        text-shadow: 0 2px 8px #0008;
+    }
+    .animated-btn:hover {
+        transform: scale(1.04);
+        box-shadow: 0 4px 24px #0005;
+    }
+    @keyframes gradientLoop {
+        0%   {background-position:0% 50%;}
+        50%  {background-position:100% 50%;}
+        100% {background-position:0% 50%;}
+    }
+
+    .code-display {
+        margin: 1.2rem 0 0.6rem 0;
+        font-size: 1.25rem;
+        font-weight: bold;
+        color: #52e5ff;
+        letter-spacing: 2px;
+        background: rgba(80,80,120,0.12);
+        border-radius: 7px;
+        padding: 0.6rem 0.5rem;
+        box-shadow: 0 2px 12px #0002;
+    }
+    .output {
+        margin-top: 1rem;
+        font-size: 1.07rem;
+        min-height: 2em;
+    }
+    .credit {
+        position: absolute;
+        bottom: 16px;
+        right: 24px;
+        font-size: 0.95rem;
+        color: #90a4ae;
+        opacity: 0.6;
+    }
+    @media (max-width: 600px) {
+        .container {
+            padding: 1.2rem 0.35rem 2.2rem 0.35rem;
+            min-width: unset;
         }
-        @media (max-width: 600px) {
-            .credit {
-                font-size: 12px;
-                padding: 5px 8px;
-                right: 5px;
-                bottom: 5px;
-            }
-        }
+        .credit { right: 8px; bottom: 8px; font-size: 0.8rem;}
+        h1 { font-size: 1.2rem; }
+    }
     </style>
 </head>
 <body>
-    <div class="language-select">
-        <label for="language-menu">
-            <img src="https://flagcdn.com/gb.svg" width="24" alt="English Flag" id="flag-current" style="vertical-align:middle; margin-right:5px;">
-        </label>
-        <select id="language-menu">
-            <option value="en" data-flag="gb">&#127468;&#127463; English</option>
-            <option value="it" data-flag="it">&#127470;&#127481; Italiano</option>
-            <option value="es" data-flag="es">&#127466;&#127480; Español</option>
-            <option value="fr" data-flag="fr">&#127467;&#127479; Français</option>
-            <option value="de" data-flag="de">&#127465;&#127466; Deutsch</option>
-        </select>
-    </div>
     <div class="container">
         <h1 id="title">Geopolitical Game</h1>
-        <div class="game-actions">
-            <input type="text" id="player-name-input" placeholder="Il tuo nome" maxlength="16" required style="margin-bottom:10px;">
-            <button id="create-game-btn">Crea partita</button>
-            <button id="join-game-btn">Unisciti a partita</button>
-            <form class="join-form" id="join-form">
-                <input type="text" id="game-code-input" placeholder="Inserisci codice partita" maxlength="8" required>
-                <button type="submit">Entra</button>
-            </form>
-            <div class="code-display" id="game-code-display" style="display:none;"></div>
-            <div id="players-list" style="display:none; margin-top:20px;">
-                <h3>Giocatori nella stanza:</h3>
-                <ul id="players-ul"></ul>
-            </div>
-        </div>
-
-        <!-- Form creazione nazione -->
         <form id="nation-form">
             <label for="nation-name" id="label-nation-name">Nome della Nazione:</label>
-            <input type="text" id="nation-name" name="nation-name" required>
+            <input type="text" id="nation-name" name="nation-name" placeholder="Inserisci il nome della nazione" required maxlength="20">
 
             <label for="government-type" id="label-government-type">Forma di Governo:</label>
             <select id="government-type" name="government-type" required>
@@ -73,31 +142,25 @@
                 <option value="anarchy" id="option-anarchy">Anarchia</option>
             </select>
 
-            <button type="submit" id="confirm-btn">Conferma</button>
+            <div class="actions">
+                <button type="button" id="create-game-btn" class="animated-btn">Crea partita</button>
+                <button type="button" id="join-game-btn" class="animated-btn">Unisciti a partita</button>
+            </div>
+            <div id="join-form" style="display:none; flex-direction:column; gap:12px; align-items:center; margin:0 0 1.3rem 0;">
+                <input type="text" id="game-code-input" placeholder="Inserisci codice partita" maxlength="8" style="margin-bottom: 0;">
+                <button type="button" id="join-submit-btn" class="animated-btn" style="margin-top:8px;">Entra</button>
+            </div>
+            <div class="code-display" id="game-code-display" style="display:none;"></div>
+            <div class="output" id="output"></div>
         </form>
-        <div id="output"></div>
-    </div>
-
-    <div class="credit">
-        Made by <a href="https://github.com/V24-bit" target="_blank" class="v24-blue">V24-bit</a>
+        <div class="credit">
+            Made by <a href="https://github.com/V24-bit" style="color:#ff8c00;font-weight:bold;" target="_blank">V24-bit</a>
+        </div>
     </div>
 
     <!-- FIREBASE -->
     <script src="https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/11.9.1/firebase-database.js"></script>
-    <script>
-      const firebaseConfig = {
-        apiKey: "AIzaSyC-nxzpcf5I_NHkKbWbLXRFRRzQLv9ilWU",
-        authDomain: "geopolitical-game-5f135.firebaseapp.com",
-        databaseURL: "https://geopolitical-game-5f135-default-rtdb.europe-west1.firebasedatabase.app",
-        projectId: "geopolitical-game-5f135",
-        storageBucket: "geopolitical-game-5f135.appspot.com",
-        messagingSenderId: "537294174901",
-        appId: "1:537294174901:web:0c0eebedfd927cc8e65cfc"
-      };
-      firebase.initializeApp(firebaseConfig);
-      const database = firebase.database();
-    </script>
     <script src="main.js"></script>
 </body>
 </html>
