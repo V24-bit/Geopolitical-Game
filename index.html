@@ -24,14 +24,14 @@
         <!-- TITOLO -->
         <h1 id="title">Geopolitical Game</h1>
 
-        <!-- FORM NAZIONE -->
+        <!-- FORM NAZIONE E GOVERNO -->
         <form id="nation-form" autocomplete="off">
             <div class="form-group">
-                <label for="nation-name" id="label-nation-name">Nome della Nazione:</label>
+                <label for="nation-name" id="label-nation-name">Nome della Nazione</label>
                 <input type="text" id="nation-name" name="nation-name" placeholder="Inserisci il nome della nazione" required maxlength="20">
             </div>
             <div class="form-group">
-                <label for="government-type" id="label-government-type">Forma di Governo:</label>
+                <label for="government-type" id="label-government-type">Forma di Governo</label>
                 <select id="government-type" name="government-type" required>
                     <option value="" id="option-select">Seleziona...</option>
                     <option value="dictatorship" id="option-dictatorship">Dittatura</option>
@@ -43,16 +43,16 @@
             </div>
         </form>
 
-        <!-- PULSANTI -->
+        <!-- PULSANTI COLORATI -->
         <div class="actions">
-            <button type="button" id="create-game-btn" class="animated-btn">Crea partita</button>
-            <button type="button" id="join-game-btn" class="animated-btn">Unisciti a partita</button>
+            <button type="button" id="create-game-btn" class="action-btn potato-yellow">Crea partita</button>
+            <button type="button" id="join-game-btn" class="action-btn sky-blue">Unisciti a partita</button>
         </div>
 
         <!-- FORM UNISCITI -->
         <div id="join-form" style="display:none;">
             <input type="text" id="game-code-input" placeholder="Inserisci codice partita" maxlength="8">
-            <button type="button" id="join-submit-btn" class="animated-btn">Entra</button>
+            <button type="button" id="join-submit-btn" class="action-btn sky-blue">Entra</button>
         </div>
 
         <!-- PANEL CODICE PARTITA -->
