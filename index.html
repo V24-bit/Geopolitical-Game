@@ -11,7 +11,7 @@
             <!-- MENU LINGUA -->
             <div class="language-select">
                 <label for="language-menu" style="margin-right:6px;">
-                    <img src="https://flagcdn.com/it.svg" width="28" alt="Italiano" id="flag-current" class="flag-icon">
+                    <img src="https://flagcdn.com/gb.svg" width="28" alt="English" id="flag-current" class="flag-icon">
                 </label>
                 <select id="language-menu">
                     <option value="en" data-flag="gb">&#127468;&#127463; English</option>
@@ -74,7 +74,7 @@
     <script src="https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/11.9.1/firebase-database.js"></script>
     <script>
-    // Aggiorna la bandiera accanto al menu quando cambi lingua
+    // Bandiera aggiornata sia al caricamento che al cambio lingua
     document.addEventListener('DOMContentLoaded', function() {
         const flagMap = {
             en: 'gb',
@@ -85,12 +85,16 @@
         };
         const langMenu = document.getElementById('language-menu');
         const flagImg = document.getElementById('flag-current');
-        langMenu.addEventListener('change', function() {
-            const lang = this.value;
+
+        function updateFlag() {
+            const lang = langMenu.value;
             const flagCode = flagMap[lang] || 'gb';
             flagImg.src = `https://flagcdn.com/${flagCode}.svg`;
-            flagImg.alt = this.options[this.selectedIndex].text;
-        });
+            flagImg.alt = langMenu.options[langMenu.selectedIndex].text;
+        }
+
+        langMenu.addEventListener('change', updateFlag);
+        updateFlag(); // aggiorna subito anche al caricamento
     });
     </script>
     <script src="main.js"></script>
