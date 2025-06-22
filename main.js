@@ -1,5 +1,5 @@
-// === SFONDO MOSAICO DI BANDIERE ANIMATE ===
-const countryCodes = [ "ad","ae","af","ag","ai","al","am","ao","aq","ar","as","at","au","aw","ax",
+// === SFONDO BANDIERE ANIMATO ===
+const countryCodes = ["ad","ae","af","ag","ai","al","am","ao","aq","ar","as","at","au","aw","ax",
 "az","ba","bb","bd","be","bf","bg","bh","bi","bj","bl","bm","bn","bo","bq","br","bs","bt","bv","bw",
 "by","bz","ca","cc","cd","cf","cg","ch","ci","ck","cl","cm","cn","co","cr","cu","cv","cw","cx","cy",
 "cz","de","dj","dk","dm","do","dz","ec","ee","eg","eh","er","es","et","fi","fj","fk","fm","fo","fr",
@@ -13,38 +13,13 @@ const countryCodes = [ "ad","ae","af","ag","ai","al","am","ao","aq","ar","as","a
 "tf","tg","th","tj","tk","tl","tm","tn","to","tr","tt","tv","tw","tz","ua","ug","um","us","uy","uz",
 "va","vc","ve","vg","vi","vn","vu","wf","ws","ye","yt","za","zm","zw"];
 const flags = countryCodes.map(code => `https://flagcdn.com/w320/${code}.png`);
-
-const flagsBg = document.getElementById('animated-flags-bg');
-
-function createFlagGrid() {
-    const tileW = 110; // px
-    const tileH = 70;  // px
-    const cols = Math.ceil(window.innerWidth / tileW);
-    const rows = Math.ceil(window.innerHeight / tileH);
-    const tileCount = cols * rows;
-
-    flagsBg.innerHTML = '';
-    for (let i = 0; i < tileCount; i++) {
-        const img = document.createElement('img');
-        img.className = 'flag-tile';
-        img.src = flags[0];
-        flagsBg.appendChild(img);
-    }
-}
-
-window.addEventListener('resize', createFlagGrid);
-createFlagGrid();
-
 let flagIndex = 0;
-function updateFlagGrid() {
-    const tiles = document.querySelectorAll('.flag-tile');
-    for (const img of tiles) {
-        img.src = flags[flagIndex];
-    }
-    flagIndex = (flagIndex + 1) % flags.length;
+function changeFlagBackground() {
+  document.body.style.backgroundImage = `url('${flags[flagIndex]}')`;
+  flagIndex = (flagIndex + 1) % flags.length;
 }
-updateFlagGrid();
-setInterval(updateFlagGrid, 3400);
+changeFlagBackground();
+setInterval(changeFlagBackground, 3000);
 
 // === TRADUZIONI MULTILINGUA ===
 const translations = {
@@ -66,7 +41,7 @@ const translations = {
     serverCreated: "Game created!",
     insertNation: "Enter the nation name.",
     insertGov: "Choose a form of government.",
-    placeholderNation: "Enter the nation name"
+    placeholderNation: "Enter your nation name"
   },
   it: {
     title: "Geopolitical Game",
@@ -170,10 +145,6 @@ function setLanguage(lang) {
   const flagCode = flagMap[lang];
   document.getElementById('flag-current').src = `https://flagcdn.com/${flagCode}.svg`;
   document.getElementById('flag-current').alt = lang;
-  // Aggiorna anche la label del codice se visibile
-  if(document.getElementById('game-code-panel').style.display !== "none") {
-      document.getElementById('game-code-label').textContent = t.yourServerCode;
-  }
 }
 let currentLang = "it";
 if (localStorage.getItem('lang')) currentLang = localStorage.getItem('lang');
@@ -194,9 +165,7 @@ const createBtn = document.getElementById('create-game-btn');
 const joinBtn = document.getElementById('join-game-btn');
 const joinForm = document.getElementById('join-form');
 const joinSubmitBtn = document.getElementById('join-submit-btn');
-const gameCodePanel = document.getElementById('game-code-panel');
-const codeLabel = document.getElementById('game-code-label');
-const codeValue = document.getElementById('game-code-value');
+const codeDisplay = document.getElementById('game-code-display');
 const outputDiv = document.getElementById('output');
 const gameCodeInput = document.getElementById('game-code-input');
 let myGameCode = null;
@@ -231,9 +200,8 @@ createBtn.addEventListener('click', function() {
             }
         }
     }).then(() => {
-        codeLabel.textContent = t.yourServerCode;
-        codeValue.textContent = code;
-        gameCodePanel.style.display = "flex";
+        codeDisplay.textContent = `${t.yourServerCode} ${code}`;
+        codeDisplay.style.display = "block";
         joinForm.style.display = "none";
         outputDiv.textContent = t.serverCreated + " " + t.waitingPlayer;
         localStorage.setItem('gameCode', code);
@@ -246,7 +214,7 @@ createBtn.addEventListener('click', function() {
 // === MOSTRA FORM JOIN ===
 joinBtn.addEventListener('click', function() {
     joinForm.style.display = "flex";
-    gameCodePanel.style.display = "none";
+    codeDisplay.style.display = "none";
     outputDiv.textContent = "";
 });
 
@@ -280,7 +248,7 @@ joinSubmitBtn.addEventListener('click', function() {
                 isHost: false
             });
             outputDiv.textContent = t.waitingPlayer;
-            gameCodePanel.style.display = "none";
+            codeDisplay.style.display = "none";
             joinForm.style.display = "none";
             localStorage.setItem('gameCode', code);
             localStorage.setItem('playerId', myPlayerId);
