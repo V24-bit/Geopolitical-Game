@@ -5,7 +5,6 @@
     <title>Geopolitical Game - Select Nation</title>
     <link rel="stylesheet" href="style.css">
     <style>
-    /* Overlay per velare lo sfondo bandiere */
     .background-overlay {
         position: fixed;
         inset: 0;
@@ -16,6 +15,7 @@
     </style>
 </head>
 <body>
+    <div id="animated-bg"></div>
     <div class="background-overlay"></div>
     <div class="language-select">
         <label for="language-menu" style="margin-right:6px;">
@@ -45,7 +45,7 @@
                 <option value="anarchy" id="option-anarchy">Anarchia</option>
             </select>
         </form>
-        <div class="server-actions">
+        <div class="actions">
             <button type="button" id="create-game-btn" class="animated-btn">Crea partita</button>
             <button type="button" id="join-game-btn" class="animated-btn">Unisciti a partita</button>
         </div>
@@ -53,7 +53,10 @@
             <input type="text" id="game-code-input" placeholder="Inserisci codice partita" maxlength="8" style="margin-bottom: 0;">
             <button type="button" id="join-submit-btn" class="animated-btn" style="margin-top:8px;">Entra</button>
         </div>
-        <div class="server-code" id="game-code-display" style="display:none;"></div>
+        <div id="game-code-panel" style="display:none;">
+            <div class="game-code-label" id="game-code-label"></div>
+            <div class="game-code-value" id="game-code-value"></div>
+        </div>
         <div class="output" id="output"></div>
     </div>
     <div class="bottom-bar">
