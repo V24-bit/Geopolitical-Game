@@ -8,28 +8,19 @@
     --input-bg: rgba(255,255,255,0.12);
 }
 
-/* Sfondo bandiera centrale */
+/* Sfondo bandiera intera copre tutto, sotto la UI */
 .background-flag {
     position: fixed;
     z-index: 1;
-    top: 0; left: 0; width: 100vw; height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    pointer-events: none;
-    user-select: none;
-}
-
-.background-flag img {
-    width: 420px;
-    max-width: 70vw;
-    min-width: 220px;
-    opacity: 0.35;
-    transition: opacity 0.5s;
-    filter: blur(1px) drop-shadow(0 0 40px #0008);
-    border-radius: 18px;
-    box-shadow: 0 0 120px 0 #111b;
-    object-fit: contain;
+    inset: 0;
+    width: 100vw;
+    height: 100vh;
+    background-size: cover;
+    background-position: center center;
+    background-repeat: no-repeat;
+    opacity: 0.33;
+    filter: blur(2px) brightness(0.9);
+    transition: background-image 0.7s cubic-bezier(.7,.18,.42,1.01);
     pointer-events: none;
     user-select: none;
 }
