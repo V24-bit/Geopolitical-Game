@@ -114,7 +114,7 @@
             <div class="code-display" id="game-code-display" style="display:none;"></div>
         </div>
 
-        <!-- (Puoi inserire qui il tuo form per la creazione della nazione come prima se vuoi) -->
+        <!-- Form creazione nazione -->
         <form id="nation-form">
             <label for="nation-name" id="label-nation-name">Nome della Nazione:</label>
             <input type="text" id="nation-name" name="nation-name" required>
@@ -135,7 +135,7 @@
     </div>
 
     <div class="credit">
-        Made by <a href="https://github.com/V24-bit" target="_blank">V24-bit</a>
+        Made by <a href="https://github.com/V24-bit" target="_blank" class="v24-blue">V24-bit</a>
     </div>
 
     <!-- FIREBASE -->
@@ -154,37 +154,6 @@
       firebase.initializeApp(firebaseConfig);
       const database = firebase.database();
     </script>
-
     <script src="main.js"></script>
-    <script>
-    // Logica base per mostrare/nascondere form e codici (puoi spostarla in main.js)
-    const createBtn = document.getElementById('create-game-btn');
-    const joinBtn = document.getElementById('join-game-btn');
-    const joinForm = document.getElementById('join-form');
-    const codeDisplay = document.getElementById('game-code-display');
-
-    createBtn.addEventListener('click', function() {
-        // Genera codice partita (es: 6 lettere/numero)
-        const code = Math.random().toString(36).substr(2, 6).toUpperCase();
-        codeDisplay.textContent = "Codice partita: " + code;
-        codeDisplay.style.display = "block";
-        joinForm.style.display = "none";
-        // Qui puoi salvare il codice su Firebase se vuoi
-        // database.ref("games/" + code).set({ createdAt: Date.now() });
-    });
-
-    joinBtn.addEventListener('click', function() {
-        joinForm.style.display = "flex";
-        codeDisplay.style.display = "none";
-    });
-
-    joinForm.addEventListener('submit', function(e) {
-        e.preventDefault();
-        const code = document.getElementById('game-code-input').value.trim().toUpperCase();
-        // Qui puoi verificare su Firebase se il codice esiste e unire l'utente
-        // database.ref("games/" + code).once("value").then(snapshot => { ... });
-        alert('Hai provato a unirti alla partita con codice: ' + code);
-    });
-    </script>
 </body>
 </html>
