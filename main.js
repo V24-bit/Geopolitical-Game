@@ -1,4 +1,4 @@
-// === SFONDO BANDIERE ANIMATO ===
+// === SFONDO MOSAICO DI BANDIERE ANIMATE ===
 const countryCodes = [ "ad","ae","af","ag","ai","al","am","ao","aq","ar","as","at","au","aw","ax",
 "az","ba","bb","bd","be","bf","bg","bh","bi","bj","bl","bm","bn","bo","bq","br","bs","bt","bv","bw",
 "by","bz","ca","cc","cd","cf","cg","ch","ci","ck","cl","cm","cn","co","cr","cu","cv","cw","cx","cy",
@@ -13,13 +13,38 @@ const countryCodes = [ "ad","ae","af","ag","ai","al","am","ao","aq","ar","as","a
 "tf","tg","th","tj","tk","tl","tm","tn","to","tr","tt","tv","tw","tz","ua","ug","um","us","uy","uz",
 "va","vc","ve","vg","vi","vn","vu","wf","ws","ye","yt","za","zm","zw"];
 const flags = countryCodes.map(code => `https://flagcdn.com/w320/${code}.png`);
+
+const flagsBg = document.getElementById('animated-flags-bg');
+
+function createFlagGrid() {
+    const tileW = 110; // px
+    const tileH = 70;  // px
+    const cols = Math.ceil(window.innerWidth / tileW);
+    const rows = Math.ceil(window.innerHeight / tileH);
+    const tileCount = cols * rows;
+
+    flagsBg.innerHTML = '';
+    for (let i = 0; i < tileCount; i++) {
+        const img = document.createElement('img');
+        img.className = 'flag-tile';
+        img.src = flags[0];
+        flagsBg.appendChild(img);
+    }
+}
+
+window.addEventListener('resize', createFlagGrid);
+createFlagGrid();
+
 let flagIndex = 0;
-function changeFlagBackground() {
-    document.getElementById('animated-bg').style.backgroundImage = `url('${flags[flagIndex]}')`;
+function updateFlagGrid() {
+    const tiles = document.querySelectorAll('.flag-tile');
+    for (const img of tiles) {
+        img.src = flags[flagIndex];
+    }
     flagIndex = (flagIndex + 1) % flags.length;
 }
-changeFlagBackground();
-setInterval(changeFlagBackground, 3400);
+updateFlagGrid();
+setInterval(updateFlagGrid, 3400);
 
 // === TRADUZIONI MULTILINGUA ===
 const translations = {
