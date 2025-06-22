@@ -1,5 +1,24 @@
-// Multilingua (puoi aggiungere altre lingue se vuoi)
+// === TRADUZIONI MULTILINGUA ===
 const translations = {
+  en: {
+    title: "Geopolitical Game",
+    labelNation: "Nation name:",
+    labelGovernment: "Form of Government:",
+    optionSelect: "Select...",
+    optionDictatorship: "Dictatorship",
+    optionRepublic: "Republic",
+    optionMonarchy: "Monarchy",
+    optionTheocracy: "Theocracy",
+    optionAnarchy: "Anarchy",
+    createGame: "Create Game",
+    joinGame: "Join Game",
+    yourServerCode: "Game code:",
+    waitingPlayer: "Waiting for another player to join...",
+    invalidCode: "Invalid code. Please try again.",
+    serverCreated: "Game created!",
+    insertNation: "Enter the nation name.",
+    insertGov: "Choose a form of government."
+  },
   it: {
     title: "Geopolitical Game",
     labelNation: "Nome della Nazione:",
@@ -18,11 +37,97 @@ const translations = {
     serverCreated: "Partita creata!",
     insertNation: "Inserisci il nome della nazione.",
     insertGov: "Scegli una forma di governo."
+  },
+  es: {
+    title: "Geopolitical Game",
+    labelNation: "Nombre de la Nación:",
+    labelGovernment: "Forma de Gobierno:",
+    optionSelect: "Selecciona...",
+    optionDictatorship: "Dictadura",
+    optionRepublic: "República",
+    optionMonarchy: "Monarquía",
+    optionTheocracy: "Teocracia",
+    optionAnarchy: "Anarquía",
+    createGame: "Crear partida",
+    joinGame: "Unirse a partida",
+    yourServerCode: "Código de la partida:",
+    waitingPlayer: "Esperando a que otro jugador se una...",
+    invalidCode: "Código no válido. Inténtalo de nuevo.",
+    serverCreated: "¡Partida creada!",
+    insertNation: "Introduce el nombre de la nación.",
+    insertGov: "Elige una forma de gobierno."
+  },
+  fr: {
+    title: "Geopolitical Game",
+    labelNation: "Nom de la Nation:",
+    labelGovernment: "Forme de gouvernement:",
+    optionSelect: "Sélectionner...",
+    optionDictatorship: "Dictature",
+    optionRepublic: "République",
+    optionMonarchy: "Monarchie",
+    optionTheocracy: "Théocratie",
+    optionAnarchy: "Anarchie",
+    createGame: "Créer une partie",
+    joinGame: "Rejoindre une partie",
+    yourServerCode: "Code de la partie :",
+    waitingPlayer: "En attente qu'un joueur rejoigne...",
+    invalidCode: "Code invalide. Veuillez réessayer.",
+    serverCreated: "Partie créée !",
+    insertNation: "Entrez le nom de la nation.",
+    insertGov: "Choisissez une forme de gouvernement."
+  },
+  de: {
+    title: "Geopolitical Game",
+    labelNation: "Name der Nation:",
+    labelGovernment: "Regierungsform:",
+    optionSelect: "Auswählen...",
+    optionDictatorship: "Diktatur",
+    optionRepublic: "Republik",
+    optionMonarchy: "Monarchie",
+    optionTheocracy: "Theokratie",
+    optionAnarchy: "Anarchie",
+    createGame: "Spiel erstellen",
+    joinGame: "Spiel beitreten",
+    yourServerCode: "Spielcode:",
+    waitingPlayer: "Warten auf einen Mitspieler...",
+    invalidCode: "Ungültiger Code. Bitte versuche es erneut.",
+    serverCreated: "Spiel erstellt!",
+    insertNation: "Gib den Namen der Nation ein.",
+    insertGov: "Wähle eine Regierungsform."
   }
 };
+const flagMap = { en: "gb", it: "it", es: "es", fr: "fr", de: "de" };
 
-// --- UI ELEMENTS ---
-const nationForm = document.getElementById('nation-form');
+// === MULTILINGUA LOGICA ===
+function setLanguage(lang) {
+  const t = translations[lang];
+  document.getElementById('title').innerText = t.title;
+  document.getElementById('label-nation-name').innerText = t.labelNation;
+  document.getElementById('label-government-type').innerText = t.labelGovernment;
+  document.getElementById('option-select').innerText = t.optionSelect;
+  document.getElementById('option-dictatorship').innerText = t.optionDictatorship;
+  document.getElementById('option-republic').innerText = t.optionRepublic;
+  document.getElementById('option-monarchy').innerText = t.optionMonarchy;
+  document.getElementById('option-theocracy').innerText = t.optionTheocracy;
+  document.getElementById('option-anarchy').innerText = t.optionAnarchy;
+  document.getElementById('create-game-btn').innerText = t.createGame;
+  document.getElementById('join-game-btn').innerText = t.joinGame;
+  document.getElementById('flag-current').src = `https://flagcdn.com/${flagMap[lang]}.svg`;
+  document.getElementById('flag-current').alt = lang;
+}
+let currentLang = "it";
+if (localStorage.getItem('lang')) currentLang = localStorage.getItem('lang');
+setLanguage(currentLang);
+
+document.getElementById("language-menu").addEventListener('change', function() {
+  const lang = this.value;
+  setLanguage(lang);
+  currentLang = lang;
+  localStorage.setItem('lang', lang);
+  document.getElementById("output").innerHTML = "";
+});
+
+// === UI ELEMENTS ===
 const nationNameInput = document.getElementById('nation-name');
 const governmentTypeInput = document.getElementById('government-type');
 const createBtn = document.getElementById('create-game-btn');
@@ -32,28 +137,15 @@ const joinSubmitBtn = document.getElementById('join-submit-btn');
 const codeDisplay = document.getElementById('game-code-display');
 const outputDiv = document.getElementById('output');
 const gameCodeInput = document.getElementById('game-code-input');
-
 let myGameCode = null;
 let myPlayerId = null;
 let isHost = false;
-let currentLang = "it";
-const t = translations[currentLang];
 
-// --- GRADIENT BACKGROUND LOOP SU TUTTO IL BODY (opzionale) ---
-// Se vuoi animare anche lo sfondo, puoi attivare questo codice:
-/*
-let gradPos = 0;
-setInterval(() => {
-    gradPos = (gradPos + 1) % 360;
-    document.body.style.background = `linear-gradient(${gradPos}deg, #141e30 0%, #243b55 100%)`;
-}, 50);
-*/
-
-// --- CREA PARTITA ---
+// === CREA PARTITA ===
 createBtn.addEventListener('click', function() {
+    const t = translations[currentLang];
     const nationName = nationNameInput.value.trim();
     const government = governmentTypeInput.value;
-
     if (!nationName) {
         outputDiv.textContent = t.insertNation;
         return;
@@ -88,15 +180,16 @@ createBtn.addEventListener('click', function() {
     });
 });
 
-// --- MOSTRA FORM JOIN ---
+// === MOSTRA FORM JOIN ===
 joinBtn.addEventListener('click', function() {
     joinForm.style.display = "flex";
     codeDisplay.style.display = "none";
     outputDiv.textContent = "";
 });
 
-// --- SUBMIT JOIN ---
+// === SUBMIT JOIN ===
 joinSubmitBtn.addEventListener('click', function() {
+    const t = translations[currentLang];
     const code = gameCodeInput.value.trim().toUpperCase();
     const nationName = nationNameInput.value.trim();
     const government = governmentTypeInput.value;
@@ -136,7 +229,7 @@ joinSubmitBtn.addEventListener('click', function() {
     });
 });
 
-// --- GENERA CODICE PARTITA ---
+// === GENERA CODICE PARTITA ===
 function generateGameCode(length = 6) {
     const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
     let code = '';
@@ -145,17 +238,3 @@ function generateGameCode(length = 6) {
     }
     return code;
 }
-
-// --- MULTILINGUA (solo ITA per ora, puoi aggiungere altre lingue come sopra) ---
-document.getElementById('title').innerText = t.title;
-document.getElementById('label-nation-name').innerText = t.labelNation;
-document.getElementById('label-government-type').innerText = t.labelGovernment;
-document.getElementById('option-select').innerText = t.optionSelect;
-document.getElementById('option-dictatorship').innerText = t.optionDictatorship;
-document.getElementById('option-republic').innerText = t.optionRepublic;
-document.getElementById('option-monarchy').innerText = t.optionMonarchy;
-document.getElementById('option-theocracy').innerText = t.optionTheocracy;
-document.getElementById('option-anarchy').innerText = t.optionAnarchy;
-createBtn.innerText = t.createGame;
-joinBtn.innerText = t.joinGame;
-joinSubmitBtn.innerText = "Entra";
