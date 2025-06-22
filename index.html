@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <title>Geopolitical Game - Seleziona Nazione</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Crea la tua Nazione</h1>
+        <form id="nation-form">
+            <label for="nation-name">Nome della tua Nazione:</label>
+            <input type="text" id="nation-name" name="nation-name" required>
+
+            <label for="government-type">Forma di Governo:</label>
+            <select id="government-type" name="government-type" required>
+                <option value="">Seleziona...</option>
+                <option value="dittatura">Dittatura</option>
+                <option value="repubblica">Repubblica</option>
+                <option value="monarchia">Monarchia</option>
+                <option value="teocrazia">Teocrazia</option>
+                <option value="oligarchia">Oligarchia</option>
+                <option value="anarchia">Anarchia</option>
+            </select>
+
+            <button type="submit">Conferma</button>
+        </form>
+        <div id="output"></div>
+    </div>
+    <script src="main.js"></script>
+</body>
+</html>
