@@ -75,7 +75,7 @@
     <script src="https://www.gstatic.com/firebasejs/11.9.1/firebase-database.js"></script>
     <script>
     // Aggiorna la bandiera accanto al menu quando cambi lingua
-    document.getElementById('language-menu').addEventListener('change', function() {
+    document.addEventListener('DOMContentLoaded', function() {
         const flagMap = {
             en: 'gb',
             it: 'it',
@@ -83,10 +83,14 @@
             fr: 'fr',
             de: 'de'
         };
-        var lang = this.value;
-        var flagCode = flagMap[lang] || 'gb';
-        document.getElementById('flag-current').src = `https://flagcdn.com/${flagCode}.svg`;
-        document.getElementById('flag-current').alt = this.options[this.selectedIndex].text;
+        const langMenu = document.getElementById('language-menu');
+        const flagImg = document.getElementById('flag-current');
+        langMenu.addEventListener('change', function() {
+            const lang = this.value;
+            const flagCode = flagMap[lang] || 'gb';
+            flagImg.src = `https://flagcdn.com/${flagCode}.svg`;
+            flagImg.alt = this.options[this.selectedIndex].text;
+        });
     });
     </script>
     <script src="main.js"></script>
