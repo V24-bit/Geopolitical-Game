@@ -6,19 +6,6 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="language-select">
-        <label for="language-menu">
-            <img src="https://flagcdn.com/gb.svg" width="24" alt="English Flag" id="flag-current" style="vertical-align:middle; margin-right:5px;">
-        </label>
-        <select id="language-menu">
-            <option value="en" data-flag="gb">&#127468;&#127463; English</option>
-            <option value="it" data-flag="it">&#127470;&#127481; Italiano</option>
-            <option value="es" data-flag="es">&#127466;&#127480; Español</option>
-            <option value="fr" data-flag="fr">&#127467;&#127479; Français</option>
-            <option value="de" data-flag="de">&#127465;&#127466; Deutsch</option>
-        </select>
-    </div>
-
     <div class="server-actions" id="server-actions">
         <button id="create-server-btn"></button>
         <button id="join-server-btn"></button>
@@ -65,8 +52,22 @@
         <h2 id="game-title"></h2>
         <div id="players-list"></div>
     </div>
-    <div class="credit">
-        Made by <a href="https://github.com/V24-bit" target="_blank">V24-bit</a>
+    <div class="bottom-bar">
+        <div class="credit">
+            Made by <a href="https://github.com/V24-bit" target="_blank">V24-bit</a>
+        </div>
+        <div class="language-select">
+            <label for="language-menu">
+                <img src="https://flagcdn.com/gb.svg" width="24" alt="English Flag" id="flag-current" style="vertical-align:middle; margin-right:5px;">
+            </label>
+            <select id="language-menu">
+                <option value="en" data-flag="gb">&#127468;&#127463; English</option>
+                <option value="it" data-flag="it">&#127470;&#127481; Italiano</option>
+                <option value="es" data-flag="es">&#127466;&#127480; Español</option>
+                <option value="fr" data-flag="fr">&#127467;&#127479; Français</option>
+                <option value="de" data-flag="de">&#127465;&#127466; Deutsch</option>
+            </select>
+        </div>
     </div>
     <script src="main.js"></script>
 </body>
