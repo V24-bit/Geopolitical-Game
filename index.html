@@ -18,6 +18,29 @@
             <option value="de" data-flag="de">&#127465;&#127466; Deutsch</option>
         </select>
     </div>
+
+    <div class="server-actions" id="server-actions">
+        <button id="create-server-btn"></button>
+        <button id="join-server-btn"></button>
+    </div>
+
+    <div class="server-panel" id="server-panel" style="display:none;">
+        <div id="server-create-panel" style="display:none;">
+            <p id="server-created-msg"></p>
+            <p id="server-code-label"></p>
+            <div id="server-code" class="server-code"></div>
+            <p id="wait-player-msg"></p>
+            <button id="back-btn-1"></button>
+        </div>
+        <div id="server-join-panel" style="display:none;">
+            <label id="insert-code-label" for="join-code"></label>
+            <input id="join-code" maxlength="6" style="text-transform:uppercase">
+            <button id="submit-join-btn"></button>
+            <button id="back-btn-2"></button>
+            <div id="join-error" class="error-msg"></div>
+        </div>
+    </div>
+
     <div class="container">
         <h1 id="title">Create your Nation</h1>
         <form id="nation-form">
@@ -37,6 +60,10 @@
             <button type="submit" id="confirm-btn">Confirm</button>
         </form>
         <div id="output"></div>
+    </div>
+    <div id="game-interface" class="game-interface" style="display:none;">
+        <h2 id="game-title"></h2>
+        <div id="players-list"></div>
     </div>
     <div class="credit">
         Made by <a href="https://github.com/V24-bit" target="_blank">V24-bit</a>
