@@ -10,19 +10,31 @@
     --input-bg: rgba(255,255,255,0.12);
 }
 
-/* Sfondo bandiere animato */
-#animated-bg {
+/* Sfondo a mosaico di bandiere animate */
+#animated-flags-bg {
     position: fixed;
     inset: 0;
     z-index: 0;
-    background-repeat: no-repeat;
-    background-size: cover;
-    background-position: center;
-    filter: saturate(1.6) blur(1px) brightness(0.90);
-    transition: background-image 1s cubic-bezier(.86,.01,.38,1.03);
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+    grid-template-rows: repeat(auto-fill, minmax(70px, 1fr));
+    pointer-events: none;
+    gap: 0;
+    background: #181818;
+}
+.flag-tile {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0.92;
+    filter: saturate(1.4) blur(0.5px) brightness(0.95);
+    transition: filter 0.3s;
+    user-select: none;
+    pointer-events: none;
+    background: #191919;
 }
 
-/* Overlay solo per readability minima, ma trasparente! */
+/* Overlay per readability */
 .background-overlay {
     position: fixed;
     inset: 0;
