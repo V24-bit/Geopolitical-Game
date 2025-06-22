@@ -18,73 +18,12 @@
             z-index: 100;
             box-shadow: 0 2px 6px rgba(0,0,0,0.05);
         }
-        /* Pulsanti centrali */
-        .game-actions {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 18px;
-            margin: 40px 0 20px 0;
-        }
-        .game-actions button {
-            font-size: 1.1em;
-            padding: 12px 30px;
-            border-radius: 8px;
-            border: none;
-            background: #1976d2;
-            color: #fff;
-            font-weight: bold;
-            cursor: pointer;
-            transition: background 0.2s;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.06);
-        }
-        .game-actions button:hover {
-            background: #12529b;
-        }
-        .join-form {
-            display: none;
-            flex-direction: column;
-            align-items: center;
-            gap: 10px;
-            margin-top: 15px;
-        }
-        .join-form input[type="text"] {
-            padding: 7px;
-            border-radius: 5px;
-            border: 1px solid #ccc;
-            font-size: 1em;
-        }
-        .join-form button {
-            padding: 7px 16px;
-            font-size: 1em;
-            border-radius: 5px;
-            border: none;
-            background: #43a047;
-            color: #fff;
-            font-weight: bold;
-            cursor: pointer;
-        }
-        .join-form button:hover {
-            background: #2e7031;
-        }
-        .code-display {
-            margin-top: 18px;
-            font-size: 1.2em;
-            font-weight: bold;
-            color: #1976d2;
-            letter-spacing: 2px;
-            text-align: center;
-        }
         @media (max-width: 600px) {
             .credit {
                 font-size: 12px;
                 padding: 5px 8px;
                 right: 5px;
                 bottom: 5px;
-            }
-            .game-actions button {
-                font-size: 1em;
-                padding: 10px 16px;
             }
         }
     </style>
@@ -105,6 +44,7 @@
     <div class="container">
         <h1 id="title">Geopolitical Game</h1>
         <div class="game-actions">
+            <input type="text" id="player-name-input" placeholder="Il tuo nome" maxlength="16" required style="margin-bottom:10px;">
             <button id="create-game-btn">Crea partita</button>
             <button id="join-game-btn">Unisciti a partita</button>
             <form class="join-form" id="join-form">
@@ -112,6 +52,10 @@
                 <button type="submit">Entra</button>
             </form>
             <div class="code-display" id="game-code-display" style="display:none;"></div>
+            <div id="players-list" style="display:none; margin-top:20px;">
+                <h3>Giocatori nella stanza:</h3>
+                <ul id="players-ul"></ul>
+            </div>
         </div>
 
         <!-- Form creazione nazione -->
