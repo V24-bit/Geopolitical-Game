@@ -1,13 +1,16 @@
 body {
     font-family: Arial, sans-serif;
-    background: #232946;
+    background-size: cover;
+    background-position: center;
+    transition: background-image 0.7s;
     color: #fffffe;
     margin: 0;
     padding: 0;
+    min-height: 100vh;
 }
 
 .container {
-    background: #393a5a;
+    background: rgba(57, 58, 90, 0.9);
     padding: 2rem;
     border-radius: 8px;
     max-width: 400px;
