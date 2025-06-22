@@ -7,7 +7,7 @@
 </head>
 <body>
     <div class="main-ui">
-        <!-- MENU A TENDINA LINGUA -->
+        <!-- MENU LINGUA -->
         <div class="language-select">
             <label for="language-menu" style="margin-right:6px;">
                 <img src="https://flagcdn.com/it.svg" width="28" alt="Italiano" id="flag-current" class="flag-icon">
@@ -26,18 +26,21 @@
 
         <!-- FORM NAZIONE -->
         <form id="nation-form" autocomplete="off">
-            <label for="nation-name" id="label-nation-name">Nome della Nazione:</label>
-            <input type="text" id="nation-name" name="nation-name" placeholder="Inserisci il nome della nazione" required maxlength="20">
-
-            <label for="government-type" id="label-government-type">Forma di Governo:</label>
-            <select id="government-type" name="government-type" required>
-                <option value="" id="option-select">Seleziona...</option>
-                <option value="dictatorship" id="option-dictatorship">Dittatura</option>
-                <option value="republic" id="option-republic">Repubblica</option>
-                <option value="monarchy" id="option-monarchy">Monarchia</option>
-                <option value="theocracy" id="option-theocracy">Teocrazia</option>
-                <option value="anarchy" id="option-anarchy">Anarchia</option>
-            </select>
+            <div class="form-group">
+                <label for="nation-name" id="label-nation-name">Nome della Nazione:</label>
+                <input type="text" id="nation-name" name="nation-name" placeholder="Inserisci il nome della nazione" required maxlength="20">
+            </div>
+            <div class="form-group">
+                <label for="government-type" id="label-government-type">Forma di Governo:</label>
+                <select id="government-type" name="government-type" required>
+                    <option value="" id="option-select">Seleziona...</option>
+                    <option value="dictatorship" id="option-dictatorship">Dittatura</option>
+                    <option value="republic" id="option-republic">Repubblica</option>
+                    <option value="monarchy" id="option-monarchy">Monarchia</option>
+                    <option value="theocracy" id="option-theocracy">Teocrazia</option>
+                    <option value="anarchy" id="option-anarchy">Anarchia</option>
+                </select>
+            </div>
         </form>
 
         <!-- PULSANTI -->
@@ -47,9 +50,9 @@
         </div>
 
         <!-- FORM UNISCITI -->
-        <div id="join-form" style="display:none; flex-direction:column; gap:12px; align-items:center; margin:0 0 1.3rem 0;">
-            <input type="text" id="game-code-input" placeholder="Inserisci codice partita" maxlength="8" style="margin-bottom: 0;">
-            <button type="button" id="join-submit-btn" class="animated-btn" style="margin-top:8px;">Entra</button>
+        <div id="join-form" style="display:none;">
+            <input type="text" id="game-code-input" placeholder="Inserisci codice partita" maxlength="8">
+            <button type="button" id="join-submit-btn" class="animated-btn">Entra</button>
         </div>
 
         <!-- PANEL CODICE PARTITA -->
