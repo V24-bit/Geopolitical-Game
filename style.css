@@ -98,3 +98,42 @@ button:hover {
 .language-select label img {
     vertical-align: middle;
 }
+
+.server-actions {
+    display: flex;
+    justify-content: center;
+    gap: 1.5rem;
+    margin: 2rem 0 1rem 0;
+}
+.server-panel {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+.server-code {
+    font-size: 1.6rem;
+    font-weight: bold;
+    letter-spacing: .2em;
+    background: #232946;
+    color: #eebbc3;
+    padding: 0.5rem 1.5rem;
+    border-radius: 8px;
+    margin: 0.7rem 0;
+}
+.error-msg {
+    color: #e63946;
+    margin-top: 0.5rem;
+}
+.game-interface {
+    background: rgba(35,41,70,0.95);
+    margin-top: 2rem;
+    padding: 2rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.20);
+    color: #fffffe;
+}
+#players-list {
+    margin-top: 1.2rem;
+    font-size: 1.13rem;
+}
