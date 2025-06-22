@@ -112,7 +112,9 @@ function setLanguage(lang) {
   document.getElementById('option-anarchy').innerText = t.optionAnarchy;
   document.getElementById('create-game-btn').innerText = t.createGame;
   document.getElementById('join-game-btn').innerText = t.joinGame;
-  document.getElementById('flag-current').src = `https://flagcdn.com/${flagMap[lang]}.svg`;
+  // Cambia la bandiera in base alla lingua selezionata
+  const flagCode = flagMap[lang];
+  document.getElementById('flag-current').src = `https://flagcdn.com/${flagCode}.svg`;
   document.getElementById('flag-current').alt = lang;
 }
 let currentLang = "it";
@@ -238,3 +240,6 @@ function generateGameCode(length = 6) {
     }
     return code;
 }
+
+// === FIREBASE CONFIG (devi avere il tuo oggetto di configurazione in index.html) ===
+// ...già incluso da index.html...
