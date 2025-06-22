@@ -3,184 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <title>Geopolitical Game - Select Nation</title>
+    <link rel="stylesheet" href="style.css">
     <style>
-    html, body {
-        height: 100%;
-    }
-    body {
-        font-family: 'Segoe UI', Arial, sans-serif;
-        background: linear-gradient(135deg, #141e30 0%, #243b55 100%);
-        min-height: 100vh;
-        margin: 0;
-        color: #fff;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-    .container {
-        background: rgba(34, 40, 49, 0.92);
-        box-shadow: 0 8px 32px 0 rgba(0,0,0,0.37);
-        border-radius: 16px;
-        padding: 2.5rem 2rem 2.2rem 2rem;
-        max-width: 380px;
-        width: 95vw;
-        text-align: center;
-        position: relative;
-    }
-    h1 {
-        font-size: 2.1rem;
-        font-weight: 900;
-        margin-bottom: 2rem;
-        letter-spacing: 1px;
-        color: #f2f2f2;
-        text-shadow: 0 4px 12px #0008;
-    }
-    label {
-        font-weight: 600;
-        margin-bottom: 0.5rem;
-        display: block;
-        color: #e9e9ee;
-        text-align: left;
-    }
-    input, select {
-        width: 100%;
-        padding: 0.7rem 1rem;
-        margin-bottom: 1rem;
-        font-size: 1.1rem;
-        border: none;
-        border-radius: 8px;
-        outline: none;
-        background: #232946;
-        color: #fff;
-        box-shadow: 0 2px 10px #0003;
-        transition: background 0.2s;
-    }
-    input:focus, select:focus {
-        background: #39406a;
-    }
-    .actions {
-        display: flex;
-        flex-direction: column;
-        gap: 16px;
-        margin-bottom: 1.5rem;
-    }
-    .animated-btn {
-        padding: 0.85rem 1rem;
-        font-size: 1.15rem;
-        font-weight: bold;
-        border: none;
-        border-radius: 12px;
-        cursor: pointer;
-        background: linear-gradient(270deg, #ff8c00, #e52e71, #008cff, #5efce8, #ff8c00);
-        background-size: 1000% 1000%;
-        color: #fff;
-        transition: transform 0.1s, box-shadow 0.1s;
-        box-shadow: 0 2px 12px #0003;
-        outline: none;
-        animation: gradientLoop 5s ease-in-out infinite;
-        text-shadow: 0 2px 8px #0008;
-    }
-    .animated-btn:hover {
-        transform: scale(1.04);
-        box-shadow: 0 4px 24px #0005;
-    }
-    @keyframes gradientLoop {
-        0%   {background-position:0% 50%;}
-        50%  {background-position:100% 50%;}
-        100% {background-position:0% 50%;}
-    }
-
-    .code-display {
-        margin: 1.2rem 0 0.6rem 0;
-        font-size: 1.25rem;
-        font-weight: bold;
-        color: #52e5ff;
-        letter-spacing: 2px;
-        background: rgba(80,80,120,0.12);
-        border-radius: 7px;
-        padding: 0.6rem 0.5rem;
-        box-shadow: 0 2px 12px #0002;
-    }
-    .output {
-        margin-top: 1rem;
-        font-size: 1.07rem;
-        min-height: 2em;
-    }
-    .credit {
-        position: absolute;
-        bottom: 16px;
-        right: 24px;
-        font-size: 0.95rem;
-        color: #90a4ae;
-        opacity: 0.6;
-    }
-
-    .language-select-ui {
-        position: absolute;
-        top: 22px;
-        left: 22px;
-        z-index: 20;
-        display: flex;
-        align-items: center;
-        background: rgba(34,40,49,0.95);
-        border-radius: 10px;
-        box-shadow: 0 2px 10px #0005;
-        padding: 6px 13px 6px 8px;
-        gap: 8px;
-        font-family: inherit;
-    }
-    .language-select-ui select {
-        background: linear-gradient(135deg, #232946 70%, #141e30 100%);
-        color: #fff;
-        border: none;
-        font-size: 1.07rem;
-        padding: 0.42rem 1.1rem 0.42rem 0.7rem;
-        border-radius: 8px;
-        outline: none;
-        appearance: none;
-        box-shadow: 0 1px 6px #0002;
-        font-family: inherit;
-        transition: background 0.25s;
-    }
-    .language-select-ui select:focus {
-        background: linear-gradient(135deg, #39406a 70%, #232946 100%);
-    }
-    .language-select-ui option {
-        color: #232946;
-        font-weight: bold;
-    }
-    .language-select-ui .flag-icon {
-        vertical-align: middle;
-        border-radius: 6px;
-        box-shadow: 0 1px 4px #0003;
-    }
-    @media (max-width: 600px) {
-        .container {
-            padding: 1.2rem 0.35rem 2.2rem 0.35rem;
-            min-width: unset;
-        }
-        .credit { right: 8px; bottom: 8px; font-size: 0.8rem;}
-        h1 { font-size: 1.2rem; }
-        .language-select-ui {
-            top: 7px;
-            left: 7px;
-            padding: 4px 5px 4px 5px;
-            font-size: 13px;
-        }
-        .language-select-ui select {
-            font-size: 0.98rem;
-            padding: 0.25rem 0.6rem 0.25rem 0.5rem;
-        }
-        .language-select-ui .flag-icon {
-            width: 21px;
-        }
+    /* Overlay per velare lo sfondo bandiere */
+    .background-overlay {
+        position: fixed;
+        inset: 0;
+        background: linear-gradient(135deg, #222943cc 60%, #141e3090 100%);
+        z-index: 0;
+        pointer-events: none;
     }
     </style>
 </head>
 <body>
-    <div class="language-select-ui">
-        <label for="language-menu">
-            <img src="https://flagcdn.com/gb.svg" width="28" alt="English Flag" id="flag-current" class="flag-icon">
+    <div class="background-overlay"></div>
+    <div class="language-select">
+        <label for="language-menu" style="margin-right:6px;">
+            <img src="https://flagcdn.com/it.svg" width="28" alt="Italiano" id="flag-current" class="flag-icon">
         </label>
         <select id="language-menu">
             <option value="en" data-flag="gb">&#127468;&#127463; English</option>
@@ -206,7 +45,7 @@
                 <option value="anarchy" id="option-anarchy">Anarchia</option>
             </select>
         </form>
-        <div class="actions">
+        <div class="server-actions">
             <button type="button" id="create-game-btn" class="animated-btn">Crea partita</button>
             <button type="button" id="join-game-btn" class="animated-btn">Unisciti a partita</button>
         </div>
@@ -214,13 +53,14 @@
             <input type="text" id="game-code-input" placeholder="Inserisci codice partita" maxlength="8" style="margin-bottom: 0;">
             <button type="button" id="join-submit-btn" class="animated-btn" style="margin-top:8px;">Entra</button>
         </div>
-        <div class="code-display" id="game-code-display" style="display:none;"></div>
+        <div class="server-code" id="game-code-display" style="display:none;"></div>
         <div class="output" id="output"></div>
+    </div>
+    <div class="bottom-bar">
         <div class="credit">
-            Made by <a href="https://github.com/V24-bit" style="color:#ff8c00;font-weight:bold;" target="_blank">V24-bit</a>
+            Made by <a href="https://github.com/V24-bit" class="v24-blue" target="_blank">V24-bit</a>
         </div>
     </div>
-    <!-- FIREBASE -->
     <script src="https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/11.9.1/firebase-database.js"></script>
     <script src="main.js"></script>
