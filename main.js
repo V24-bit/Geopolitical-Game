@@ -1,5 +1,5 @@
 // === SFONDO BANDIERE ANIMATO ===
-const countryCodes = ["ad","ae","af","ag","ai","al","am","ao","aq","ar","as","at","au","aw","ax",
+const countryCodes = [ "ad","ae","af","ag","ai","al","am","ao","aq","ar","as","at","au","aw","ax",
 "az","ba","bb","bd","be","bf","bg","bh","bi","bj","bl","bm","bn","bo","bq","br","bs","bt","bv","bw",
 "by","bz","ca","cc","cd","cf","cg","ch","ci","ck","cl","cm","cn","co","cr","cu","cv","cw","cx","cy",
 "cz","de","dj","dk","dm","do","dz","ec","ee","eg","eh","er","es","et","fi","fj","fk","fm","fo","fr",
@@ -15,11 +15,11 @@ const countryCodes = ["ad","ae","af","ag","ai","al","am","ao","aq","ar","as","at
 const flags = countryCodes.map(code => `https://flagcdn.com/w320/${code}.png`);
 let flagIndex = 0;
 function changeFlagBackground() {
-  document.body.style.backgroundImage = `url('${flags[flagIndex]}')`;
-  flagIndex = (flagIndex + 1) % flags.length;
+    document.getElementById('animated-bg').style.backgroundImage = `url('${flags[flagIndex]}')`;
+    flagIndex = (flagIndex + 1) % flags.length;
 }
 changeFlagBackground();
-setInterval(changeFlagBackground, 3000);
+setInterval(changeFlagBackground, 3400);
 
 // === TRADUZIONI MULTILINGUA ===
 const translations = {
@@ -41,7 +41,7 @@ const translations = {
     serverCreated: "Game created!",
     insertNation: "Enter the nation name.",
     insertGov: "Choose a form of government.",
-    placeholderNation: "Enter your nation name"
+    placeholderNation: "Enter the nation name"
   },
   it: {
     title: "Geopolitical Game",
@@ -145,6 +145,10 @@ function setLanguage(lang) {
   const flagCode = flagMap[lang];
   document.getElementById('flag-current').src = `https://flagcdn.com/${flagCode}.svg`;
   document.getElementById('flag-current').alt = lang;
+  // Aggiorna anche la label del codice se visibile
+  if(document.getElementById('game-code-panel').style.display !== "none") {
+      document.getElementById('game-code-label').textContent = t.yourServerCode;
+  }
 }
 let currentLang = "it";
 if (localStorage.getItem('lang')) currentLang = localStorage.getItem('lang');
@@ -165,7 +169,9 @@ const createBtn = document.getElementById('create-game-btn');
 const joinBtn = document.getElementById('join-game-btn');
 const joinForm = document.getElementById('join-form');
 const joinSubmitBtn = document.getElementById('join-submit-btn');
-const codeDisplay = document.getElementById('game-code-display');
+const gameCodePanel = document.getElementById('game-code-panel');
+const codeLabel = document.getElementById('game-code-label');
+const codeValue = document.getElementById('game-code-value');
 const outputDiv = document.getElementById('output');
 const gameCodeInput = document.getElementById('game-code-input');
 let myGameCode = null;
@@ -200,8 +206,9 @@ createBtn.addEventListener('click', function() {
             }
         }
     }).then(() => {
-        codeDisplay.textContent = `${t.yourServerCode} ${code}`;
-        codeDisplay.style.display = "block";
+        codeLabel.textContent = t.yourServerCode;
+        codeValue.textContent = code;
+        gameCodePanel.style.display = "flex";
         joinForm.style.display = "none";
         outputDiv.textContent = t.serverCreated + " " + t.waitingPlayer;
         localStorage.setItem('gameCode', code);
@@ -214,7 +221,7 @@ createBtn.addEventListener('click', function() {
 // === MOSTRA FORM JOIN ===
 joinBtn.addEventListener('click', function() {
     joinForm.style.display = "flex";
-    codeDisplay.style.display = "none";
+    gameCodePanel.style.display = "none";
     outputDiv.textContent = "";
 });
 
@@ -248,7 +255,7 @@ joinSubmitBtn.addEventListener('click', function() {
                 isHost: false
             });
             outputDiv.textContent = t.waitingPlayer;
-            codeDisplay.style.display = "none";
+            gameCodePanel.style.display = "none";
             joinForm.style.display = "none";
             localStorage.setItem('gameCode', code);
             localStorage.setItem('playerId', myPlayerId);
