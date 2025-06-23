@@ -32,9 +32,14 @@ document.addEventListener('DOMContentLoaded', function() {
             err = document.createElement('div');
             err.id = 'temp-error-msg';
             err.style.color = '#ff3333';
+            err.style.background = '#181c22';
             err.style.margin = '10px 0 0 0';
             err.style.fontWeight = 'bold';
             err.style.textAlign = 'center';
+            err.style.padding = '10px 12px';
+            err.style.borderRadius = '7px';
+            err.style.zIndex = '1000';
+            err.style.position = 'relative';
             output.parentNode.insertBefore(err, output);
         }
         err.textContent = msg;
@@ -42,10 +47,10 @@ document.addEventListener('DOMContentLoaded', function() {
         setTimeout(() => {
             err.style.transition = 'opacity 0.7s';
             err.style.opacity = '0';
-        }, 2000);
+        }, 4000); // visibile per 4 secondi
         setTimeout(() => {
             if (err && err.parentNode) err.parentNode.removeChild(err);
-        }, 3000);
+        }, 5000);
     }
 
     function showLobby(doc, myNation) {
