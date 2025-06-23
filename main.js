@@ -1,5 +1,4 @@
-// === SFONDO MOSAICO DI BANDIERE (OPZIONALE, solo se hai il div animated-flags-bg) ===
-// Se vuoi aggiungere lo sfondo animato, assicurati di avere <div id="animated-flags-bg"></div> nel tuo HTML
+// === GESTIONE SFONDO MOSAICO DI BANDIERE (opzionale, funziona solo se hai il div animated-flags-bg) ===
 const flagsBg = document.getElementById('animated-flags-bg');
 if (flagsBg) {
     const countryCodes = [ "ad","ae","af","ag","ai","al","am","ao","aq","ar","as","at","au","aw","ax",
@@ -54,7 +53,7 @@ if (flagsBg) {
     setInterval(updateFlagGrid, 3400);
 }
 
-// === GESTIONE JOIN/CREATE GAME ===
+// === GESTIONE JOIN/CREATE GAME E VALIDAZIONE ===
 document.addEventListener('DOMContentLoaded', function() {
     // Pulsanti
     const joinBtn = document.getElementById('join-game-btn');
@@ -68,6 +67,33 @@ document.addEventListener('DOMContentLoaded', function() {
     const joinSubmitBtn = document.getElementById('join-submit-btn');
     const gameCodeInput = document.getElementById('game-code-input');
 
+    // Input validazione
+    const nationName = document.getElementById('nation-name');
+    const governmentType = document.getElementById('government-type');
+
+    // Messaggio temporaneo rosso
+    function showTempError(msg) {
+        let err = document.getElementById('temp-error-msg');
+        if (!err) {
+            err = document.createElement('div');
+            err.id = 'temp-error-msg';
+            err.style.color = '#ff3333';
+            err.style.margin = '10px 0 0 0';
+            err.style.fontWeight = 'bold';
+            err.style.textAlign = 'center';
+            output.parentNode.insertBefore(err, output);
+        }
+        err.textContent = msg;
+        err.style.opacity = '1';
+        setTimeout(() => {
+            err.style.transition = 'opacity 0.7s';
+            err.style.opacity = '0';
+        }, 2000);
+        setTimeout(() => {
+            if (err && err.parentNode) err.parentNode.removeChild(err);
+        }, 3000);
+    }
+
     // Nascondi entrambi all'avvio
     if(joinForm) joinForm.style.display = "none";
     if(gameCodePanel) gameCodePanel.style.display = "none";
@@ -75,6 +101,11 @@ document.addEventListener('DOMContentLoaded', function() {
     // Mostra campo codice al click su "Join Game"
     if(joinBtn && joinForm) {
         joinBtn.addEventListener('click', function() {
+            // Validazione dati obbligatori
+            if (nationName && (!nationName.value.trim() || !governmentType.value)) {
+                showTempError('Inserire un nome e una forma di governo prima di entrare o creare una partita');
+                return;
+            }
             joinForm.style.display = "flex";
             if(gameCodePanel) gameCodePanel.style.display = "none";
             if(output) output.textContent = "";
@@ -85,6 +116,11 @@ document.addEventListener('DOMContentLoaded', function() {
     // Nascondi campo codice e mostra codice generato al click su "Create Game"
     if(createBtn && joinForm && gameCodePanel && gameCodeLabel && gameCodeValue) {
         createBtn.addEventListener('click', function() {
+            // Validazione dati obbligatori
+            if (nationName && (!nationName.value.trim() || !governmentType.value)) {
+                showTempError('Inserire un nome e una forma di governo prima di entrare o creare una partita');
+                return;
+            }
             joinForm.style.display = "none";
             // Genera codice alfanumerico di 6 caratteri
             const code = Math.random().toString(36).substring(2, 8).toUpperCase();
@@ -98,6 +134,11 @@ document.addEventListener('DOMContentLoaded', function() {
     // Unisciti a partita (simulazione)
     if(joinSubmitBtn && gameCodeInput && output && joinForm) {
         joinSubmitBtn.addEventListener('click', function() {
+            // Validazione dati obbligatori (di sicurezza, in caso di submit via Enter)
+            if (nationName && (!nationName.value.trim() || !governmentType.value)) {
+                showTempError('Inserire un nome e una forma di governo prima di entrare o creare una partita');
+                return;
+            }
             const code = gameCodeInput.value.trim();
             if(code.length < 4) {
                 output.textContent = "Codice non valido!";
