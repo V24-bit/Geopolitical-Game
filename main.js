@@ -18,6 +18,7 @@ const flagsBg = document.getElementById('animated-flags-bg');
 let gridCols = 0, gridRows = 0;
 
 function createFlagGrid() {
+    if(!flagsBg) return;
     // Calcola quante colonne e righe servono per riempire lo schermo senza spazi
     const flagAspect = 3/2;
     const ww = window.innerWidth;
@@ -60,5 +61,60 @@ function updateFlagGrid() {
 }
 updateFlagGrid();
 setInterval(updateFlagGrid, 3400);
+
+// === GESTIONE JOIN/CREATE GAME ===
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Pulsanti
+    const joinBtn = document.getElementById('join-game-btn');
+    const createBtn = document.getElementById('create-game-btn');
+    // Form e pannelli
+    const joinForm = document.getElementById('join-form');
+    const gameCodePanel = document.getElementById('game-code-panel');
+    const output = document.getElementById('output');
+    const gameCodeLabel = document.getElementById('game-code-label');
+    const gameCodeValue = document.getElementById('game-code-value');
+    const joinSubmitBtn = document.getElementById('join-submit-btn');
+    const gameCodeInput = document.getElementById('game-code-input');
+
+    // Nascondi entrambi all'avvio
+    if(joinForm) joinForm.style.display = "none";
+    if(gameCodePanel) gameCodePanel.style.display = "none";
+
+    // Mostra campo codice al click su "Join Game"
+    if(joinBtn && joinForm) {
+        joinBtn.addEventListener('click', function() {
+            joinForm.style.display = "flex";
+            if(gameCodePanel) gameCodePanel.style.display = "none";
+            if(output) output.textContent = "";
+        });
+    }
+
+    // Nascondi campo codice e genera codice partita al click su "Create Game"
+    if(createBtn && joinForm && gameCodePanel && gameCodeLabel && gameCodeValue) {
+        createBtn.addEventListener('click', function() {
+            joinForm.style.display = "none";
+            // Genera codice alfanumerico di 6-8 caratteri
+            const code = Math.random().toString(36).substring(2, 8).toUpperCase();
+            gameCodeLabel.textContent = "Codice partita:";
+            gameCodeValue.textContent = code;
+            gameCodePanel.style.display = "block";
+            if(output) output.textContent = "";
+        });
+    }
+
+    // Unisciti a partita (fittizio)
+    if(joinSubmitBtn && gameCodeInput && output && joinForm) {
+        joinSubmitBtn.addEventListener('click', function() {
+            const code = gameCodeInput.value.trim();
+            if(code.length < 4) {
+                output.textContent = "Codice non valido!";
+                return;
+            }
+            output.textContent = `Hai richiesto di unirti alla partita: ${code}`;
+            joinForm.style.display = "none";
+        });
+    }
+});
 
 // === ...TUTTO IL RESTO DEL TUO SCRIPT (traduzioni, firebase, ecc) rimane uguale... ===
