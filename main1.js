@@ -10,7 +10,7 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
-// IMPORTA IL GENERATORE DI MAPPA (IMPORT CORRETTO!)
+// IMPORTA IL GENERATORE DI MAPPA
 import { generateAndShowMapOnStart } from './map-generator.js';
 
 document.addEventListener('DOMContentLoaded', function() {
