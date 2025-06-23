@@ -11,7 +11,6 @@ firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
 document.addEventListener('DOMContentLoaded', function() {
-    // Elementi
     const joinBtn = document.getElementById('join-game-btn');
     const createBtn = document.getElementById('create-game-btn');
     const joinForm = document.getElementById('join-form');
@@ -60,7 +59,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (gameCodePanel && gameCodeLabel && gameCodeValue) {
             gameCodeLabel.textContent = "Codice partita:";
             gameCodeValue.textContent = codicePartita;
-            gameCodePanel.style.display = ""; // Usa il valore di default del CSS (block o flex)
+            gameCodePanel.style.display = "block";
         }
 
         let lobbyText = `Creatore: <b>${data.nazione}</b><br>`;
@@ -74,37 +73,35 @@ document.addEventListener('DOMContentLoaded', function() {
         output.innerHTML = lobbyText;
     }
 
-    // Impostazione iniziale: nascondi joinForm e gameCodePanel
+    // Stato iniziale: nascondi pannelli
     if (joinForm) joinForm.style.display = "none";
     if (gameCodePanel) gameCodePanel.style.display = "none";
 
-    // "Unisciti a partita" - mostra il form per inserire il codice
+    // Unisciti a partita
     if (joinBtn && joinForm) {
         joinBtn.addEventListener('click', function() {
             if (nationName && (!nationName.value.trim() || !governmentType.value)) {
                 showTempError('Inserire un nome e una forma di governo prima di entrare o creare una partita');
                 return;
             }
-            joinForm.style.display = ""; // Usa il valore di default del CSS (block o flex)
+            joinForm.style.display = "flex";
             if (gameCodePanel) gameCodePanel.style.display = "none";
             if (output) output.textContent = "";
             if (gameCodeInput) gameCodeInput.value = "";
         });
     }
 
-    // "Crea partita"
-    if (createBtn && joinForm && gameCodePanel && gameCodeLabel && gameCodeValue) {
+    // Crea partita
+    if (createBtn && gameCodePanel && gameCodeLabel && gameCodeValue) {
         createBtn.addEventListener('click', async function() {
             if (nationName && (!nationName.value.trim() || !governmentType.value)) {
                 showTempError('Inserire un nome e una forma di governo prima di entrare o creare una partita');
                 return;
             }
-            joinForm.style.display = "none";
+            if (joinForm) joinForm.style.display = "none";
             // Genera codice partita
             const code = Math.random().toString(36).substring(2, 8).toUpperCase();
             currentGameCode = code;
-
-            // Calcola la data di scadenza (expireAt) tra 14 giorni
             const expireAt = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000);
 
             try {
@@ -114,17 +111,15 @@ document.addEventListener('DOMContentLoaded', function() {
                     nazione: nationName.value,
                     governo: governmentType.value,
                     giocatori: [nationName.value],
-                    expireAt: expireAt // <-- campo scadenza automatico
+                    expireAt: expireAt
                 });
-                // Mostra codice partita
                 if (gameCodePanel && gameCodeLabel && gameCodeValue) {
                     gameCodeLabel.textContent = "Codice partita:";
                     gameCodeValue.textContent = code;
-                    gameCodePanel.style.display = ""; // Usa il valore di default del CSS (block o flex)
+                    gameCodePanel.style.display = "block";
                 }
                 if (output) output.textContent = "";
 
-                // Avvia lobby in tempo reale
                 if (unsubscribeLobby) unsubscribeLobby();
                 unsubscribeLobby = db.collection("partite").doc(code).onSnapshot(doc => {
                     showLobby(doc, nationName.value);
@@ -136,8 +131,8 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // "Entra" in partita esistente
-    if (joinSubmitBtn && gameCodeInput && output && joinForm) {
+    // Entra in partita esistente
+    if (joinSubmitBtn && gameCodeInput && gameCodePanel && gameCodeLabel && gameCodeValue && joinForm) {
         joinSubmitBtn.addEventListener('click', async function() {
             if (nationName && (!nationName.value.trim() || !governmentType.value)) {
                 showTempError('Inserire un nome e una forma di governo prima di entrare o creare una partita');
@@ -159,14 +154,10 @@ document.addEventListener('DOMContentLoaded', function() {
                     });
                     output.textContent = "";
                     joinForm.style.display = "none";
-                    // Mostra codice partita
-                    if (gameCodePanel && gameCodeLabel && gameCodeValue) {
-                        gameCodeLabel.textContent = "Codice partita:";
-                        gameCodeValue.textContent = code;
-                        gameCodePanel.style.display = ""; // Usa il valore di default del CSS (block o flex)
-                    }
+                    gameCodeLabel.textContent = "Codice partita:";
+                    gameCodeValue.textContent = code;
+                    gameCodePanel.style.display = "block";
 
-                    // Avvia lobby in tempo reale
                     if (unsubscribeLobby) unsubscribeLobby();
                     unsubscribeLobby = partitaRef.onSnapshot(doc => {
                         showLobby(doc, nationName.value);
@@ -174,11 +165,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
                 } else {
                     output.textContent = "Codice partita non trovato!";
-                    if (gameCodePanel) gameCodePanel.style.display = "none";
+                    gameCodePanel.style.display = "none";
                 }
             } catch (e) {
                 output.textContent = "Errore di connessione a Firebase!";
-                if (gameCodePanel) gameCodePanel.style.display = "none";
+                gameCodePanel.style.display = "none";
             }
         });
     }
