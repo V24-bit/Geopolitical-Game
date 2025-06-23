@@ -20,7 +20,7 @@
         align-items: center;
         gap: 8px;
         transition: background 0.2s;
-        z-index: 999;
+        z-index: 9999;
       }
       .github-login-btn:hover {
         background: #444d56;
@@ -40,11 +40,11 @@
         border-radius: 5px;
         padding: 7px 15px;
         font-size: 13px;
-        z-index: 1000;
+        z-index: 10000;
         box-shadow: 0 2px 8px rgba(0,0,0,0.05);
         max-width: 360px;
         word-break: break-all;
-        display:none;
+        display: none;
       }
     </style>
 </head>
@@ -54,7 +54,6 @@
       <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/github/github-original.svg" class="github-icon" alt="GitHub">
       Login con GitHub
     </button>
-    <!-- Spazio per mostrare la UID -->
     <div id="firebase-uid" class="firebase-uid"></div>
 
     <div class="center-container">
@@ -261,8 +260,10 @@
         messagingSenderId: "537294174901",
         appId: "1:537294174901:web:0c0eebedfd927cc8e65cfc"
       };
-      firebase.initializeApp(firebaseConfig);
-
+      // Inizializza Firebase SOLO se non già inizializzato (utile per main.js)
+      if (!firebase.apps.length) {
+        firebase.initializeApp(firebaseConfig);
+      }
       // Funzione login GitHub
       document.addEventListener('DOMContentLoaded', function() {
         const loginBtn = document.getElementById('github-login-btn');
