@@ -71,13 +71,24 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
         const data = doc.data();
-        // Mostra sempre il codice partita
+
+        // Recupera il codice partita in modo robusto
+        let codicePartita = "";
+        if (data.codice && typeof data.codice === "string" && data.codice.trim()) {
+            codicePartita = data.codice.trim();
+        } else if (currentGameCode && typeof currentGameCode === "string" && currentGameCode.trim()) {
+            codicePartita = currentGameCode.trim();
+        } else {
+            codicePartita = "(codice non trovato)";
+        }
+
         if (gameCodePanel && gameCodeLabel && gameCodeValue) {
             gameCodeLabel.textContent = "Codice partita:";
-            gameCodeValue.textContent = data.codice || currentGameCode || "";
+            gameCodeValue.textContent = codicePartita;
             gameCodePanel.style.display = "flex";
             centerPanels();
         }
+
         let lobbyText = `Creatore: <b>${data.nazione}</b><br>`;
         lobbyText += "Giocatori nella stanza:<ul>";
         if (Array.isArray(data.giocatori)) {
