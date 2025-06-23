@@ -1,5 +1,4 @@
-// map-generator.js
-
+// map/map-generator.js
 const TILE_WATER = 0;
 const TILE_PLAIN = 1;
 const TILE_MOUNTAIN = 2;
@@ -7,7 +6,7 @@ const TILE_MOUNTAIN = 2;
 const COLORS = {
   [TILE_WATER]: '#3896e2',
   [TILE_PLAIN]: '#19cf86',
-  [TILE_MOUNTAIN]: '#666666'
+  [TILE_MOUNTAIN]: '#444444'
 };
 
 const MAP_SIZE = 250;
@@ -19,24 +18,21 @@ function randomInt(min, max) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
-// 1. Genera bordo acqua variabile
+// Genera bordo acqua variabile
 function generateWaterBorderMap() {
   const map = Array.from({length: MAP_SIZE}, () => Array(MAP_SIZE).fill(TILE_PLAIN));
+  const borderTop = Array.from({length: MAP_SIZE}, () => randomInt(MIN_WATER_BORDER, MAX_WATER_BORDER));
+  const borderBottom = Array.from({length: MAP_SIZE}, () => randomInt(MIN_WATER_BORDER, MAX_WATER_BORDER));
+  const borderLeft = Array.from({length: MAP_SIZE}, () => randomInt(MIN_WATER_BORDER, MAX_WATER_BORDER));
+  const borderRight = Array.from({length: MAP_SIZE}, () => randomInt(MIN_WATER_BORDER, MAX_WATER_BORDER));
 
-  // Prepara per ogni lato un array di profondità random
-  const topBorder = Array.from({length: MAP_SIZE}, () => randomInt(MIN_WATER_BORDER, MAX_WATER_BORDER));
-  const bottomBorder = Array.from({length: MAP_SIZE}, () => randomInt(MIN_WATER_BORDER, MAX_WATER_BORDER));
-  const leftBorder = Array.from({length: MAP_SIZE}, () => randomInt(MIN_WATER_BORDER, MAX_WATER_BORDER));
-  const rightBorder = Array.from({length: MAP_SIZE}, () => randomInt(MIN_WATER_BORDER, MAX_WATER_BORDER));
-
-  // Applica bordo acqua
   for (let y = 0; y < MAP_SIZE; y++) {
     for (let x = 0; x < MAP_SIZE; x++) {
       if (
-        y < topBorder[x] ||
-        y >= MAP_SIZE - bottomBorder[x] ||
-        x < leftBorder[y] ||
-        x >= MAP_SIZE - rightBorder[y]
+        y < borderTop[x] ||
+        y >= MAP_SIZE - borderBottom[x] ||
+        x < borderLeft[y] ||
+        x >= MAP_SIZE - borderRight[y]
       ) {
         map[y][x] = TILE_WATER;
       }
@@ -45,8 +41,8 @@ function generateWaterBorderMap() {
   return map;
 }
 
-// 2. Aggiungi laghi/strisce d'acqua interne
-function addInternalWater(map, count = 20) {
+// Laghi/strisce d'acqua interne
+function addInternalWater(map, count = 22) {
   for (let i = 0; i < count; i++) {
     const lakeSize = randomInt(2, 30);
     const isHorizontal = Math.random() < 0.5;
@@ -66,15 +62,15 @@ function addInternalWater(map, count = 20) {
   }
 }
 
-// 3. Genera isole di pianura
-function addPlainsIslands(map, count = 8) {
+// Isole di pianura
+function addPlainsIslands(map, count = 10) {
   for (let i = 0; i < count; i++) {
-    const islandRadius = randomInt(3, 10);
-    const cx = randomInt(MAX_WATER_BORDER + islandRadius, MAP_SIZE - MAX_WATER_BORDER - islandRadius - 1);
-    const cy = randomInt(MAX_WATER_BORDER + islandRadius, MAP_SIZE - MAX_WATER_BORDER - islandRadius - 1);
-    for (let y = -islandRadius; y <= islandRadius; y++) {
-      for (let x = -islandRadius; x <= islandRadius; x++) {
-        if (x * x + y * y <= islandRadius * islandRadius) {
+    const radius = randomInt(3, 9);
+    const cx = randomInt(MAX_WATER_BORDER + radius, MAP_SIZE - MAX_WATER_BORDER - radius - 1);
+    const cy = randomInt(MAX_WATER_BORDER + radius, MAP_SIZE - MAX_WATER_BORDER - radius - 1);
+    for (let y = -radius; y <= radius; y++) {
+      for (let x = -radius; x <= radius; x++) {
+        if (x*x + y*y <= radius*radius) {
           const nx = cx + x, ny = cy + y;
           if (
             nx >= 0 && nx < MAP_SIZE &&
@@ -89,7 +85,7 @@ function addPlainsIslands(map, count = 8) {
   }
 }
 
-// 4. Check se una cella è solo confinante con pianure
+// Controlla se una cella tocca solo pianure
 function onlyTouchingPlains(map, x, y) {
   const dirs = [[0,1],[1,0],[0,-1],[-1,0]];
   for (const [dx, dy] of dirs) {
@@ -104,7 +100,7 @@ function onlyTouchingPlains(map, x, y) {
   return true;
 }
 
-// 5. Generazione montagne iniziali
+// Montagne iniziali
 function placeInitialMountains(map) {
   let placed = 0;
   const positions = [];
@@ -125,15 +121,14 @@ function placeInitialMountains(map) {
   return positions;
 }
 
-// 6. Propagazione montagne
+// Propagazione montagne
 function propagateMountains(map, initialMountains) {
   const dirs = [[0,1],[1,0],[0,-1],[-1,0]];
   let queue = [...initialMountains];
   while (queue.length > 0) {
     const cell = queue.shift();
-    if (cell.generated) continue; // Solo una generazione per tile
+    if (cell.generated) continue;
     if (Math.random() < 0.5) {
-      // Prova a propagare in una direzione casuale solo su pianura
       const shuffledDirs = dirs.sort(() => Math.random() - 0.5);
       for (const [dx, dy] of shuffledDirs) {
         const nx = cell.x + dx, ny = cell.y + dy;
@@ -145,7 +140,7 @@ function propagateMountains(map, initialMountains) {
         ) {
           map[ny][nx] = TILE_MOUNTAIN;
           queue.push({x: nx, y: ny, generated: false});
-          break; // Solo uno per cella
+          break;
         }
       }
     }
@@ -153,7 +148,7 @@ function propagateMountains(map, initialMountains) {
   }
 }
 
-// 7. Disegna la mappa su canvas a schermo intero
+// Disegna la mappa su canvas a schermo intero
 function drawMapOnCanvas(map, canvas) {
   canvas.width = window.innerWidth;
   canvas.height = window.innerHeight;
@@ -168,18 +163,23 @@ function drawMapOnCanvas(map, canvas) {
   }
 }
 
-// 8. Funzione principale che puoi chiamare su start game
+// Funzione principale da chiamare su "Start Game"
 export function generateAndShowMapOnStart(canvasId = 'game-map') {
-  // Nascondi altri elementi UI se serve
-  document.body.requestFullscreen?.();
+  // Chiedi schermo intero
+  if (document.body.requestFullscreen) {
+    document.body.requestFullscreen();
+  }
+  // Nascondi UI principale
+  const mainUI = document.querySelector('.main-ui');
+  if (mainUI) mainUI.style.display = 'none';
 
   let map = generateWaterBorderMap();
-  addInternalWater(map, 20);
-  addPlainsIslands(map, 8);
+  addInternalWater(map, 22);
+  addPlainsIslands(map, 10);
   const initialMountains = placeInitialMountains(map);
   propagateMountains(map, initialMountains);
 
-  // Mostra canvas e disegna
+  // Trova o crea canvas
   let canvas = document.getElementById(canvasId);
   if (!canvas) {
     canvas = document.createElement('canvas');
@@ -187,7 +187,7 @@ export function generateAndShowMapOnStart(canvasId = 'game-map') {
     canvas.style.position = 'fixed';
     canvas.style.top = 0;
     canvas.style.left = 0;
-    canvas.style.zIndex = 1000;
+    canvas.style.zIndex = 1111;
     document.body.appendChild(canvas);
   }
   canvas.style.display = 'block';
@@ -196,6 +196,6 @@ export function generateAndShowMapOnStart(canvasId = 'game-map') {
 
   drawMapOnCanvas(map, canvas);
 
-  // Redraw on resize
+  // Ridisegna su resize
   window.onresize = () => drawMapOnCanvas(map, canvas);
 }
