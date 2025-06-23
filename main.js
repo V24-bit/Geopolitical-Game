@@ -1,58 +1,3 @@
-// === GESTIONE SFONDO MOSAICO DI BANDIERE (opzionale, funziona solo se hai il div animated-flags-bg) ===
-const flagsBg = document.getElementById('animated-flags-bg');
-if (flagsBg) {
-    const countryCodes = [ "ad","ae","af","ag","ai","al","am","ao","aq","ar","as","at","au","aw","ax",
-    "az","ba","bb","bd","be","bf","bg","bh","bi","bj","bl","bm","bn","bo","bq","br","bs","bt","bv","bw",
-    "by","bz","ca","cc","cd","cf","cg","ch","ci","ck","cl","cm","cn","co","cr","cu","cv","cw","cx","cy",
-    "cz","de","dj","dk","dm","do","dz","ec","ee","eg","eh","er","es","et","fi","fj","fk","fm","fo","fr",
-    "ga","gb","gd","ge","gf","gg","gh","gi","gl","gm","gn","gp","gq","gr","gs","gt","gu","gw","gy","hk",
-    "hm","hn","hr","ht","hu","id","ie","il","im","in","io","iq","ir","is","it","je","jm","jo","jp","ke",
-    "kg","kh","ki","km","kn","kp","kr","kw","ky","kz","la","lb","lc","li","lk","lr","ls","lt","lu","lv",
-    "ly","ma","mc","md","me","mf","mg","mh","mk","ml","mm","mn","mo","mp","mq","mr","ms","mt","mu","mv",
-    "mw","mx","my","mz","na","nc","ne","nf","ng","ni","nl","no","np","nr","nu","nz","om","pa","pe","pf",
-    "pg","ph","pk","pl","pm","pn","pr","ps","pt","pw","py","qa","re","ro","rs","ru","rw","sa","sb","sc",
-    "sd","se","sg","sh","si","sj","sk","sl","sm","sn","so","sr","ss","st","sv","sx","sy","sz","tc","td",
-    "tf","tg","th","tj","tk","tl","tm","tn","to","tr","tt","tv","tw","tz","ua","ug","um","us","uy","uz",
-    "va","vc","ve","vg","vi","vn","vu","wf","ws","ye","yt","za","zm","zw"];
-    const flags = countryCodes.map(code => `https://flagcdn.com/w320/${code}.png`);
-
-    let gridCols = 0, gridRows = 0;
-    function createFlagGrid() {
-        const flagAspect = 3/2;
-        const ww = window.innerWidth;
-        const wh = window.innerHeight;
-        let colWidth = 90, rowHeight = 60;
-        gridCols = Math.ceil(ww / colWidth);
-        gridRows = Math.ceil(wh / rowHeight);
-        colWidth = ww / gridCols;
-        rowHeight = wh / gridRows;
-        flagsBg.style.gridTemplateColumns = `repeat(${gridCols}, 1fr)`;
-        flagsBg.style.gridTemplateRows = `repeat(${gridRows}, 1fr)`;
-        flagsBg.innerHTML = '';
-        for (let i = 0; i < gridCols * gridRows; i++) {
-            const img = document.createElement('img');
-            img.className = 'flag-tile';
-            img.src = flags[0];
-            img.style.width = "100%";
-            img.style.height = "100%";
-            img.style.aspectRatio = flagAspect;
-            flagsBg.appendChild(img);
-        }
-    }
-    window.addEventListener('resize', createFlagGrid);
-    createFlagGrid();
-    let flagIndex = 0;
-    function updateFlagGrid() {
-        const tiles = document.querySelectorAll('.flag-tile');
-        for (const img of tiles) {
-            img.src = flags[flagIndex];
-        }
-        flagIndex = (flagIndex + 1) % flags.length;
-    }
-    updateFlagGrid();
-    setInterval(updateFlagGrid, 3400);
-}
-
 // === GESTIONE JOIN/CREATE GAME E VALIDAZIONE ===
 document.addEventListener('DOMContentLoaded', function() {
     // Pulsanti
@@ -66,10 +11,24 @@ document.addEventListener('DOMContentLoaded', function() {
     const gameCodeValue = document.getElementById('game-code-value');
     const joinSubmitBtn = document.getElementById('join-submit-btn');
     const gameCodeInput = document.getElementById('game-code-input');
-
-    // Input validazione
     const nationName = document.getElementById('nation-name');
     const governmentType = document.getElementById('government-type');
+
+    // Centra sempre i pannelli, anche se ci sono override da altri stili
+    function centerPanels() {
+        [joinForm, gameCodePanel].forEach(panel => {
+            if(panel) {
+                panel.style.display = panel.style.display || "none";
+                panel.style.alignItems = "center";
+                panel.style.justifyContent = "center";
+                panel.style.marginLeft = "auto";
+                panel.style.marginRight = "auto";
+                panel.style.position = "relative";
+                panel.style.left = "0";
+                panel.style.right = "0";
+            }
+        });
+    }
 
     // Messaggio temporaneo rosso
     function showTempError(msg) {
@@ -97,11 +56,11 @@ document.addEventListener('DOMContentLoaded', function() {
     // Nascondi entrambi all'avvio
     if(joinForm) joinForm.style.display = "none";
     if(gameCodePanel) gameCodePanel.style.display = "none";
+    centerPanels();
 
     // Mostra campo codice al click su "Join Game"
     if(joinBtn && joinForm) {
         joinBtn.addEventListener('click', function() {
-            // Validazione dati obbligatori
             if (nationName && (!nationName.value.trim() || !governmentType.value)) {
                 showTempError('Inserire un nome e una forma di governo prima di entrare o creare una partita');
                 return;
@@ -110,13 +69,13 @@ document.addEventListener('DOMContentLoaded', function() {
             if(gameCodePanel) gameCodePanel.style.display = "none";
             if(output) output.textContent = "";
             if(joinForm.querySelector('input')) joinForm.querySelector('input').value = "";
+            centerPanels();
         });
     }
 
     // Nascondi campo codice e mostra codice generato al click su "Create Game"
     if(createBtn && joinForm && gameCodePanel && gameCodeLabel && gameCodeValue) {
         createBtn.addEventListener('click', function() {
-            // Validazione dati obbligatori
             if (nationName && (!nationName.value.trim() || !governmentType.value)) {
                 showTempError('Inserire un nome e una forma di governo prima di entrare o creare una partita');
                 return;
@@ -126,7 +85,8 @@ document.addEventListener('DOMContentLoaded', function() {
             const code = Math.random().toString(36).substring(2, 8).toUpperCase();
             gameCodeLabel.textContent = "Codice partita:";
             gameCodeValue.textContent = code;
-            gameCodePanel.style.display = "block";
+            gameCodePanel.style.display = "flex";
+            centerPanels();
             if(output) output.textContent = "";
         });
     }
@@ -134,7 +94,6 @@ document.addEventListener('DOMContentLoaded', function() {
     // Unisciti a partita (simulazione)
     if(joinSubmitBtn && gameCodeInput && output && joinForm) {
         joinSubmitBtn.addEventListener('click', function() {
-            // Validazione dati obbligatori (di sicurezza, in caso di submit via Enter)
             if (nationName && (!nationName.value.trim() || !governmentType.value)) {
                 showTempError('Inserire un nome e una forma di governo prima di entrare o creare una partita');
                 return;
@@ -146,6 +105,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             output.textContent = `Hai richiesto di unirti alla partita: ${code}`;
             joinForm.style.display = "none";
+            centerPanels();
         });
     }
 });
