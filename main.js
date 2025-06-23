@@ -27,20 +27,6 @@ document.addEventListener('DOMContentLoaded', function() {
     let unsubscribeLobby = null;
     let currentGameCode = null;
 
-    function centerPanels() {
-        [joinForm, gameCodePanel].forEach(panel => {
-            if(panel) {
-                panel.style.alignItems = "center";
-                panel.style.justifyContent = "center";
-                panel.style.marginLeft = "auto";
-                panel.style.marginRight = "auto";
-                panel.style.position = "relative";
-                panel.style.left = "0";
-                panel.style.right = "0";
-            }
-        });
-    }
-
     function showTempError(msg) {
         let err = document.getElementById('temp-error-msg');
         if (!err) {
@@ -74,8 +60,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (gameCodePanel && gameCodeLabel && gameCodeValue) {
             gameCodeLabel.textContent = "Codice partita:";
             gameCodeValue.textContent = codicePartita;
-            gameCodePanel.style.display = "block";
-            centerPanels();
+            gameCodePanel.style.display = ""; // Usa il valore di default del CSS (block o flex)
         }
 
         let lobbyText = `Creatore: <b>${data.nazione}</b><br>`;
@@ -90,27 +75,25 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Impostazione iniziale: nascondi joinForm e gameCodePanel
-    if(joinForm) joinForm.style.display = "none";
-    if(gameCodePanel) gameCodePanel.style.display = "none";
-    centerPanels();
+    if (joinForm) joinForm.style.display = "none";
+    if (gameCodePanel) gameCodePanel.style.display = "none";
 
-    // "Unisciti a partita"
-    if(joinBtn && joinForm) {
+    // "Unisciti a partita" - mostra il form per inserire il codice
+    if (joinBtn && joinForm) {
         joinBtn.addEventListener('click', function() {
             if (nationName && (!nationName.value.trim() || !governmentType.value)) {
                 showTempError('Inserire un nome e una forma di governo prima di entrare o creare una partita');
                 return;
             }
-            joinForm.style.display = "block";
-            if(gameCodePanel) gameCodePanel.style.display = "none";
-            if(output) output.textContent = "";
-            if(gameCodeInput) gameCodeInput.value = "";
-            centerPanels();
+            joinForm.style.display = ""; // Usa il valore di default del CSS (block o flex)
+            if (gameCodePanel) gameCodePanel.style.display = "none";
+            if (output) output.textContent = "";
+            if (gameCodeInput) gameCodeInput.value = "";
         });
     }
 
     // "Crea partita"
-    if(createBtn && joinForm && gameCodePanel && gameCodeLabel && gameCodeValue) {
+    if (createBtn && joinForm && gameCodePanel && gameCodeLabel && gameCodeValue) {
         createBtn.addEventListener('click', async function() {
             if (nationName && (!nationName.value.trim() || !governmentType.value)) {
                 showTempError('Inserire un nome e una forma di governo prima di entrare o creare una partita');
@@ -137,10 +120,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (gameCodePanel && gameCodeLabel && gameCodeValue) {
                     gameCodeLabel.textContent = "Codice partita:";
                     gameCodeValue.textContent = code;
-                    gameCodePanel.style.display = "block";
-                    centerPanels();
+                    gameCodePanel.style.display = ""; // Usa il valore di default del CSS (block o flex)
                 }
-                if(output) output.textContent = "";
+                if (output) output.textContent = "";
 
                 // Avvia lobby in tempo reale
                 if (unsubscribeLobby) unsubscribeLobby();
@@ -155,14 +137,14 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // "Entra" in partita esistente
-    if(joinSubmitBtn && gameCodeInput && output && joinForm) {
+    if (joinSubmitBtn && gameCodeInput && output && joinForm) {
         joinSubmitBtn.addEventListener('click', async function() {
             if (nationName && (!nationName.value.trim() || !governmentType.value)) {
                 showTempError('Inserire un nome e una forma di governo prima di entrare o creare una partita');
                 return;
             }
             const code = gameCodeInput.value.trim().toUpperCase();
-            if(code.length < 4) {
+            if (code.length < 4) {
                 output.textContent = "Codice non valido!";
                 if (gameCodePanel) gameCodePanel.style.display = "none";
                 return;
@@ -181,8 +163,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     if (gameCodePanel && gameCodeLabel && gameCodeValue) {
                         gameCodeLabel.textContent = "Codice partita:";
                         gameCodeValue.textContent = code;
-                        gameCodePanel.style.display = "block";
-                        centerPanels();
+                        gameCodePanel.style.display = ""; // Usa il valore di default del CSS (block o flex)
                     }
 
                     // Avvia lobby in tempo reale
