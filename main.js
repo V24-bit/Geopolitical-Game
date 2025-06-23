@@ -67,12 +67,18 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function showLobby(doc, myNation) {
         // Mostra la schermata della lobby con i giocatori correnti
-        // Puoi usare l'elemento output per mostrare la lista dei giocatori
         if (!doc.exists) {
             output.textContent = "Errore: partita non trovata!";
             return;
         }
         const data = doc.data();
+        // Mostra sempre il codice partita nel pannello
+        if (gameCodePanel && gameCodeLabel && gameCodeValue) {
+            gameCodeLabel.textContent = "Codice partita:";
+            gameCodeValue.textContent = data.codice || "";
+            gameCodePanel.style.display = "flex";
+            centerPanels();
+        }
         let lobbyText = `Creatore: <b>${data.nazione}</b><br>`;
         lobbyText += "Giocatori nella stanza:<ul>";
         if (Array.isArray(data.giocatori)) {
