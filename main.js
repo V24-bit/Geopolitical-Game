@@ -11,10 +11,9 @@ firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
 document.addEventListener('DOMContentLoaded', function() {
-    // Pulsanti
+    // Elementi
     const joinBtn = document.getElementById('join-game-btn');
     const createBtn = document.getElementById('create-game-btn');
-    // Form e pannelli
     const joinForm = document.getElementById('join-form');
     const gameCodePanel = document.getElementById('game-code-panel');
     const output = document.getElementById('output');
@@ -25,7 +24,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const nationName = document.getElementById('nation-name');
     const governmentType = document.getElementById('government-type');
 
-    let unsubscribeLobby = null; // Listener della lobby
+    let unsubscribeLobby = null;
+    let currentGameCode = null;
 
     function centerPanels() {
         [joinForm, gameCodePanel].forEach(panel => {
@@ -65,16 +65,16 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function showLobby(doc, myNation) {
-        // Mostra il codice partita SEMPRE nel pannello
         if (!doc.exists) {
             output.textContent = "Errore: partita non trovata!";
             if (gameCodePanel) gameCodePanel.style.display = "none";
             return;
         }
         const data = doc.data();
+        // Mostra sempre il codice partita
         if (gameCodePanel && gameCodeLabel && gameCodeValue) {
             gameCodeLabel.textContent = "Codice partita:";
-            gameCodeValue.textContent = data.codice || "";
+            gameCodeValue.textContent = data.codice || currentGameCode || "";
             gameCodePanel.style.display = "flex";
             centerPanels();
         }
@@ -118,6 +118,7 @@ document.addEventListener('DOMContentLoaded', function() {
             joinForm.style.display = "none";
             // Genera codice partita
             const code = Math.random().toString(36).substring(2, 8).toUpperCase();
+            currentGameCode = code;
 
             try {
                 await db.collection("partite").doc(code).set({
@@ -127,11 +128,13 @@ document.addEventListener('DOMContentLoaded', function() {
                     governo: governmentType.value,
                     giocatori: [nationName.value]
                 });
-                // Mostra codice
-                gameCodeLabel.textContent = "Codice partita:";
-                gameCodeValue.textContent = code;
-                gameCodePanel.style.display = "flex";
-                centerPanels();
+                // Mostra codice partita
+                if (gameCodePanel && gameCodeLabel && gameCodeValue) {
+                    gameCodeLabel.textContent = "Codice partita:";
+                    gameCodeValue.textContent = code;
+                    gameCodePanel.style.display = "flex";
+                    centerPanels();
+                }
                 if(output) output.textContent = "";
 
                 // Avvia lobby in tempo reale
@@ -156,8 +159,10 @@ document.addEventListener('DOMContentLoaded', function() {
             const code = gameCodeInput.value.trim().toUpperCase();
             if(code.length < 4) {
                 output.textContent = "Codice non valido!";
+                if (gameCodePanel) gameCodePanel.style.display = "none";
                 return;
             }
+            currentGameCode = code;
             try {
                 const partitaRef = db.collection("partite").doc(code);
                 const doc = await partitaRef.get();
@@ -167,7 +172,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     });
                     output.textContent = "";
                     joinForm.style.display = "none";
-                    // Mostra SEMPRE il codice partita
+                    // Mostra codice partita
                     if (gameCodePanel && gameCodeLabel && gameCodeValue) {
                         gameCodeLabel.textContent = "Codice partita:";
                         gameCodeValue.textContent = code;
