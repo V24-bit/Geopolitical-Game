@@ -4,58 +4,8 @@
     <meta charset="UTF-8">
     <title>Geopolitical Game - Select Nation</title>
     <link rel="stylesheet" href="style.css">
-    <style>
-      .github-login-btn {
-        position: absolute;
-        top: 18px;
-        right: 28px;
-        background: #24292f;
-        color: #fff;
-        border: none;
-        padding: 7px 16px;
-        border-radius: 6px;
-        font-size: 15px;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        transition: background 0.2s;
-        z-index: 9999;
-      }
-      .github-login-btn:hover {
-        background: #444d56;
-      }
-      .github-icon {
-        width: 20px;
-        height: 20px;
-        vertical-align: middle;
-      }
-      .firebase-uid {
-        position: absolute;
-        top: 54px;
-        right: 28px;
-        background: #fffbe7;
-        color: #333;
-        border: 1px solid #d8d8d8;
-        border-radius: 5px;
-        padding: 7px 15px;
-        font-size: 13px;
-        z-index: 10000;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-        max-width: 360px;
-        word-break: break-all;
-        display: none;
-      }
-    </style>
 </head>
 <body>
-    <!-- Bottone Login con GitHub -->
-    <button class="github-login-btn" id="github-login-btn">
-      <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/github/github-original.svg" class="github-icon" alt="GitHub">
-      Login con GitHub
-    </button>
-    <div id="firebase-uid" class="firebase-uid"></div>
-
     <div class="center-container">
         <div class="main-ui">
             <!-- MENU LINGUA -->
@@ -249,43 +199,7 @@
     <!-- FIREBASE SCRIPTS -->
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-    <script>
-      // CONFIGURAZIONE FIREBASE (già pronta!)
-      const firebaseConfig = {
-        apiKey: "AIzaSyC-nxzpcf5I_NHkKbWbLXRFRRzQLv9ilWU",
-        authDomain: "geopolitical-game-5f135.firebaseapp.com",
-        projectId: "geopolitical-game-5f135",
-        storageBucket: "geopolitical-game-5f135.appspot.com",
-        messagingSenderId: "537294174901",
-        appId: "1:537294174901:web:0c0eebedfd927cc8e65cfc"
-      };
-      // Inizializza Firebase SOLO se non già inizializzato (utile per main.js)
-      if (!firebase.apps.length) {
-        firebase.initializeApp(firebaseConfig);
-      }
-      // Funzione login GitHub
-      document.addEventListener('DOMContentLoaded', function() {
-        const loginBtn = document.getElementById('github-login-btn');
-        const uidDiv = document.getElementById('firebase-uid');
-        if(loginBtn){
-          loginBtn.addEventListener('click', function() {
-            const provider = new firebase.auth.GithubAuthProvider();
-            firebase.auth().signInWithPopup(provider)
-              .then(result => {
-                const user = result.user;
-                uidDiv.innerHTML = "<b>UID Firebase:</b> <span style='word-break:break-all;'>" + user.uid + "</span><br><span style='font-size:12px;color:#888;'>(Copia questa UID per le regole Firestore)</span>";
-                uidDiv.style.display = 'block';
-              })
-              .catch(error => {
-                uidDiv.innerHTML = "<span style='color:red;'>Errore login: " + error.message + "</span>";
-                uidDiv.style.display = 'block';
-              });
-          });
-        }
-      });
-    </script>
-    <!-- TUO SCRIPT PRINCIPALE -->
-    <script src="main.js"></script>
+    <!-- CARICA SOLO main1.js! -->
+    <script src="main1.js"></script>
 </body>
 </html>
