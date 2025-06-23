@@ -10,6 +10,9 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
+// IMPORTA la funzione del generatore
+import { generateAndShowMapOnStart } from './map/map-generator.js';
+
 document.addEventListener('DOMContentLoaded', function() {
     const joinBtn = document.getElementById('join-game-btn');
     const createBtn = document.getElementById('create-game-btn');
@@ -183,11 +186,10 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Start Game click handler (per ora solo log)
+    // Start Game click handler: AVVIA LA MAPPA
     if (startGameBtn) {
         startGameBtn.addEventListener('click', function() {
-            console.log("Start game clicked");
-            // Qui andrà la logica vera di avvio partita
+            generateAndShowMapOnStart(); // Generazione e visualizzazione mappa a schermo intero
         });
     }
 });
