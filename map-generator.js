@@ -94,7 +94,7 @@ function generateMap() {
       0.5 * simplex.noise(x/18+50, y/18+50) +
       0.25* simplex.noise(x/8-100, y/8-100);
     e = e / (1.1 + 0.5 + 0.25);
-    e = e - dist*0.95; // circonda di oceano
+    e = e - dist*0.7; // circonda di oceano
     height[y][x] = e;
   }
   // 2. Biome assignment (oceano, lago, pianura, foresta, collina, montagna)
