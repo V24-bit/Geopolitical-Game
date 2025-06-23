@@ -7,8 +7,8 @@
     <style>
       .github-login-btn {
         position: absolute;
-        top: 14px;
-        right: 24px;
+        top: 18px;
+        right: 28px;
         background: #24292f;
         color: #fff;
         border: none;
@@ -20,6 +20,7 @@
         align-items: center;
         gap: 8px;
         transition: background 0.2s;
+        z-index: 999;
       }
       .github-login-btn:hover {
         background: #444d56;
@@ -31,29 +32,30 @@
       }
       .firebase-uid {
         position: absolute;
-        top: 44px;
-        right: 24px;
+        top: 54px;
+        right: 28px;
         background: #fffbe7;
         color: #333;
         border: 1px solid #d8d8d8;
         border-radius: 5px;
         padding: 7px 15px;
         font-size: 13px;
-        z-index: 999;
+        z-index: 1000;
         box-shadow: 0 2px 8px rgba(0,0,0,0.05);
         max-width: 360px;
         word-break: break-all;
+        display:none;
       }
     </style>
 </head>
 <body>
-    <!-- Bottone Login GitHub -->
+    <!-- Bottone Login con GitHub -->
     <button class="github-login-btn" id="github-login-btn">
       <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/github/github-original.svg" class="github-icon" alt="GitHub">
       Login con GitHub
     </button>
     <!-- Spazio per mostrare la UID -->
-    <div id="firebase-uid" class="firebase-uid" style="display:none;"></div>
+    <div id="firebase-uid" class="firebase-uid"></div>
 
     <div class="center-container">
         <div class="main-ui">
@@ -247,8 +249,8 @@
     </script>
     <!-- FIREBASE SCRIPTS -->
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
     <script>
       // CONFIGURAZIONE FIREBASE (già pronta!)
       const firebaseConfig = {
@@ -262,22 +264,24 @@
       firebase.initializeApp(firebaseConfig);
 
       // Funzione login GitHub
-      const loginBtn = document.getElementById('github-login-btn');
-      const uidDiv = document.getElementById('firebase-uid');
-
-      loginBtn.addEventListener('click', function() {
-        const provider = new firebase.auth.GithubAuthProvider();
-        firebase.auth().signInWithPopup(provider)
-          .then(result => {
-            const user = result.user;
-            uidDiv.innerHTML = `<b>UID Firebase:</b> <span style="word-break:break-all;">${user.uid}</span><br>
-                <span style="font-size:12px;color:#888;">(Copia questa UID per le regole Firestore)</span>`;
-            uidDiv.style.display = 'block';
-          })
-          .catch(error => {
-            uidDiv.innerHTML = `<span style="color:red;">Errore login: ${error.message}</span>`;
-            uidDiv.style.display = 'block';
+      document.addEventListener('DOMContentLoaded', function() {
+        const loginBtn = document.getElementById('github-login-btn');
+        const uidDiv = document.getElementById('firebase-uid');
+        if(loginBtn){
+          loginBtn.addEventListener('click', function() {
+            const provider = new firebase.auth.GithubAuthProvider();
+            firebase.auth().signInWithPopup(provider)
+              .then(result => {
+                const user = result.user;
+                uidDiv.innerHTML = "<b>UID Firebase:</b> <span style='word-break:break-all;'>" + user.uid + "</span><br><span style='font-size:12px;color:#888;'>(Copia questa UID per le regole Firestore)</span>";
+                uidDiv.style.display = 'block';
+              })
+              .catch(error => {
+                uidDiv.innerHTML = "<span style='color:red;'>Errore login: " + error.message + "</span>";
+                uidDiv.style.display = 'block';
+              });
           });
+        }
       });
     </script>
     <!-- TUO SCRIPT PRINCIPALE -->
