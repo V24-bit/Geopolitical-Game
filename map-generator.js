@@ -5,15 +5,16 @@ function Simplex(seed = 0) {
     [1,0,1],[-1,0,1],[1,0,-1],[-1,0,-1],
     [0,1,1],[0,-1,1],[0,1,-1],[0,-1,-1]
   ];
+  // Permutazione Fisher-Yates di interi
   this.p = [];
-  for (let i = 0; i < 256; i++) {
+  for (let i = 0; i < 256; i++) this.p[i] = i;
+  for (let i = 255; i > 0; i--) {
     seed = (seed * 9301 + 49297) % 233280;
-    this.p[i] = Math.floor(seed % 256);
+    let j = Math.floor((seed / 233280) * (i + 1));
+    [this.p[i], this.p[j]] = [this.p[j], this.p[i]];
   }
   this.perm = [];
-  for (let i = 0; i < 512; i++) {
-    this.perm[i] = this.p[i & 255];
-  }
+  for (let i = 0; i < 512; i++) this.perm[i] = this.p[i & 255];
 }
 Simplex.prototype.dot = function(g, x, y) { return g[0]*x + g[1]*y; };
 Simplex.prototype.noise = function(xin, yin) {
