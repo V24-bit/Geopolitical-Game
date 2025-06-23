@@ -1,4 +1,4 @@
-// map/map-generator.js
+//map-generator.js
 const TILE_WATER = 0;
 const TILE_PLAIN = 1;
 const TILE_MOUNTAIN = 2;
