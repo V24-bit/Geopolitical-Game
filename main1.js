@@ -23,6 +23,23 @@ document.addEventListener('DOMContentLoaded', function() {
     const nationName = document.getElementById('nation-name');
     const governmentType = document.getElementById('government-type');
 
+    // --- INIZIO MODIFICA: funzione per mostrare errore tradotto ---
+    function showTranslatedMissingFieldsError() {
+        // Recupera il dizionario traduzioni dal contesto globale (index.html)
+        if (typeof translations !== "undefined") {
+            const langMenu = document.getElementById('language-menu');
+            const lang = langMenu ? langMenu.value : 'it';
+            showTempError(
+              translations[lang]?.missing_fields_error ||
+              translations['it'].missing_fields_error
+            );
+        } else {
+            // fallback italiano se translations non è disponibile
+            showTempError("Inserire un nome e una forma di governo prima di entrare o creare una partita");
+        }
+    }
+    // --- FINE MODIFICA ---
+
     let unsubscribeLobby = null;
     let currentGameCode = null;
 
@@ -81,7 +98,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (joinBtn && joinForm) {
         joinBtn.addEventListener('click', function() {
             if (nationName && (!nationName.value.trim() || !governmentType.value)) {
-                showTempError('Inserire un nome e una forma di governo prima di entrare o creare una partita');
+                showTranslatedMissingFieldsError();
                 return;
             }
             joinForm.style.display = "flex";
@@ -95,7 +112,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (createBtn && gameCodePanel && gameCodeLabel && gameCodeValue) {
         createBtn.addEventListener('click', async function() {
             if (nationName && (!nationName.value.trim() || !governmentType.value)) {
-                showTempError('Inserire un nome e una forma di governo prima di entrare o creare una partita');
+                showTranslatedMissingFieldsError();
                 return;
             }
             if (joinForm) joinForm.style.display = "none";
@@ -135,7 +152,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (joinSubmitBtn && gameCodeInput && gameCodePanel && gameCodeLabel && gameCodeValue && joinForm) {
         joinSubmitBtn.addEventListener('click', async function() {
             if (nationName && (!nationName.value.trim() || !governmentType.value)) {
-                showTempError('Inserire un nome e una forma di governo prima di entrare o creare una partita');
+                showTranslatedMissingFieldsError();
                 return;
             }
             const code = gameCodeInput.value.trim().toUpperCase();
