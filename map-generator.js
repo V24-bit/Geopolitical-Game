@@ -1,6 +1,7 @@
-// --- Simplex Noise base (adattato, compatto, no dipendenze esterne) ---
+// --- Simplex Noise base ---
 function Simplex(seed = 0) {
-  this.grad3 = [[1,1,0],[-1,1,0],[1,-1,0],[-1,-1,0],[1,0,1],[-1,0,1],[1,0,-1],[-1,0,-1],[0,1,1],[0,-1,1],[0,1,-1],[0,-1,-1]];
+  this.grad3 = [[1,1,0],[-1,1,0],[1,-1,0],[-1,-1,0],[1,0,1],[-1,0,1],[1,0,-1],[-1,0,-1],
+    [0,1,1],[0,-1,1],[0,1,-1],[0,-1,-1]];
   this.p = [];
   for (let i = 0; i < 256; i++) this.p[i] = Math.floor(seed = (seed * 9301 + 49297) % 233280) / 233280 * 256;
   this.perm = [];
@@ -21,58 +22,75 @@ Simplex.prototype.noise = function xinyn(xin, yin) {
   return 70*(n0+n1+n2);
 }
 
-// --- MAPPA ---
-const TILE_WATER = 0;
-const TILE_PLAIN = 1;
-const TILE_MOUNTAIN = 2;
+// --- Definizione biomi ---
+const BIOME_OCEAN = 0;
+const BIOME_SAND  = 1;
+const BIOME_GRASS = 2;
+const BIOME_FOREST = 3;
+const BIOME_HILL  = 4;
+const BIOME_MOUNTAIN = 5;
+const BIOME_SNOW = 6;
 
 const COLORS = {
-  [TILE_WATER]: '#3896e2',
-  [TILE_PLAIN]: '#19cf86',
-  [TILE_MOUNTAIN]: '#888888'
+  [BIOME_OCEAN]:    '#2d59a2',
+  [BIOME_SAND]:     '#ffe28a',
+  [BIOME_GRASS]:    '#67b347',
+  [BIOME_FOREST]:   '#267823',
+  [BIOME_HILL]:     '#b3a377',
+  [BIOME_MOUNTAIN]: '#888888',
+  [BIOME_SNOW]:     '#ffffff',
 };
 
 const MAP_SIZE = 250;
 
-// --- Genera mappa con continenti e montagne ---
-function generateContinentMap() {
-  const simplex = new Simplex(Math.floor(Math.random()*10000));
-  const map = Array.from({length: MAP_SIZE}, () => Array(MAP_SIZE).fill(TILE_WATER));
+// --- Genera mappa con biomi realistici ---
+function generateBeautifulMap() {
+  const simplex = new Simplex(Math.floor(Math.random()*100000));
+  let map = Array.from({length: MAP_SIZE}, () => Array(MAP_SIZE).fill(BIOME_OCEAN));
   for (let y = 0; y < MAP_SIZE; y++) {
     for (let x = 0; x < MAP_SIZE; x++) {
-      // Normalizza coordinate tra -1 e 1 (per “continente centrale”)
+      // Normalizza coordinate tra -1 e 1 (continente centrale)
       let nx = (x / MAP_SIZE - 0.5) * 2;
       let ny = (y / MAP_SIZE - 0.5) * 2;
-      // Distanza dal centro, serve a “circondare” di oceano
       let dist = Math.sqrt(nx*nx + ny*ny);
-      // Rumore perlin/simplex scalato, più “zoom” = isole più piccole
-      let n = simplex.noise(x/60, y/60) * 0.6 + simplex.noise(x/20+100, y/20+100) * 0.3;
-      // Formula “continente”: più negativo = più acqua ai bordi
-      let value = n - dist*1.1;
-      if (value < -0.07) map[y][x] = TILE_WATER;
-      else if (value < 0.25) map[y][x] = TILE_PLAIN;
-      else map[y][x] = TILE_MOUNTAIN;
+
+      // Heightmap con diverse scale per dettagli grandi/piccoli
+      let e =
+        1.10 * simplex.noise(x/80, y/80) +
+        0.50 * simplex.noise(x/32, y/32) +
+        0.25 * simplex.noise(x/12 + 100, y/12 + 100);
+      e = e / (1.10 + 0.50 + 0.25);
+
+      // Continente: penalizza lontano dal centro (oceano)
+      e = e - dist*1.07;
+
+      // Bioma in base all'altitudine (e un po' di random per le foreste)
+      if (e < -0.09) map[y][x] = BIOME_OCEAN;
+      else if (e < 0.00) map[y][x] = BIOME_SAND;
+      else if (e < 0.15) map[y][x] = (simplex.noise(x/16+200, y/16+200) > 0.23 ? BIOME_FOREST : BIOME_GRASS);
+      else if (e < 0.28) map[y][x] = BIOME_HILL;
+      else if (e < 0.40) map[y][x] = BIOME_MOUNTAIN;
+      else map[y][x] = BIOME_SNOW;
     }
   }
   return map;
 }
 
-// --- Sfumatura coste (bordo sabbia) ---
+// --- Sfumatura coste: sabbia tra prato e mare ---
 function smoothCoast(map) {
   for (let y = 1; y < MAP_SIZE-1; y++) {
     for (let x = 1; x < MAP_SIZE-1; x++) {
       if (
-        map[y][x] === TILE_WATER &&
-        ([map[y-1][x], map[y+1][x], map[y][x-1], map[y][x+1]].includes(TILE_PLAIN))
+        map[y][x] === BIOME_GRASS &&
+        ([map[y-1][x], map[y+1][x], map[y][x-1], map[y][x+1]].includes(BIOME_OCEAN))
       ) {
-        map[y][x] = 3; // Tipo 3 = sabbia (colore dopo)
+        map[y][x] = BIOME_SAND;
       }
     }
   }
 }
-COLORS[3] = '#ffe28a';
 
-// --- Disegna la mappa su canvas ---
+// --- Disegna mappa su canvas ---
 function drawMapOnCanvas(map, canvas) {
   canvas.width = window.innerWidth;
   canvas.height = window.innerHeight;
@@ -87,13 +105,13 @@ function drawMapOnCanvas(map, canvas) {
   }
 }
 
-// --- Funzione principale da chiamare su "Start Game" ---
+// --- Funzione principale ---
 export function generateAndShowMapOnStart(canvasId = 'game-map') {
   if (document.body.requestFullscreen) document.body.requestFullscreen();
   const mainUI = document.querySelector('.main-ui');
   if (mainUI) mainUI.style.display = 'none';
 
-  let map = generateContinentMap();
+  let map = generateBeautifulMap();
   smoothCoast(map);
 
   let canvas = document.getElementById(canvasId);
