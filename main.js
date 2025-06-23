@@ -26,6 +26,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const nationName = document.getElementById('nation-name');
     const governmentType = document.getElementById('government-type');
 
+    let unsubscribeLobby = null; // Per gestire il listener della lobby
+
     function centerPanels() {
         [joinForm, gameCodePanel].forEach(panel => {
             if(panel) {
@@ -63,6 +65,25 @@ document.addEventListener('DOMContentLoaded', function() {
         }, 3000);
     }
 
+    function showLobby(doc, myNation) {
+        // Mostra la schermata della lobby con i giocatori correnti
+        // Puoi usare l'elemento output per mostrare la lista dei giocatori
+        if (!doc.exists) {
+            output.textContent = "Errore: partita non trovata!";
+            return;
+        }
+        const data = doc.data();
+        let lobbyText = `Creatore: <b>${data.nazione}</b><br>`;
+        lobbyText += "Giocatori nella stanza:<ul>";
+        if (Array.isArray(data.giocatori)) {
+            data.giocatori.forEach(n => {
+                lobbyText += `<li>${n}${n === data.nazione ? " (creatore)" : ""}${n === myNation && n !== data.nazione ? " (tu)" : ""}</li>`;
+            });
+        }
+        lobbyText += "</ul>";
+        output.innerHTML = lobbyText;
+    }
+
     if(joinForm) joinForm.style.display = "none";
     if(gameCodePanel) gameCodePanel.style.display = "none";
     centerPanels();
@@ -93,26 +114,34 @@ document.addEventListener('DOMContentLoaded', function() {
             // Genera codice partita
             const code = Math.random().toString(36).substring(2, 8).toUpperCase();
 
-            // Salva su Firestore
+            // Crea documento partita con creatore già in lista giocatori
             try {
                 await db.collection("partite").doc(code).set({
                     codice: code,
                     creatoIl: firebase.firestore.FieldValue.serverTimestamp(),
                     nazione: nationName.value,
-                    governo: governmentType.value
+                    governo: governmentType.value,
+                    giocatori: [nationName.value]
                 });
                 gameCodeLabel.textContent = "Codice partita:";
                 gameCodeValue.textContent = code;
                 gameCodePanel.style.display = "flex";
                 centerPanels();
                 if(output) output.textContent = "";
+
+                // Avvia lobby in tempo reale
+                if (unsubscribeLobby) unsubscribeLobby();
+                unsubscribeLobby = db.collection("partite").doc(code).onSnapshot(doc => {
+                    showLobby(doc, nationName.value);
+                });
+
             } catch (e) {
                 showTempError("Errore salvataggio partita su Firebase!");
             }
         });
     }
 
-    // Unisciti a partita: verifica su Firestore
+    // Unisciti a partita: verifica su Firestore e aggiorna la lobby
     if(joinSubmitBtn && gameCodeInput && output && joinForm) {
         joinSubmitBtn.addEventListener('click', async function() {
             if (nationName && (!nationName.value.trim() || !governmentType.value)) {
@@ -124,14 +153,24 @@ document.addEventListener('DOMContentLoaded', function() {
                 output.textContent = "Codice non valido!";
                 return;
             }
-            // Leggi da Firestore
             try {
-                const doc = await db.collection("partite").doc(code).get();
+                const partitaRef = db.collection("partite").doc(code);
+                const doc = await partitaRef.get();
                 if (doc.exists) {
-                    output.textContent = `Unito alla partita: ${code}`;
+                    // Aggiungi il giocatore solo se non già presente
+                    await partitaRef.update({
+                        giocatori: firebase.firestore.FieldValue.arrayUnion(nationName.value)
+                    });
+                    output.textContent = ""; // pulisci
                     joinForm.style.display = "none";
                     centerPanels();
-                    // Qui puoi aggiungere la logica per andare avanti nel gioco
+
+                    // Avvia lobby in tempo reale (onSnapshot)
+                    if (unsubscribeLobby) unsubscribeLobby();
+                    unsubscribeLobby = partitaRef.onSnapshot(doc => {
+                        showLobby(doc, nationName.value);
+                    });
+
                 } else {
                     output.textContent = "Codice partita non trovato!";
                 }
