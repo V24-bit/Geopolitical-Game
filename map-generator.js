@@ -1,4 +1,4 @@
-// --- Simplex Noise (corretto, senza dipendenze esterne) ---
+// --- Simplex Noise (corretto, nessun bug di permutazione) ---
 function Simplex(seed = 0) {
   this.grad3 = [
     [1,1,0],[-1,1,0],[1,-1,0],[-1,-1,0],
@@ -38,9 +38,9 @@ Simplex.prototype.noise = function(xin, yin) {
   let y2 = y0 - 1 + 2 * G2;
   let ii = i & 255;
   let jj = j & 255;
-  let gi0 = this.perm[ii + this.perm[jj]] % 12;
-  let gi1 = this.perm[ii + i1 + this.perm[jj + j1]] % 12;
-  let gi2 = this.perm[ii + 1 + this.perm[jj + 1]] % 12;
+  let gi0 = this.perm[(ii + this.perm[jj]) & 255] % 12;
+  let gi1 = this.perm[(ii + i1 + this.perm[(jj + j1) & 255]) & 255] % 12;
+  let gi2 = this.perm[(ii + 1 + this.perm[(jj + 1) & 255]) & 255] % 12;
   let t0 = 0.5 - x0 * x0 - y0 * y0;
   if (t0 >= 0) {
     t0 *= t0;
