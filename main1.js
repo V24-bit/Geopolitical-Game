@@ -27,36 +27,26 @@ document.addEventListener('DOMContentLoaded', function() {
     let currentGameCode = null;
 
     function showTempError(msg) {
-        console.log('showTempError called!', msg); // DEBUG
-        let err = document.getElementById('temp-error-msg');
-        if (!err) {
-            err = document.createElement('div');
-            err.id = 'temp-error-msg';
-            err.style.color = '#fff';
-            err.style.background = '#c00';
-            err.style.margin = '10px 0 0 0';
-            err.style.fontWeight = 'bold';
-            err.style.textAlign = 'center';
-            err.style.padding = '16px 16px';
-            err.style.borderRadius = '10px';
-            err.style.zIndex = '9999';
-            err.style.position = 'relative';
-            err.style.fontSize = '1.2em';
-            err.style.boxShadow = '0 2px 12px #000a';
-            // DEBUG: mettiamo subito visibile in cima al body per test
-            document.body.appendChild(err);
-            // // PROVA alternativa: subito sopra output
-            // output.parentNode.insertBefore(err, output);
-        }
-        err.textContent = msg;
-        err.style.opacity = '1';
+        // Mostra l'errore DENTRO il div output, sempre visibile!
+        output.innerHTML = `<div id="temp-error-msg" style="
+            color:#fff;
+            background:#c00;
+            margin:10px 0 0 0;
+            font-weight:bold;
+            text-align:center;
+            padding:14px 18px;
+            border-radius:9px;
+            z-index:1000;
+            font-size:1.14em;
+            box-shadow:0 2px 16px #000a;
+            position:relative;
+        ">${msg}</div>`;
         setTimeout(() => {
-            err.style.transition = 'opacity 0.7s';
-            err.style.opacity = '0';
-        }, 4000); // 4 secondi
-        setTimeout(() => {
-            if (err && err.parentNode) err.parentNode.removeChild(err);
-        }, 5000);
+            // Solo rimuovi l'errore se è ancora presente
+            if(document.getElementById('temp-error-msg')) {
+                output.innerHTML = "";
+            }
+        }, 4000);
     }
 
     function showLobby(doc, myNation) {
