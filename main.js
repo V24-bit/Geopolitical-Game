@@ -30,7 +30,6 @@ document.addEventListener('DOMContentLoaded', function() {
     function centerPanels() {
         [joinForm, gameCodePanel].forEach(panel => {
             if(panel) {
-                panel.style.display = panel.style.display || "none";
                 panel.style.alignItems = "center";
                 panel.style.justifyContent = "center";
                 panel.style.marginLeft = "auto";
@@ -71,21 +70,11 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
         const data = doc.data();
-
-        // Recupera il codice partita in modo robusto
-        let codicePartita = "";
-        if (data.codice && typeof data.codice === "string" && data.codice.trim()) {
-            codicePartita = data.codice.trim();
-        } else if (currentGameCode && typeof currentGameCode === "string" && currentGameCode.trim()) {
-            codicePartita = currentGameCode.trim();
-        } else {
-            codicePartita = "(codice non trovato)";
-        }
-
+        let codicePartita = data.codice || currentGameCode || "(codice non trovato)";
         if (gameCodePanel && gameCodeLabel && gameCodeValue) {
             gameCodeLabel.textContent = "Codice partita:";
             gameCodeValue.textContent = codicePartita;
-            gameCodePanel.style.display = "flex";
+            gameCodePanel.style.display = "block";
             centerPanels();
         }
 
@@ -100,6 +89,7 @@ document.addEventListener('DOMContentLoaded', function() {
         output.innerHTML = lobbyText;
     }
 
+    // Impostazione iniziale: nascondi joinForm e gameCodePanel
     if(joinForm) joinForm.style.display = "none";
     if(gameCodePanel) gameCodePanel.style.display = "none";
     centerPanels();
@@ -111,10 +101,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 showTempError('Inserire un nome e una forma di governo prima di entrare o creare una partita');
                 return;
             }
-            joinForm.style.display = "flex";
+            joinForm.style.display = "block";
             if(gameCodePanel) gameCodePanel.style.display = "none";
             if(output) output.textContent = "";
-            if(joinForm.querySelector('input')) joinForm.querySelector('input').value = "";
+            if(gameCodeInput) gameCodeInput.value = "";
             centerPanels();
         });
     }
@@ -147,7 +137,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (gameCodePanel && gameCodeLabel && gameCodeValue) {
                     gameCodeLabel.textContent = "Codice partita:";
                     gameCodeValue.textContent = code;
-                    gameCodePanel.style.display = "flex";
+                    gameCodePanel.style.display = "block";
                     centerPanels();
                 }
                 if(output) output.textContent = "";
@@ -191,7 +181,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     if (gameCodePanel && gameCodeLabel && gameCodeValue) {
                         gameCodeLabel.textContent = "Codice partita:";
                         gameCodeValue.textContent = code;
-                        gameCodePanel.style.display = "flex";
+                        gameCodePanel.style.display = "block";
                         centerPanels();
                     }
 
