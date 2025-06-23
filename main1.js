@@ -27,27 +27,33 @@ document.addEventListener('DOMContentLoaded', function() {
     let currentGameCode = null;
 
     function showTempError(msg) {
+        console.log('showTempError called!', msg); // DEBUG
         let err = document.getElementById('temp-error-msg');
         if (!err) {
             err = document.createElement('div');
             err.id = 'temp-error-msg';
-            err.style.color = '#ff3333';
-            err.style.background = '#181c22';
+            err.style.color = '#fff';
+            err.style.background = '#c00';
             err.style.margin = '10px 0 0 0';
             err.style.fontWeight = 'bold';
             err.style.textAlign = 'center';
-            err.style.padding = '10px 12px';
-            err.style.borderRadius = '7px';
-            err.style.zIndex = '1000';
+            err.style.padding = '16px 16px';
+            err.style.borderRadius = '10px';
+            err.style.zIndex = '9999';
             err.style.position = 'relative';
-            output.parentNode.insertBefore(err, output);
+            err.style.fontSize = '1.2em';
+            err.style.boxShadow = '0 2px 12px #000a';
+            // DEBUG: mettiamo subito visibile in cima al body per test
+            document.body.appendChild(err);
+            // // PROVA alternativa: subito sopra output
+            // output.parentNode.insertBefore(err, output);
         }
         err.textContent = msg;
         err.style.opacity = '1';
         setTimeout(() => {
             err.style.transition = 'opacity 0.7s';
             err.style.opacity = '0';
-        }, 4000);
+        }, 4000); // 4 secondi
         setTimeout(() => {
             if (err && err.parentNode) err.parentNode.removeChild(err);
         }, 5000);
