@@ -47,7 +47,7 @@ document.addEventListener('DOMContentLoaded', function() {
         setTimeout(() => {
             err.style.transition = 'opacity 0.7s';
             err.style.opacity = '0';
-        }, 4000); // visibile per 4 secondi
+        }, 4000);
         setTimeout(() => {
             if (err && err.parentNode) err.parentNode.removeChild(err);
         }, 5000);
