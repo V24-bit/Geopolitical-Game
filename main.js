@@ -131,13 +131,17 @@ document.addEventListener('DOMContentLoaded', function() {
             const code = Math.random().toString(36).substring(2, 8).toUpperCase();
             currentGameCode = code;
 
+            // Calcola la data di scadenza (expireAt) tra 14 giorni
+            const expireAt = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000);
+
             try {
                 await db.collection("partite").doc(code).set({
                     codice: code,
                     creatoIl: firebase.firestore.FieldValue.serverTimestamp(),
                     nazione: nationName.value,
                     governo: governmentType.value,
-                    giocatori: [nationName.value]
+                    giocatori: [nationName.value],
+                    expireAt: expireAt // <-- campo scadenza automatico
                 });
                 // Mostra codice partita
                 if (gameCodePanel && gameCodeLabel && gameCodeValue) {
