@@ -22,12 +22,12 @@ document.addEventListener('DOMContentLoaded', function() {
     const gameCodeInput = document.getElementById('game-code-input');
     const nationName = document.getElementById('nation-name');
     const governmentType = document.getElementById('government-type');
+    const startGameBtn = document.getElementById('start-game-btn');
 
     let unsubscribeLobby = null;
     let currentGameCode = null;
 
     function showTempError(msg) {
-        // Mostra l'errore DENTRO il div output, sempre visibile!
         output.innerHTML = `<div id="temp-error-msg" style="
             color:#fff;
             background:#c00;
@@ -42,7 +42,6 @@ document.addEventListener('DOMContentLoaded', function() {
             position:relative;
         ">${msg}</div>`;
         setTimeout(() => {
-            // Solo rimuovi l'errore se è ancora presente
             if(document.getElementById('temp-error-msg')) {
                 output.innerHTML = "";
             }
@@ -53,6 +52,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!doc.exists) {
             output.textContent = "Errore: partita non trovata!";
             if (gameCodePanel) gameCodePanel.style.display = "none";
+            if (startGameBtn) startGameBtn.style.display = "none";
             return;
         }
         const data = doc.data();
@@ -72,11 +72,15 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         lobbyText += "</ul>";
         output.innerHTML = lobbyText;
+
+        // Mostra il pulsante Start Game
+        if (startGameBtn) startGameBtn.style.display = "inline-block";
     }
 
     // Stato iniziale: nascondi pannelli
     if (joinForm) joinForm.style.display = "none";
     if (gameCodePanel) gameCodePanel.style.display = "none";
+    if (startGameBtn) startGameBtn.style.display = "none";
 
     // Unisciti a partita
     if (joinBtn && joinForm) {
@@ -89,6 +93,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (gameCodePanel) gameCodePanel.style.display = "none";
             if (output) output.textContent = "";
             if (gameCodeInput) gameCodeInput.value = "";
+            if (startGameBtn) startGameBtn.style.display = "none";
         });
     }
 
@@ -100,7 +105,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
             if (joinForm) joinForm.style.display = "none";
-            // Genera codice partita
+            if (startGameBtn) startGameBtn.style.display = "none";
             const code = Math.random().toString(36).substring(2, 8).toUpperCase();
             currentGameCode = code;
             const expireAt = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000);
@@ -143,6 +148,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (code.length < 4) {
                 output.textContent = "Codice non valido!";
                 if (gameCodePanel) gameCodePanel.style.display = "none";
+                if (startGameBtn) startGameBtn.style.display = "none";
                 return;
             }
             currentGameCode = code;
@@ -167,11 +173,21 @@ document.addEventListener('DOMContentLoaded', function() {
                 } else {
                     output.textContent = "Codice partita non trovato!";
                     gameCodePanel.style.display = "none";
+                    if (startGameBtn) startGameBtn.style.display = "none";
                 }
             } catch (e) {
                 output.textContent = "Errore di connessione a Firebase!";
                 gameCodePanel.style.display = "none";
+                if (startGameBtn) startGameBtn.style.display = "none";
             }
+        });
+    }
+
+    // Start Game click handler (per ora solo log)
+    if (startGameBtn) {
+        startGameBtn.addEventListener('click', function() {
+            console.log("Start game clicked");
+            // Qui andrà la logica vera di avvio partita
         });
     }
 });
