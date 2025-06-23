@@ -78,7 +78,7 @@ const COLORS = {
   [TILE_RIVER]:    '#3fc2ff'
 };
 
-const MAP_SIZE = 120;
+const MAP_SIZE = 800;
 
 // --- GENERATORE MAPPA PROCEDURALE ---
 function generateMap() {
