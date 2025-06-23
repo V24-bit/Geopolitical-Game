@@ -1,4 +1,4 @@
-// --- Simplex Noise base ---
+// --- Simplex Noise (compatto, senza dipendenze esterne) ---
 function Simplex(seed = 0) {
   this.grad3 = [[1,1,0],[-1,1,0],[1,-1,0],[-1,-1,0],[1,0,1],[-1,0,1],[1,0,-1],[-1,0,-1],
     [0,1,1],[0,-1,1],[0,1,-1],[0,-1,-1]];
@@ -22,97 +22,115 @@ Simplex.prototype.noise = function xinyn(xin, yin) {
   return 70*(n0+n1+n2);
 }
 
-// --- Definizione biomi ---
-const BIOME_OCEAN = 0;
-const BIOME_SAND  = 1;
-const BIOME_GRASS = 2;
-const BIOME_FOREST = 3;
-const BIOME_HILL  = 4;
-const BIOME_MOUNTAIN = 5;
-const BIOME_SNOW = 6;
+// --- BIOMI ---
+const TILE_OCEAN   = 0;
+const TILE_LAKE    = 1;
+const TILE_PLAIN   = 2;
+const TILE_FOREST  = 3;
+const TILE_HILL    = 4;
+const TILE_MOUNTAIN= 5;
+const TILE_RIVER   = 6;
 
 const COLORS = {
-  [BIOME_OCEAN]:    '#2d59a2',
-  [BIOME_SAND]:     '#ffe28a',
-  [BIOME_GRASS]:    '#67b347',
-  [BIOME_FOREST]:   '#267823',
-  [BIOME_HILL]:     '#b3a377',
-  [BIOME_MOUNTAIN]: '#888888',
-  [BIOME_SNOW]:     '#ffffff',
+  [TILE_OCEAN]:    '#3b77b7',
+  [TILE_LAKE]:     '#6ec5e3',
+  [TILE_PLAIN]:    '#b6e36c',
+  [TILE_FOREST]:   '#2c7d36',
+  [TILE_HILL]:     '#d2b48c',
+  [TILE_MOUNTAIN]: '#e0e0e0',
+  [TILE_RIVER]:    '#3fc2ff'
 };
 
-const MAP_SIZE = 250;
+const MAP_SIZE = 120;
 
-// --- Genera mappa con biomi realistici ---
-function generateBeautifulMap() {
+// --- GENERATORE MAPPA PROCEDURALE ---
+function generateMap() {
   const simplex = new Simplex(Math.floor(Math.random()*100000));
-  let map = Array.from({length: MAP_SIZE}, () => Array(MAP_SIZE).fill(BIOME_OCEAN));
-  for (let y = 0; y < MAP_SIZE; y++) {
-    for (let x = 0; x < MAP_SIZE; x++) {
-      // Normalizza coordinate tra -1 e 1 (continente centrale)
-      let nx = (x / MAP_SIZE - 0.5) * 2;
-      let ny = (y / MAP_SIZE - 0.5) * 2;
-      let dist = Math.sqrt(nx*nx + ny*ny);
-
-      // Heightmap con diverse scale per dettagli grandi/piccoli
-      let e =
-        1.10 * simplex.noise(x/80, y/80) +
-        0.50 * simplex.noise(x/32, y/32) +
-        0.25 * simplex.noise(x/12 + 100, y/12 + 100);
-      e = e / (1.10 + 0.50 + 0.25);
-
-      // Continente: penalizza lontano dal centro (oceano)
-      e = e - dist*1.07;
-
-      // Bioma in base all'altitudine (e un po' di random per le foreste)
-      if (e < -0.09) map[y][x] = BIOME_OCEAN;
-      else if (e < 0.00) map[y][x] = BIOME_SAND;
-      else if (e < 0.15) map[y][x] = (simplex.noise(x/16+200, y/16+200) > 0.23 ? BIOME_FOREST : BIOME_GRASS);
-      else if (e < 0.28) map[y][x] = BIOME_HILL;
-      else if (e < 0.40) map[y][x] = BIOME_MOUNTAIN;
-      else map[y][x] = BIOME_SNOW;
-    }
+  let height = Array.from({length: MAP_SIZE}, ()=>Array(MAP_SIZE));
+  let biome  = Array.from({length: MAP_SIZE}, ()=>Array(MAP_SIZE));
+  // 1. Height generation (continenti, isole, rilievi)
+  for (let y=0; y<MAP_SIZE; y++) for (let x=0; x<MAP_SIZE; x++) {
+    let nx = (x/MAP_SIZE-0.5)*2, ny = (y/MAP_SIZE-0.5)*2;
+    let dist = Math.sqrt(nx*nx + ny*ny);
+    let e = 
+      1.1 * simplex.noise(x/48, y/48) +
+      0.5 * simplex.noise(x/18+50, y/18+50) +
+      0.25* simplex.noise(x/8-100, y/8-100);
+    e = e / (1.1 + 0.5 + 0.25);
+    e = e - dist*0.95; // circonda di oceano
+    height[y][x] = e;
   }
-  return map;
-}
-
-// --- Sfumatura coste: sabbia tra prato e mare ---
-function smoothCoast(map) {
-  for (let y = 1; y < MAP_SIZE-1; y++) {
-    for (let x = 1; x < MAP_SIZE-1; x++) {
-      if (
-        map[y][x] === BIOME_GRASS &&
-        ([map[y-1][x], map[y+1][x], map[y][x-1], map[y][x+1]].includes(BIOME_OCEAN))
-      ) {
-        map[y][x] = BIOME_SAND;
+  // 2. Biome assignment (oceano, lago, pianura, foresta, collina, montagna)
+  for (let y=0; y<MAP_SIZE; y++) for (let x=0; x<MAP_SIZE; x++) {
+    let e = height[y][x];
+    if (e < -0.13) biome[y][x]=TILE_OCEAN;
+    else if (e < -0.07) biome[y][x]=TILE_LAKE;
+    else if (e < 0.12) biome[y][x]=TILE_PLAIN;
+    else if (e < 0.18) biome[y][x]=TILE_FOREST;
+    else if (e < 0.28) biome[y][x]=TILE_HILL;
+    else biome[y][x]=TILE_MOUNTAIN;
+  }
+  // 3. Foreste “random” su pianure (per varietà)
+  for (let y=2; y<MAP_SIZE-2; y++) for (let x=2; x<MAP_SIZE-2; x++) {
+    if (biome[y][x]===TILE_PLAIN && Math.random()<0.16) biome[y][x]=TILE_FOREST;
+  }
+  // 4. Fiumi (dalle montagne/lati verso mare/lago)
+  let riverMap = Array.from({length: MAP_SIZE}, ()=>Array(MAP_SIZE).fill(false));
+  for (let i=0; i<8; i++) { // 8 fiumi
+    // trova sorgente (montagna random vicino centro)
+    let found = false, rx, ry, tries=0;
+    while(!found && tries<200) {
+      rx = Math.floor(MAP_SIZE/2 + (Math.random()-0.5)*MAP_SIZE*0.4);
+      ry = Math.floor(MAP_SIZE/2 + (Math.random()-0.5)*MAP_SIZE*0.4);
+      if (biome[ry][rx]===TILE_MOUNTAIN) found=true;
+      tries++;
+    }
+    if (!found) continue;
+    // scorri verso il mare/lago seguendo la discesa
+    let len = 0, maxLen = 110, x=rx, y=ry;
+    while (len<maxLen) {
+      riverMap[y][x] = true;
+      // stop se raggiungi lago/oceano
+      if (biome[y][x]===TILE_LAKE || biome[y][x]===TILE_OCEAN) break;
+      // scegli vicina + bassa
+      let minE = height[y][x], nx=x, ny=y;
+      for (let dy=-1; dy<=1; dy++) for (let dx=-1; dx<=1; dx++) {
+        if (dx===0 && dy===0) continue;
+        let xx=x+dx, yy=y+dy;
+        if (xx<0||yy<0||xx>=MAP_SIZE||yy>=MAP_SIZE) continue;
+        if (height[yy][xx]<minE) { minE=height[yy][xx]; nx=xx; ny=yy; }
       }
+      if (nx===x && ny===y) break; // fondo valle
+      x=nx; y=ny; len++;
     }
   }
+  // 5. Applica i fiumi alla mappa
+  for (let y=0; y<MAP_SIZE; y++) for (let x=0; x<MAP_SIZE; x++) {
+    if (riverMap[y][x] && biome[y][x]!==TILE_OCEAN && biome[y][x]!==TILE_LAKE)
+      biome[y][x]=TILE_RIVER;
+  }
+  return biome;
 }
 
-// --- Disegna mappa su canvas ---
+// --- Disegno su canvas ---
 function drawMapOnCanvas(map, canvas) {
   canvas.width = window.innerWidth;
   canvas.height = window.innerHeight;
-  const ctx = canvas.getContext('2d');
-  const tileSizeX = canvas.width / MAP_SIZE;
-  const tileSizeY = canvas.height / MAP_SIZE;
-  for (let y = 0; y < MAP_SIZE; y++) {
-    for (let x = 0; x < MAP_SIZE; x++) {
-      ctx.fillStyle = COLORS[map[y][x]];
-      ctx.fillRect(x * tileSizeX, y * tileSizeY, tileSizeX, tileSizeY);
-    }
+  let ctx = canvas.getContext('2d');
+  let tX = canvas.width/MAP_SIZE, tY = canvas.height/MAP_SIZE;
+  for (let y=0; y<MAP_SIZE; y++) for (let x=0; x<MAP_SIZE; x++) {
+    ctx.fillStyle = COLORS[map[y][x]];
+    ctx.fillRect(x*tX, y*tY, tX+1, tY+1);
   }
 }
 
-// --- Funzione principale ---
+// --- Funzione principale da chiamare ---
 export function generateAndShowMapOnStart(canvasId = 'game-map') {
   if (document.body.requestFullscreen) document.body.requestFullscreen();
   const mainUI = document.querySelector('.main-ui');
   if (mainUI) mainUI.style.display = 'none';
 
-  let map = generateBeautifulMap();
-  smoothCoast(map);
+  let map = generateMap();
 
   let canvas = document.getElementById(canvasId);
   if (!canvas) {
