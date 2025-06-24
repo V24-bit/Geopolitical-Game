@@ -79,6 +79,97 @@ const COLORS = {
 
 const MAP_SIZE = 800;
 
+// --- Onde pixelart leggere ---
+let pixelWaves = [];
+
+function spawnWaves(map, now) {
+  // Ogni 1.3 secondi circa, genera nuove onde in punti casuali su mare/lago/fiume
+  if (!spawnWaves.lastSpawn || now - spawnWaves.lastSpawn > 1300) {
+    spawnWaves.lastSpawn = now;
+    for (let i = 0; i < 8; i++) {
+      let tries = 0, found = false, x, y;
+      while (!found && tries < 40) {
+        x = Math.floor(Math.random() * MAP_SIZE);
+        y = Math.floor(Math.random() * MAP_SIZE);
+        let type = map[y][x];
+        if (type === TILE_OCEAN || type === TILE_LAKE || type === TILE_RIVER) found = true;
+        tries++;
+      }
+      if (found) {
+        pixelWaves.push({
+          x, y,
+          type: map[y][x],
+          startTime: now,
+          duration: 800 + Math.random() * 800 // ms
+        });
+      }
+    }
+  }
+  // Rimuovi onde vecchie
+  pixelWaves = pixelWaves.filter(w => now - w.startTime < w.duration);
+}
+
+function drawMapOnCanvas(map, canvas, zoom = 1, offsetX = 0, offsetY = 0, now = 0) {
+  let width = canvas.width;
+  let height = canvas.height;
+  let ctx = canvas.getContext('2d');
+  ctx.save();
+  ctx.setTransform(1, 0, 0, 1, 0, 0); // reset
+  ctx.clearRect(0, 0, width, height);
+  ctx.translate(offsetX, offsetY);
+  ctx.scale(zoom, zoom);
+
+  let tX = width / MAP_SIZE;
+  let tY = height / MAP_SIZE;
+
+  let startX = Math.max(0, Math.floor(-offsetX / (tX * zoom)));
+  let endX = Math.min(MAP_SIZE, Math.ceil((width - offsetX) / (tX * zoom)));
+  let startY = Math.max(0, Math.floor(-offsetY / (tY * zoom)));
+  let endY = Math.min(MAP_SIZE, Math.ceil((height - offsetY) / (tY * zoom)));
+
+  // Prepara una mappa di onde attive
+  let waveMap = new Map();
+  for (const w of pixelWaves) {
+    // onde solo se visibili, per performance
+    if (w.x >= startX && w.x < endX && w.y >= startY && w.y < endY)
+      waveMap.set(w.y + "," + w.x, w);
+  }
+
+  for (let y = startY; y < endY; y++) {
+    for (let x = startX; x < endX; x++) {
+      let type = map[y][x];
+      let color = COLORS[type];
+
+      // Se c'è un'onda qui, disegna una "onda pixelart"
+      let key = y + "," + x;
+      if (waveMap.has(key)) {
+        // Semplice effetto pixelart: gruppo di pixel bianchi/azzurri
+        let w = waveMap.get(key);
+
+        // Colore onda: più chiaro del mare/fiume
+        if (type === TILE_OCEAN) color = "#d1f3fd";
+        else if (type === TILE_LAKE) color = "#e0faff";
+        else color = "#bde8ff";
+
+        // Effetto "macchia" 2x2 pixel (se lo zoom lo permette)
+        ctx.fillStyle = color;
+        // Centro
+        ctx.fillRect(x * tX, y * tY, tX, tY);
+        // Pixel accanto (solo se dentro mappa)
+        if (x + 1 < MAP_SIZE) ctx.fillRect((x + 1) * tX, y * tY, tX, tY);
+        if (y + 1 < MAP_SIZE) ctx.fillRect(x * tX, (y + 1) * tY, tX, tY);
+        if (x + 1 < MAP_SIZE && y + 1 < MAP_SIZE) ctx.fillRect((x + 1) * tX, (y + 1) * tY, tX, tY);
+
+        continue; // non disegnare il mare/fiume sotto
+      }
+
+      ctx.fillStyle = color;
+      ctx.fillRect(x * tX, y * tY, tX + 1, tY + 1);
+    }
+  }
+  ctx.restore();
+}
+
 // --- GENERATORE MAPPA PROCEDURALE ---
 function generateMap() {
   const simplex = new Simplex(Math.floor(Math.random()*100000));
@@ -139,74 +230,17 @@ function generateMap() {
   return biome;
 }
 
-// --- Disegno su canvas con supporto zoom e pan, ANIMAZIONI ONDE ---
-function drawMapOnCanvas(map, canvas, zoom = 1, offsetX = 0, offsetY = 0, animTime = 0) {
-  let width = canvas.width;
-  let height = canvas.height;
-  let ctx = canvas.getContext('2d');
-  ctx.save();
-  ctx.setTransform(1, 0, 0, 1, 0, 0); // reset transform
-  ctx.clearRect(0, 0, width, height);
-  ctx.translate(offsetX, offsetY);
-  ctx.scale(zoom, zoom);
-
-  let tX = width / MAP_SIZE;
-  let tY = height / MAP_SIZE;
-
-  // Calcola solo le tile visibili
-  let startX = Math.max(0, Math.floor(-offsetX / (tX * zoom)));
-  let endX = Math.min(MAP_SIZE, Math.ceil((width - offsetX) / (tX * zoom)));
-  let startY = Math.max(0, Math.floor(-offsetY / (tY * zoom)));
-  let endY = Math.min(MAP_SIZE, Math.ceil((height - offsetY) / (tY * zoom)));
-
-  for (let y = startY; y < endY; y++) {
-    for (let x = startX; x < endX; x++) {
-      let type = map[y][x];
-      let color = COLORS[type];
-
-      // --- Animazione onda pixelata su mari, laghi e fiumi ---
-      if (type === TILE_OCEAN || type === TILE_LAKE || type === TILE_RIVER) {
-        let wave = Math.sin((x + animTime * 35) * 0.12 + (y + animTime * 27) * 0.08);
-        let wave2 = Math.cos((x + animTime * 50) * 0.08 - (y + animTime * 16) * 0.14);
-        let w = (wave + wave2) * 0.5;
-
-        // Regola la luminosità (in HSL)
-        let h, s, l;
-        if (type === TILE_OCEAN) {
-          h = 210; s = 55; l = 47 + w * 5;
-        } else if (type === TILE_LAKE) {
-          h = 195; s = 67; l = 60 + w * 6;
-        } else { // river
-          h = 195; s = 94; l = 62 + w * 8;
-        }
-        color = `hsl(${h},${s}%,${l}%)`;
-      }
-
-      ctx.fillStyle = color;
-      ctx.fillRect(x * tX, y * tY, tX + 1, tY + 1);
-    }
-  }
-  ctx.restore();
-}
-
-// --- Funzione principale da chiamare ---
+// --- Funzione principale aggiornata ---
 export function generateAndShowMapOnStart(canvasId = 'game-map') {
-  // Nascondi la main-ui
   const mainUI = document.querySelector('.main-ui');
   if (mainUI) mainUI.style.display = 'none';
-
-  // Modalità mappa a tutto schermo: aggiungi classe a body per CSS
   document.body.classList.add('full-map');
-
-  // Crea o ottieni il canvas a livello di body
   let canvas = document.getElementById(canvasId);
   if (!canvas) {
     canvas = document.createElement('canvas');
     canvas.id = canvasId;
     document.body.appendChild(canvas);
   }
-
-  // Imposta lo stile per coprire tutto lo schermo
   canvas.style.position = 'fixed';
   canvas.style.left = '0';
   canvas.style.top = '0';
@@ -218,7 +252,6 @@ export function generateAndShowMapOnStart(canvasId = 'game-map') {
   canvas.style.boxShadow = 'none';
   canvas.style.background = '#232336';
 
-  // Variabili zoom e pan
   let zoom = 1;
   let minZoom = 0.5, maxZoom = 6, zoomStep = 0.2;
   let offsetX = 0, offsetY = 0;
@@ -226,12 +259,12 @@ export function generateAndShowMapOnStart(canvasId = 'game-map') {
 
   let map = generateMap();
 
-  // --- ANIMAZIONE CONTINUA ---
   function animate() {
-    let animTime = performance.now() / 1000;
+    let now = performance.now();
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
-    drawMapOnCanvas(map, canvas, zoom, offsetX, offsetY, animTime);
+    spawnWaves(map, now);
+    drawMapOnCanvas(map, canvas, zoom, offsetX, offsetY, now);
     requestAnimationFrame(animate);
   }
 
@@ -240,7 +273,6 @@ export function generateAndShowMapOnStart(canvasId = 'game-map') {
     canvas.height = window.innerHeight;
   });
 
-  // Mouse wheel zoom
   canvas.addEventListener('wheel', function (e) {
     e.preventDefault();
     let prevZoom = zoom;
@@ -256,7 +288,6 @@ export function generateAndShowMapOnStart(canvasId = 'game-map') {
     offsetY -= (zoom - prevZoom) * my;
   });
 
-  // Pan col mouse
   canvas.addEventListener('mousedown', function(e) {
     isDragging = true;
     dragStartX = e.clientX;
@@ -273,12 +304,10 @@ export function generateAndShowMapOnStart(canvasId = 'game-map') {
     isDragging = false;
   });
 
-  // Pulsanti zoom se presenti
   const zoomInBtn = document.getElementById('zoom-in');
   const zoomOutBtn = document.getElementById('zoom-out');
   if (zoomInBtn) zoomInBtn.onclick = () => { zoom = Math.min(maxZoom, zoom + zoomStep); };
   if (zoomOutBtn) zoomOutBtn.onclick = () => { zoom = Math.max(minZoom, zoom - zoomStep); };
 
-  // Avvia animazione
   animate();
 }
