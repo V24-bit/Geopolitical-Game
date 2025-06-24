@@ -151,10 +151,10 @@ function generateMap() {
 
 // --- Disegno su canvas ---
 function drawMapOnCanvas(map, canvas) {
-  canvas.width = window.innerWidth;
-  canvas.height = window.innerHeight;
+  let width = canvas.width;
+  let height = canvas.height;
+  let tX = width/MAP_SIZE, tY = height/MAP_SIZE;
   let ctx = canvas.getContext('2d');
-  let tX = canvas.width/MAP_SIZE, tY = canvas.height/MAP_SIZE;
   for (let y=0; y<MAP_SIZE; y++) for (let x=0; x<MAP_SIZE; x++) {
     ctx.fillStyle = COLORS[map[y][x]];
     ctx.fillRect(x*tX, y*tY, tX+1, tY+1);
@@ -163,27 +163,41 @@ function drawMapOnCanvas(map, canvas) {
 
 // --- Funzione principale da chiamare ---
 export function generateAndShowMapOnStart(canvasId = 'game-map') {
-  if (document.body.requestFullscreen) document.body.requestFullscreen();
+  // NON andare in fullscreen
+  // document.body.requestFullscreen();
+
+  // Nascondi la main-ui, ma lascia visibile il contenitore centrale
   const mainUI = document.querySelector('.main-ui');
   if (mainUI) mainUI.style.display = 'none';
 
-  let map = generateMap();
+  // Ottieni il contenitore centrale dove vuoi mettere la mappa
+  let container = document.querySelector('.center-container');
+  if (!container) container = document.body; // fallback
 
+  // Crea o ottieni il canvas
   let canvas = document.getElementById(canvasId);
   if (!canvas) {
     canvas = document.createElement('canvas');
     canvas.id = canvasId;
-    canvas.style.position = 'fixed';
-    canvas.style.top = 0;
-    canvas.style.left = 0;
+    // Posizione relativa, non fixed
+    canvas.style.position = 'relative';
     canvas.style.zIndex = 1111;
-    document.body.appendChild(canvas);
+    canvas.style.display = 'block';
+    canvas.style.borderRadius = "27px";
+    canvas.style.boxShadow = "0 7.5px 37.5px 0 #18ffff33, 0 1.5px 12px #ea00d955";
+    canvas.style.margin = "0 auto";
+    container.appendChild(canvas);
   }
-  canvas.style.display = 'block';
-  canvas.width = window.innerWidth;
-  canvas.height = window.innerHeight;
 
-  drawMapOnCanvas(map, canvas);
+  // Adatta il canvas alle dimensioni del container
+  function resizeCanvas() {
+    // Prendi le dimensioni interne del container
+    canvas.width = container.clientWidth;
+    canvas.height = container.clientHeight;
+    drawMapOnCanvas(map, canvas);
+  }
 
-  window.onresize = () => drawMapOnCanvas(map, canvas);
+  let map = generateMap();
+  resizeCanvas();
+  window.addEventListener('resize', resizeCanvas);
 }
