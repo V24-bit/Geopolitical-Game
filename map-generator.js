@@ -58,6 +58,10 @@ Simplex.prototype.noise = function(xin, yin) {
   return 70 * (n0 + n1 + n2);
 };
 
+// --- CARICA L'IMMAGINE ONDA ---
+const waveAnim = new window.Image();
+waveAnim.src = "assets/animations/wave01.png";
+
 // --- BIOMI ---
 const TILE_OCEAN   = 0;
 const TILE_LAKE    = 1;
@@ -140,26 +144,20 @@ function drawMapOnCanvas(map, canvas, zoom = 1, offsetX = 0, offsetY = 0, now = 
       let type = map[y][x];
       let color = COLORS[type];
 
-      // Se c'è un'onda qui, disegna una "onda pixelart"
+      // Se c'è un'onda qui, disegna la tua PNG animazione
       let key = y + "," + x;
       if (waveMap.has(key)) {
-        // Semplice effetto pixelart: gruppo di pixel bianchi/azzurri
-        let w = waveMap.get(key);
-
-        // Colore onda: più chiaro del mare/fiume
-        if (type === TILE_OCEAN) color = "#d1f3fd";
-        else if (type === TILE_LAKE) color = "#e0faff";
-        else color = "#bde8ff";
-
-        // Effetto "macchia" 2x2 pixel (se lo zoom lo permette)
-        ctx.fillStyle = color;
-        // Centro
-        ctx.fillRect(x * tX, y * tY, tX, tY);
-        // Pixel accanto (solo se dentro mappa)
-        if (x + 1 < MAP_SIZE) ctx.fillRect((x + 1) * tX, y * tY, tX, tY);
-        if (y + 1 < MAP_SIZE) ctx.fillRect(x * tX, (y + 1) * tY, tX, tY);
-        if (x + 1 < MAP_SIZE && y + 1 < MAP_SIZE) ctx.fillRect((x + 1) * tX, (y + 1) * tY, tX, tY);
-
+        // Usa la PNG solo se è caricata correttamente
+        if (waveAnim.complete && waveAnim.naturalWidth > 0) {
+          // Puoi regolare tX*2/tY*2 per la dimensione dell'onda
+          ctx.drawImage(
+            waveAnim,
+            x * tX,
+            y * tY,
+            tX * 2,
+            tY * 2
+          );
+        }
         continue; // non disegnare il mare/fiume sotto
       }
 
