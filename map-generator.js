@@ -139,7 +139,7 @@ function generateMap() {
   return biome;
 }
 
-// --- Disegno su canvas con supporto zoom e pan ---
+// --- Disegno su canvas con supporto zoom e pan, OTTIMIZZATO ---
 function drawMapOnCanvas(map, canvas, zoom = 1, offsetX = 0, offsetY = 0) {
   let width = canvas.width;
   let height = canvas.height;
@@ -152,9 +152,18 @@ function drawMapOnCanvas(map, canvas, zoom = 1, offsetX = 0, offsetY = 0) {
 
   let tX = width / MAP_SIZE;
   let tY = height / MAP_SIZE;
-  for (let y = 0; y < MAP_SIZE; y++) for (let x = 0; x < MAP_SIZE; x++) {
-    ctx.fillStyle = COLORS[map[y][x]];
-    ctx.fillRect(x * tX, y * tY, tX + 1, tY + 1);
+
+  // Calcola solo le tile visibili
+  let startX = Math.max(0, Math.floor(-offsetX / (tX * zoom)));
+  let endX = Math.min(MAP_SIZE, Math.ceil((width - offsetX) / (tX * zoom)));
+  let startY = Math.max(0, Math.floor(-offsetY / (tY * zoom)));
+  let endY = Math.min(MAP_SIZE, Math.ceil((height - offsetY) / (tY * zoom)));
+
+  for (let y = startY; y < endY; y++) {
+    for (let x = startX; x < endX; x++) {
+      ctx.fillStyle = COLORS[map[y][x]];
+      ctx.fillRect(x * tX, y * tY, tX + 1, tY + 1);
+    }
   }
   ctx.restore();
 }
