@@ -19,7 +19,6 @@ html, body {
     font-family: 'Segoe UI', 'Arial', sans-serif;
 }
 
-/* Quando la mappa è attiva, questa classe viene aggiunta via JS */
 body.full-map {
     overflow: hidden;
 }
@@ -38,6 +37,7 @@ body.full-map {
     background: #232336;
 }
 
+/* --- UI CENTRALE (se la usi ancora per menu, form ecc) --- */
 .center-container {
     display: flex;
     align-items: center;
@@ -52,7 +52,6 @@ body.full-map {
     transition: height 0.2s, max-width 0.2s;
 }
 
-/* CANVAS nella center-container (NON usato quando la mappa è a tutto schermo) */
 .center-container canvas {
     width: 100% !important;
     height: 100% !important;
@@ -266,7 +265,6 @@ body.full-map {
     text-decoration: underline;
 }
 
-/* Nascondi eventuale scrollbar orizzontale */
 body {
     overflow-x: hidden;
 }
