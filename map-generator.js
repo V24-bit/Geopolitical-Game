@@ -165,23 +165,27 @@ export function generateAndShowMapOnStart(canvasId = 'game-map') {
   const mainUI = document.querySelector('.main-ui');
   if (mainUI) mainUI.style.display = 'none';
 
-  // Ottieni il contenitore centrale dove vuoi mettere la mappa
-  let container = document.querySelector('.center-container');
-  if (!container) container = document.body;
+  // Modalità mappa a tutto schermo: aggiungi classe a body per CSS
+  document.body.classList.add('full-map');
 
-  // Crea o ottieni il canvas
+  // Crea o ottieni il canvas a livello di body
   let canvas = document.getElementById(canvasId);
   if (!canvas) {
     canvas = document.createElement('canvas');
     canvas.id = canvasId;
-    canvas.style.position = 'relative';
-    canvas.style.zIndex = 1111;
-    canvas.style.display = 'block';
-    canvas.style.borderRadius = "27px";
-    canvas.style.boxShadow = "0 7.5px 37.5px 0 #18ffff33, 0 1.5px 12px #ea00d955";
-    canvas.style.margin = "0 auto";
-    container.appendChild(canvas);
+    document.body.appendChild(canvas);
   }
+
+  // Imposta lo stile per coprire tutto lo schermo
+  canvas.style.position = 'fixed';
+  canvas.style.left = '0';
+  canvas.style.top = '0';
+  canvas.style.width = '100vw';
+  canvas.style.height = '100vh';
+  canvas.style.zIndex = '1111';
+  canvas.style.margin = '0';
+  canvas.style.borderRadius = '0';
+  canvas.style.boxShadow = 'none';
 
   // Variabili zoom e pan
   let zoom = 1;
@@ -192,16 +196,12 @@ export function generateAndShowMapOnStart(canvasId = 'game-map') {
   let map = generateMap();
 
   function redraw() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
     drawMapOnCanvas(map, canvas, zoom, offsetX, offsetY);
   }
 
-  function resizeCanvas() {
-    canvas.width = container.clientWidth;
-    canvas.height = container.clientHeight;
-    redraw();
-  }
-  resizeCanvas();
-  window.addEventListener('resize', resizeCanvas);
+  window.addEventListener('resize', redraw);
 
   // Mouse wheel zoom
   canvas.addEventListener('wheel', function (e) {
@@ -212,7 +212,6 @@ export function generateAndShowMapOnStart(canvasId = 'game-map') {
     } else {
       zoom = Math.max(minZoom, zoom - zoomStep);
     }
-    // Mantieni il punto sotto il mouse "fermato" durante lo zoom
     const rect = canvas.getBoundingClientRect();
     const mx = (e.clientX - rect.left - offsetX) / prevZoom;
     const my = (e.clientY - rect.top - offsetY) / prevZoom;
@@ -221,19 +220,7 @@ export function generateAndShowMapOnStart(canvasId = 'game-map') {
     redraw();
   });
 
-  // Pulsanti zoom (se li aggiungi nell'HTML)
-  const zoomInBtn = document.getElementById('zoom-in');
-  const zoomOutBtn = document.getElementById('zoom-out');
-  if (zoomInBtn) zoomInBtn.onclick = () => {
-    zoom = Math.min(maxZoom, zoom + zoomStep);
-    redraw();
-  };
-  if (zoomOutBtn) zoomOutBtn.onclick = () => {
-    zoom = Math.max(minZoom, zoom - zoomStep);
-    redraw();
-  };
-
-  // Pan col mouse (trascina tenendo premuto)
+  // Pan col mouse
   canvas.addEventListener('mousedown', function(e) {
     isDragging = true;
     dragStartX = e.clientX;
@@ -250,6 +237,12 @@ export function generateAndShowMapOnStart(canvasId = 'game-map') {
   window.addEventListener('mouseup', function() {
     isDragging = false;
   });
+
+  // Pulsanti zoom se presenti
+  const zoomInBtn = document.getElementById('zoom-in');
+  const zoomOutBtn = document.getElementById('zoom-out');
+  if (zoomInBtn) zoomInBtn.onclick = () => { zoom = Math.min(maxZoom, zoom + zoomStep); redraw(); };
+  if (zoomOutBtn) zoomOutBtn.onclick = () => { zoom = Math.max(minZoom, zoom - zoomStep); redraw(); };
 
   redraw();
 }
