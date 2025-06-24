@@ -139,8 +139,8 @@ function generateMap() {
   return biome;
 }
 
-// --- Disegno su canvas con supporto zoom e pan, OTTIMIZZATO ---
-function drawMapOnCanvas(map, canvas, zoom = 1, offsetX = 0, offsetY = 0) {
+// --- Disegno su canvas con supporto zoom e pan, ANIMAZIONI ONDE ---
+function drawMapOnCanvas(map, canvas, zoom = 1, offsetX = 0, offsetY = 0, animTime = 0) {
   let width = canvas.width;
   let height = canvas.height;
   let ctx = canvas.getContext('2d');
@@ -161,7 +161,28 @@ function drawMapOnCanvas(map, canvas, zoom = 1, offsetX = 0, offsetY = 0) {
 
   for (let y = startY; y < endY; y++) {
     for (let x = startX; x < endX; x++) {
-      ctx.fillStyle = COLORS[map[y][x]];
+      let type = map[y][x];
+      let color = COLORS[type];
+
+      // --- Animazione onda pixelata su mari, laghi e fiumi ---
+      if (type === TILE_OCEAN || type === TILE_LAKE || type === TILE_RIVER) {
+        let wave = Math.sin((x + animTime * 35) * 0.12 + (y + animTime * 27) * 0.08);
+        let wave2 = Math.cos((x + animTime * 50) * 0.08 - (y + animTime * 16) * 0.14);
+        let w = (wave + wave2) * 0.5;
+
+        // Regola la luminosità (in HSL)
+        let h, s, l;
+        if (type === TILE_OCEAN) {
+          h = 210; s = 55; l = 47 + w * 5;
+        } else if (type === TILE_LAKE) {
+          h = 195; s = 67; l = 60 + w * 6;
+        } else { // river
+          h = 195; s = 94; l = 62 + w * 8;
+        }
+        color = `hsl(${h},${s}%,${l}%)`;
+      }
+
+      ctx.fillStyle = color;
       ctx.fillRect(x * tX, y * tY, tX + 1, tY + 1);
     }
   }
@@ -205,13 +226,19 @@ export function generateAndShowMapOnStart(canvasId = 'game-map') {
 
   let map = generateMap();
 
-  function redraw() {
+  // --- ANIMAZIONE CONTINUA ---
+  function animate() {
+    let animTime = performance.now() / 1000;
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
-    drawMapOnCanvas(map, canvas, zoom, offsetX, offsetY);
+    drawMapOnCanvas(map, canvas, zoom, offsetX, offsetY, animTime);
+    requestAnimationFrame(animate);
   }
 
-  window.addEventListener('resize', redraw);
+  window.addEventListener('resize', () => {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+  });
 
   // Mouse wheel zoom
   canvas.addEventListener('wheel', function (e) {
@@ -227,7 +254,6 @@ export function generateAndShowMapOnStart(canvasId = 'game-map') {
     const my = (e.clientY - rect.top - offsetY) / prevZoom;
     offsetX -= (zoom - prevZoom) * mx;
     offsetY -= (zoom - prevZoom) * my;
-    redraw();
   });
 
   // Pan col mouse
@@ -242,7 +268,6 @@ export function generateAndShowMapOnStart(canvasId = 'game-map') {
     if (!isDragging) return;
     offsetX = lastOffsetX + (e.clientX - dragStartX);
     offsetY = lastOffsetY + (e.clientY - dragStartY);
-    redraw();
   });
   window.addEventListener('mouseup', function() {
     isDragging = false;
@@ -251,8 +276,9 @@ export function generateAndShowMapOnStart(canvasId = 'game-map') {
   // Pulsanti zoom se presenti
   const zoomInBtn = document.getElementById('zoom-in');
   const zoomOutBtn = document.getElementById('zoom-out');
-  if (zoomInBtn) zoomInBtn.onclick = () => { zoom = Math.min(maxZoom, zoom + zoomStep); redraw(); };
-  if (zoomOutBtn) zoomOutBtn.onclick = () => { zoom = Math.max(minZoom, zoom - zoomStep); redraw(); };
+  if (zoomInBtn) zoomInBtn.onclick = () => { zoom = Math.min(maxZoom, zoom + zoomStep); };
+  if (zoomOutBtn) zoomOutBtn.onclick = () => { zoom = Math.max(minZoom, zoom - zoomStep); };
 
-  redraw();
+  // Avvia animazione
+  animate();
 }
