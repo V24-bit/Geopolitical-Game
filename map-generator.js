@@ -139,22 +139,28 @@ function generateMap() {
   return biome;
 }
 
-// --- Disegno su canvas ---
-function drawMapOnCanvas(map, canvas) {
+// --- Disegno su canvas con supporto zoom e pan ---
+function drawMapOnCanvas(map, canvas, zoom = 1, offsetX = 0, offsetY = 0) {
   let width = canvas.width;
   let height = canvas.height;
-  let tX = width/MAP_SIZE, tY = height/MAP_SIZE;
   let ctx = canvas.getContext('2d');
-  for (let y=0; y<MAP_SIZE; y++) for (let x=0; x<MAP_SIZE; x++) {
+  ctx.save();
+  ctx.setTransform(1, 0, 0, 1, 0, 0); // reset transform
+  ctx.clearRect(0, 0, width, height);
+  ctx.translate(offsetX, offsetY);
+  ctx.scale(zoom, zoom);
+
+  let tX = width / MAP_SIZE;
+  let tY = height / MAP_SIZE;
+  for (let y = 0; y < MAP_SIZE; y++) for (let x = 0; x < MAP_SIZE; x++) {
     ctx.fillStyle = COLORS[map[y][x]];
-    ctx.fillRect(x*tX, y*tY, tX+1, tY+1);
+    ctx.fillRect(x * tX, y * tY, tX + 1, tY + 1);
   }
+  ctx.restore();
 }
 
 // --- Funzione principale da chiamare ---
 export function generateAndShowMapOnStart(canvasId = 'game-map') {
-  // NON andare in fullscreen!
-
   // Nascondi la main-ui, mostra solo il contenitore centrale
   const mainUI = document.querySelector('.main-ui');
   if (mainUI) mainUI.style.display = 'none';
@@ -162,12 +168,6 @@ export function generateAndShowMapOnStart(canvasId = 'game-map') {
   // Ottieni il contenitore centrale dove vuoi mettere la mappa
   let container = document.querySelector('.center-container');
   if (!container) container = document.body;
-
-  // Imposta il container a una dimensione fissa (esempio: 800x600px), oppure lascia la massima larghezza consentita dallo stile!
-  container.style.width = '100%';
-  container.style.maxWidth = '440px'; // come la main-ui
-  container.style.height = '600px';   // o la dimensione che preferisci
-  container.style.maxHeight = '80vh'; // opzionale
 
   // Crea o ottieni il canvas
   let canvas = document.getElementById(canvasId);
@@ -183,14 +183,73 @@ export function generateAndShowMapOnStart(canvasId = 'game-map') {
     container.appendChild(canvas);
   }
 
-  // Adatta il canvas alle dimensioni del container
+  // Variabili zoom e pan
+  let zoom = 1;
+  let minZoom = 0.5, maxZoom = 6, zoomStep = 0.2;
+  let offsetX = 0, offsetY = 0;
+  let isDragging = false, dragStartX = 0, dragStartY = 0, lastOffsetX = 0, lastOffsetY = 0;
+
+  let map = generateMap();
+
+  function redraw() {
+    drawMapOnCanvas(map, canvas, zoom, offsetX, offsetY);
+  }
+
   function resizeCanvas() {
     canvas.width = container.clientWidth;
     canvas.height = container.clientHeight;
-    drawMapOnCanvas(map, canvas);
+    redraw();
   }
-
-  let map = generateMap();
   resizeCanvas();
   window.addEventListener('resize', resizeCanvas);
+
+  // Mouse wheel zoom
+  canvas.addEventListener('wheel', function (e) {
+    e.preventDefault();
+    let prevZoom = zoom;
+    if (e.deltaY < 0) {
+      zoom = Math.min(maxZoom, zoom + zoomStep);
+    } else {
+      zoom = Math.max(minZoom, zoom - zoomStep);
+    }
+    // Mantieni il punto sotto il mouse "fermato" durante lo zoom
+    const rect = canvas.getBoundingClientRect();
+    const mx = (e.clientX - rect.left - offsetX) / prevZoom;
+    const my = (e.clientY - rect.top - offsetY) / prevZoom;
+    offsetX -= (zoom - prevZoom) * mx;
+    offsetY -= (zoom - prevZoom) * my;
+    redraw();
+  });
+
+  // Pulsanti zoom (se li aggiungi nell'HTML)
+  const zoomInBtn = document.getElementById('zoom-in');
+  const zoomOutBtn = document.getElementById('zoom-out');
+  if (zoomInBtn) zoomInBtn.onclick = () => {
+    zoom = Math.min(maxZoom, zoom + zoomStep);
+    redraw();
+  };
+  if (zoomOutBtn) zoomOutBtn.onclick = () => {
+    zoom = Math.max(minZoom, zoom - zoomStep);
+    redraw();
+  };
+
+  // Pan col mouse (trascina tenendo premuto)
+  canvas.addEventListener('mousedown', function(e) {
+    isDragging = true;
+    dragStartX = e.clientX;
+    dragStartY = e.clientY;
+    lastOffsetX = offsetX;
+    lastOffsetY = offsetY;
+  });
+  window.addEventListener('mousemove', function(e) {
+    if (!isDragging) return;
+    offsetX = lastOffsetX + (e.clientX - dragStartX);
+    offsetY = lastOffsetY + (e.clientY - dragStartY);
+    redraw();
+  });
+  window.addEventListener('mouseup', function() {
+    isDragging = false;
+  });
+
+  redraw();
 }
