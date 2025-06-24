@@ -79,7 +79,7 @@ const COLORS = {
 
 const MAP_SIZE = 800;
 
-// --- Onde pixelart leggere ---
+// --- Onde pixelart leggere (spot) ---
 let pixelWaves = [];
 
 function spawnWaves(map, now) {
@@ -252,9 +252,12 @@ export function generateAndShowMapOnStart(canvasId = 'game-map') {
   canvas.style.boxShadow = 'none';
   canvas.style.background = '#232336';
 
-  let zoom = 1;
+  // --- ZOOM INIZIALE RAVVICINATO (+ centratura automatica) ---
+  let zoom = 2; // Modifica qui il livello di zoom iniziale (es. 3 o 4 per più vicino)
+  let offsetX = -(MAP_SIZE * (zoom - 1) / 2) * (window.innerWidth / MAP_SIZE);
+  let offsetY = -(MAP_SIZE * (zoom - 1) / 2) * (window.innerHeight / MAP_SIZE);
+
   let minZoom = 0.5, maxZoom = 6, zoomStep = 0.2;
-  let offsetX = 0, offsetY = 0;
   let isDragging = false, dragStartX = 0, dragStartY = 0, lastOffsetX = 0, lastOffsetY = 0;
 
   let map = generateMap();
@@ -271,6 +274,9 @@ export function generateAndShowMapOnStart(canvasId = 'game-map') {
   window.addEventListener('resize', () => {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
+    // Ricalcola offset per mantenere centratura dopo resize
+    offsetX = -(MAP_SIZE * (zoom - 1) / 2) * (window.innerWidth / MAP_SIZE);
+    offsetY = -(MAP_SIZE * (zoom - 1) / 2) * (window.innerHeight / MAP_SIZE);
   });
 
   canvas.addEventListener('wheel', function (e) {
