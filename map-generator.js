@@ -5,7 +5,6 @@ function Simplex(seed = 0) {
     [1,0,1],[-1,0,1],[1,0,-1],[-1,0,-1],
     [0,1,1],[0,-1,1],[0,1,-1],[0,-1,-1]
   ];
-  // Permutazione Fisher-Yates di interi
   this.p = [];
   for (let i = 0; i < 256; i++) this.p[i] = i;
   for (let i = 255; i > 0; i--) {
@@ -85,7 +84,6 @@ function generateMap() {
   const simplex = new Simplex(Math.floor(Math.random()*100000));
   let height = Array.from({length: MAP_SIZE}, ()=>Array(MAP_SIZE));
   let biome  = Array.from({length: MAP_SIZE}, ()=>Array(MAP_SIZE));
-  // 1. Height generation (continenti, isole, rilievi)
   for (let y=0; y<MAP_SIZE; y++) for (let x=0; x<MAP_SIZE; x++) {
     let nx = (x/MAP_SIZE-0.5)*2, ny = (y/MAP_SIZE-0.5)*2;
     let dist = Math.sqrt(nx*nx + ny*ny);
@@ -94,10 +92,9 @@ function generateMap() {
       0.5 * simplex.noise(x/18+50, y/18+50) +
       0.25* simplex.noise(x/8-100, y/8-100);
     e = e / (1.1 + 0.5 + 0.25);
-    e = e - dist*0.7; // circonda di oceano
+    e = e - dist*0.7;
     height[y][x] = e;
   }
-  // 2. Biome assignment (oceano, lago, pianura, foresta, collina, montagna)
   for (let y=0; y<MAP_SIZE; y++) for (let x=0; x<MAP_SIZE; x++) {
     let e = height[y][x];
     if (e < -0.13) biome[y][x]=TILE_OCEAN;
@@ -107,14 +104,11 @@ function generateMap() {
     else if (e < 0.28) biome[y][x]=TILE_HILL;
     else biome[y][x]=TILE_MOUNTAIN;
   }
-  // 3. Foreste “random” su pianure (per varietà)
   for (let y=2; y<MAP_SIZE-2; y++) for (let x=2; x<MAP_SIZE-2; x++) {
     if (biome[y][x]===TILE_PLAIN && Math.random()<0.16) biome[y][x]=TILE_FOREST;
   }
-  // 4. Fiumi (dalle montagne/lati verso mare/lago)
   let riverMap = Array.from({length: MAP_SIZE}, ()=>Array(MAP_SIZE).fill(false));
-  for (let i=0; i<8; i++) { // 8 fiumi
-    // trova sorgente (montagna random vicino centro)
+  for (let i=0; i<8; i++) {
     let found = false, rx, ry, tries=0;
     while(!found && tries<200) {
       rx = Math.floor(MAP_SIZE/2 + (Math.random()-0.5)*MAP_SIZE*0.4);
@@ -123,13 +117,10 @@ function generateMap() {
       tries++;
     }
     if (!found) continue;
-    // scorri verso il mare/lago seguendo la discesa
     let len = 0, maxLen = 110, x=rx, y=ry;
     while (len<maxLen) {
       riverMap[y][x] = true;
-      // stop se raggiungi lago/oceano
       if (biome[y][x]===TILE_LAKE || biome[y][x]===TILE_OCEAN) break;
-      // scegli vicina + bassa
       let minE = height[y][x], nx=x, ny=y;
       for (let dy=-1; dy<=1; dy++) for (let dx=-1; dx<=1; dx++) {
         if (dx===0 && dy===0) continue;
@@ -137,11 +128,10 @@ function generateMap() {
         if (xx<0||yy<0||xx>=MAP_SIZE||yy>=MAP_SIZE) continue;
         if (height[yy][xx]<minE) { minE=height[yy][xx]; nx=xx; ny=yy; }
       }
-      if (nx===x && ny===y) break; // fondo valle
+      if (nx===x && ny===y) break;
       x=nx; y=ny; len++;
     }
   }
-  // 5. Applica i fiumi alla mappa
   for (let y=0; y<MAP_SIZE; y++) for (let x=0; x<MAP_SIZE; x++) {
     if (riverMap[y][x] && biome[y][x]!==TILE_OCEAN && biome[y][x]!==TILE_LAKE)
       biome[y][x]=TILE_RIVER;
@@ -163,23 +153,27 @@ function drawMapOnCanvas(map, canvas) {
 
 // --- Funzione principale da chiamare ---
 export function generateAndShowMapOnStart(canvasId = 'game-map') {
-  // NON andare in fullscreen
-  // document.body.requestFullscreen();
+  // NON andare in fullscreen!
 
-  // Nascondi la main-ui, ma lascia visibile il contenitore centrale
+  // Nascondi la main-ui, mostra solo il contenitore centrale
   const mainUI = document.querySelector('.main-ui');
   if (mainUI) mainUI.style.display = 'none';
 
   // Ottieni il contenitore centrale dove vuoi mettere la mappa
   let container = document.querySelector('.center-container');
-  if (!container) container = document.body; // fallback
+  if (!container) container = document.body;
+
+  // Imposta il container a una dimensione fissa (esempio: 800x600px), oppure lascia la massima larghezza consentita dallo stile!
+  container.style.width = '100%';
+  container.style.maxWidth = '440px'; // come la main-ui
+  container.style.height = '600px';   // o la dimensione che preferisci
+  container.style.maxHeight = '80vh'; // opzionale
 
   // Crea o ottieni il canvas
   let canvas = document.getElementById(canvasId);
   if (!canvas) {
     canvas = document.createElement('canvas');
     canvas.id = canvasId;
-    // Posizione relativa, non fixed
     canvas.style.position = 'relative';
     canvas.style.zIndex = 1111;
     canvas.style.display = 'block';
@@ -191,7 +185,6 @@ export function generateAndShowMapOnStart(canvasId = 'game-map') {
 
   // Adatta il canvas alle dimensioni del container
   function resizeCanvas() {
-    // Prendi le dimensioni interne del container
     canvas.width = container.clientWidth;
     canvas.height = container.clientHeight;
     drawMapOnCanvas(map, canvas);
