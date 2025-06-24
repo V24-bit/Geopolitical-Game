@@ -161,7 +161,7 @@ function drawMapOnCanvas(map, canvas, zoom = 1, offsetX = 0, offsetY = 0) {
 
 // --- Funzione principale da chiamare ---
 export function generateAndShowMapOnStart(canvasId = 'game-map') {
-  // Nascondi la main-ui, mostra solo il contenitore centrale
+  // Nascondi la main-ui
   const mainUI = document.querySelector('.main-ui');
   if (mainUI) mainUI.style.display = 'none';
 
@@ -186,6 +186,7 @@ export function generateAndShowMapOnStart(canvasId = 'game-map') {
   canvas.style.margin = '0';
   canvas.style.borderRadius = '0';
   canvas.style.boxShadow = 'none';
+  canvas.style.background = '#232336';
 
   // Variabili zoom e pan
   let zoom = 1;
