@@ -1,23 +1,21 @@
-// --- Simplex Noise (corretto, nessun bug di permutazione) ---
-// ... (resto invariato fino a pixelWaves)
-
-const waveAnim = new window.Image();
-waveAnim.src = "assets/animations/wave01.png";
+// --- Simplex Noise (resta invariato, lascia la tua implementazione qui) ---
 
 // === CONFIGURAZIONE SPRITESHEET ONDA ===
-const WAVE_FRAMES = 20; // numero di frame della spritesheet
-const WAVE_FPS = 12;    // velocità animazione (frame per secondo)
-const WAVE_FRAME_WIDTH = 32;  // larghezza di ogni frame (modifica se la tua onda è diversa)
-const WAVE_FRAME_HEIGHT = 32; // altezza di ogni frame
+const waveAnim = new window.Image();
+waveAnim.src = "assets/animations/wave01.png";
+const WAVE_FRAMES = 18;       // Numero di frame
+const WAVE_FPS = 17;          // Velocità animazione (come in Piskel)
+const WAVE_FRAME_WIDTH = 32;  // Larghezza frame in px
+const WAVE_FRAME_HEIGHT = 32; // Altezza frame in px
 
 // --- BIOMI ---
-const TILE_OCEAN   = 0;
-const TILE_LAKE    = 1;
-const TILE_PLAIN   = 2;
-const TILE_FOREST  = 3;
-const TILE_HILL    = 4;
-const TILE_MOUNTAIN= 5;
-const TILE_RIVER   = 6;
+const TILE_OCEAN    = 0;
+const TILE_LAKE     = 1;
+const TILE_PLAIN    = 2;
+const TILE_FOREST   = 3;
+const TILE_HILL     = 4;
+const TILE_MOUNTAIN = 5;
+const TILE_RIVER    = 6;
 
 const COLORS = {
   [TILE_OCEAN]:    '#3b77b7',
@@ -34,8 +32,8 @@ const MAP_SIZE = 800;
 // --- Onde pixelart leggere (spot) ---
 let pixelWaves = [];
 
+// Genera nuove onde in punti casuali su acqua
 function spawnWaves(map, now) {
-  // Ogni 1.3 secondi circa, genera nuove onde in punti casuali su mare/lago/fiume
   if (!spawnWaves.lastSpawn || now - spawnWaves.lastSpawn > 1300) {
     spawnWaves.lastSpawn = now;
     for (let i = 0; i < 8; i++) {
@@ -61,6 +59,7 @@ function spawnWaves(map, now) {
   pixelWaves = pixelWaves.filter(w => now - w.startTime < w.duration);
 }
 
+// Disegna la mappa e le onde animate
 function drawMapOnCanvas(map, canvas, zoom = 1, offsetX = 0, offsetY = 0, now = 0) {
   let width = canvas.width;
   let height = canvas.height;
@@ -82,12 +81,11 @@ function drawMapOnCanvas(map, canvas, zoom = 1, offsetX = 0, offsetY = 0, now = 
   // Prepara una mappa di onde attive
   let waveMap = new Map();
   for (const w of pixelWaves) {
-    // onde solo se visibili, per performance
     if (w.x >= startX && w.x < endX && w.y >= startY && w.y < endY)
       waveMap.set(w.y + "," + w.x, w);
   }
 
-  // Calcola frame corrente dell'animazione onda
+  // Calcola il frame corrente dell'animazione onda
   let frameIdx = 0;
   if (waveAnim.complete && waveAnim.naturalWidth > 0) {
     frameIdx = Math.floor((now / (1000 / WAVE_FPS)) % WAVE_FRAMES);
@@ -97,25 +95,16 @@ function drawMapOnCanvas(map, canvas, zoom = 1, offsetX = 0, offsetY = 0, now = 
     for (let x = startX; x < endX; x++) {
       let type = map[y][x];
       let color = COLORS[type];
-
-      // Se c'è un'onda qui, disegna la PNG animata
       let key = y + "," + x;
       if (waveMap.has(key) && waveAnim.complete && waveAnim.naturalWidth > 0) {
-        // Sorgente frame da spritesheet
         ctx.drawImage(
           waveAnim,
-          frameIdx * WAVE_FRAME_WIDTH, // sourceX
-          0,                           // sourceY (tutti su una riga)
-          WAVE_FRAME_WIDTH,
-          WAVE_FRAME_HEIGHT,
-          x * tX,
-          y * tY,
-          tX * 2,      // dimensione sulla mappa (puoi ridurre a tX, tY se vuoi più piccola)
-          tY * 2
+          frameIdx * WAVE_FRAME_WIDTH, 0,
+          WAVE_FRAME_WIDTH, WAVE_FRAME_HEIGHT,
+          x * tX, y * tY, tX * 2, tY * 2 // cambia a tX, tY se le vuoi più piccole
         );
-        continue; // non disegnare il mare/fiume sotto
+        continue;
       }
-
       ctx.fillStyle = color;
       ctx.fillRect(x * tX, y * tY, tX + 1, tY + 1);
     }
@@ -123,4 +112,7 @@ function drawMapOnCanvas(map, canvas, zoom = 1, offsetX = 0, offsetY = 0, now = 
   ctx.restore();
 }
 
-// === ... tutto il resto invariato (generazione mappa, funzione export ecc) ===
+// Le altre funzioni (generazione mappa, export, ecc.) rimangono come nel tuo file originale!
+// Se vuoi puoi semplicemente incollare solo la parte sopra, lasciando tutto il resto invariato.
+
+export { spawnWaves, drawMapOnCanvas /*, altre funzioni se necessario */ };
