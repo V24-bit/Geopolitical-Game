@@ -15,28 +15,44 @@ html, body {
     height: 100vh;
     background: #181c22 radial-gradient(circle at 65% 18%, #18ffff22 0%, #ea00d933 69%, transparent 100%);
     box-sizing: border-box;
-    overflow-x: hidden;
+    overflow: hidden;
     font-family: 'Segoe UI', 'Arial', sans-serif;
 }
 
-/* CENTRO VERTICALE MA NON 100vh */
+/* Quando la mappa è attiva, questa classe viene aggiunta via JS */
+body.full-map {
+    overflow: hidden;
+}
+
+#game-map {
+    display: block;
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 100vw !important;
+    height: 100vh !important;
+    z-index: 1111;
+    border-radius: 0;
+    margin: 0;
+    box-shadow: none;
+    background: #232336;
+}
+
 .center-container {
     display: flex;
     align-items: center;
     justify-content: center;
     width: 100vw;
     min-height: 0;
-    /* Fissa una altezza massima, centrata senza andare sotto la barra degli indirizzi */
     max-width: 440px;
-    margin: 60px auto 30px auto; /* Spazio sopra/sotto per evitare la barra degli indirizzi */
+    margin: 60px auto 30px auto;
     height: 600px;
-    /* se vuoi responsive puoi usare 'min-height: 400px; max-height: 80vh;' */
     position: relative;
     z-index: 10;
     transition: height 0.2s, max-width 0.2s;
 }
 
-/* CANVAS MAPPA */
+/* CANVAS nella center-container (NON usato quando la mappa è a tutto schermo) */
 .center-container canvas {
     width: 100% !important;
     height: 100% !important;
@@ -215,5 +231,42 @@ html, body {
 }
 
 #game-code-panel {
-    margin-top*
-
+    margin-top: 0.675em;
+    margin-bottom: 0.375em;
+    color: #fff;
+    font-size: 0.855em;
+    width: 100%;
+    text-align: center;
+}
+
+.output {
+    min-height: 0.9em;
+    color: #ffee00;
+    font-size: 0.84em;
+    margin-top: 0.225em;
+    width: 100%;
+    text-align: center;
+}
+
+.bottom-bar {
+    z-index: 101;
+    position: fixed;
+    width: 100%;
+    bottom: 0;
+    left: 0;
+    padding: 0.2625rem 0 0.2625rem 0;
+    text-align: center;
+    background: transparent;
+    color: #fff;
+    font-size: 0.75rem;
+    pointer-events: auto;
+}
+.credit .v24-blue {
+    color: var(--neon-blue);
+    text-decoration: underline;
+}
+
+/* Nascondi eventuale scrollbar orizzontale */
+body {
+    overflow-x: hidden;
+}
