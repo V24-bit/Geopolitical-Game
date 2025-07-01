@@ -27,7 +27,7 @@ const COLORS = {
   [TILE_RIVER]:    '#3fc2ff'
 };
 
-const MAP_SIZE = 800;
+const MAP_SIZE = 600;
 
 // --- Onde pixelart leggere (spot) ---
 let pixelWaves = [];
