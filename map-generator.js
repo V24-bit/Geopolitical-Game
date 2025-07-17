@@ -18,7 +18,7 @@ const COLORS = {
 };
 
 // --- MAPPA ---
-const MAP_SIZE = 80; // Modifica per la dimensione che vuoi
+const MAP_SIZE = 80; // Puoi modificarlo per più/meno dettaglio
 
 // --- SimplexNoise: usa la versione globale già caricata
 const simplex = new window.SimplexNoise(Math.random);
@@ -129,53 +129,5 @@ function generateBiomeMap(size) {
             let y = Math.floor(sy + Math.sin(dir)*l);
             for(let dx=-1;dx<=1;dx++) for(let dy=-1;dy<=1;dy++) {
                 let nx=x+dx, ny=y+dy;
-                if(nx>=0&&ny>=0&&nx<size&&ny<size && map[ny][nx]===TILE_OCEAN)
-                    map[ny][nx]=TILE_PLAIN;
-            }
-        }
-    }
-
-    return map;
-}
-
-// --- DISEGNA LA MAPPA ---
-export function drawMapOnCanvas(map, canvas) {
-    let width = canvas.width;
-    let height = canvas.height;
-    let ctx = canvas.getContext('2d');
-    ctx.clearRect(0,0,width,height);
-    let tX = width / MAP_SIZE;
-    let tY = height / MAP_SIZE;
-    for(let y=0; y<MAP_SIZE; y++) {
-        for(let x=0; x<MAP_SIZE; x++) {
-            let color = COLORS[map[y][x]] || "#fff";
-            ctx.fillStyle = color;
-            ctx.fillRect(x*tX, y*tY, tX, tY);
-        }
-    }
-}
-
-// --- GENERA E MOSTRA LA MAPPA ---
-export function generateAndShowMapOnStart() {
-    let map = generateBiomeMap(MAP_SIZE);
-
-    // Inserisci il canvas nel div centrale della UI
-    let container = document.querySelector('.main-ui') || document.querySelector('.center-container');
-    if (!container) container = document.body;
-
-    let canvas = document.getElementById('game-map');
-    if (!canvas) {
-        canvas = document.createElement('canvas');
-        canvas.id = 'game-map';
-        canvas.width = container.offsetWidth || 600;
-        canvas.height = 320;
-        canvas.style.width = "100%";
-        canvas.style.height = "320px";
-        container.appendChild(canvas);
-    } else {
-        canvas.width = container.offsetWidth || 600;
-        canvas.height = 320;
-    }
-
-    drawMapOnCanvas(map, canvas);
-}
+                if(nx>=0&&ny>=0&&nx<size&&ny<size && map[
+
