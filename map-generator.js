@@ -33,7 +33,7 @@ const MAP_SIZE = 750;
 let pixelWaves = [];
 
 // Genera nuove onde in punti casuali su acqua
-function spawnWaves(map, now) {
+export function spawnWaves(map, now) {
   if (!spawnWaves.lastSpawn || now - spawnWaves.lastSpawn > 1300) {
     spawnWaves.lastSpawn = now;
     for (let i = 0; i < 8; i++) {
@@ -60,7 +60,7 @@ function spawnWaves(map, now) {
 }
 
 // Disegna la mappa e le onde animate
-function drawMapOnCanvas(map, canvas, zoom = 1, offsetX = 0, offsetY = 0, now = 0) {
+export function drawMapOnCanvas(map, canvas, zoom = 1, offsetX = 0, offsetY = 0, now = 0) {
   let width = canvas.width;
   let height = canvas.height;
   let ctx = canvas.getContext('2d');
@@ -113,7 +113,7 @@ function drawMapOnCanvas(map, canvas, zoom = 1, offsetX = 0, offsetY = 0, now = 
 }
 
 // Funzione aggiunta per avviare la mappa a schermo intero
-function generateAndShowMapOnStart() {
+export function generateAndShowMapOnStart() {
     // Crea una mappa di pianure (modifica qui se vuoi una generazione più complessa)
     let map = Array.from({length: MAP_SIZE}, () => Array(MAP_SIZE).fill(TILE_PLAIN));
 
@@ -133,5 +133,3 @@ function generateAndShowMapOnStart() {
     // Disegna la mappa
     drawMapOnCanvas(map, canvas, 1, 0, 0, Date.now());
 }
-
-export { spawnWaves, drawMapOnCanvas, generateAndShowMapOnStart };
