@@ -6,6 +6,7 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <canvas id="game-map"></canvas>
     <div class="center-container">
         <div class="main-ui">
             <!-- MENU LINGUA -->
@@ -22,10 +23,8 @@
                 </select>
             </div>
 
-            <!-- TITOLO -->
             <h1 id="title" data-i18n="title">Geopolitical Game</h1>
 
-            <!-- FORM NAZIONE -->
             <form id="nation-form" autocomplete="off">
                 <div class="form-group">
                     <label for="nation-name" id="label-nation-name" data-i18n="nation_name_label">Nome della Nazione</label>
@@ -33,28 +32,23 @@
                 </div>
             </form>
 
-            <!-- PULSANTI COLORATI -->
             <div class="actions">
                 <button type="button" id="create-game-btn" class="action-btn potato-yellow" data-i18n="create_game">Crea partita</button>
                 <button type="button" id="join-game-btn" class="action-btn sky-blue" data-i18n="join_game">Unisciti a partita</button>
             </div>
 
-            <!-- FORM UNISCITI -->
             <div id="join-form" style="display:none;">
                 <input type="text" id="game-code-input" placeholder="Inserisci codice partita" maxlength="8" data-i18n-placeholder="game_code_placeholder">
                 <button type="button" id="join-submit-btn" class="action-btn sky-blue" data-i18n="enter_button">Entra</button>
             </div>
 
-            <!-- PANEL CODICE PARTITA -->
             <div id="game-code-panel" style="display:none;">
                 <div class="game-code-label" id="game-code-label"></div>
                 <div class="game-code-value" id="game-code-value"></div>
             </div>
 
-            <!-- START GAME BUTTON -->
             <button type="button" id="start-game-btn" class="action-btn potato-yellow" style="display:none;" data-i18n="start_game">Start Game</button>
 
-            <!-- OUTPUT -->
             <div class="output" id="output"></div>
         </div>
     </div>
@@ -65,103 +59,11 @@
     </div>
     <script>
     // Dizionario traduzioni
-    const translations = {
-        en: {
-            title: "Geopolitical Game",
-            nation_name_label: "Nation Name",
-            nation_name_placeholder: "Enter nation name",
-            create_game: "Create Game",
-            join_game: "Join Game",
-            game_code_placeholder: "Enter game code",
-            enter_button: "Enter",
-            start_game: "Start Game"
-        },
-        it: {
-            title: "Geopolitical Game",
-            nation_name_label: "Nome della Nazione",
-            nation_name_placeholder: "Inserisci il nome della nazione",
-            create_game: "Crea partita",
-            join_game: "Unisciti a partita",
-            game_code_placeholder: "Inserisci codice partita",
-            enter_button: "Entra",
-            start_game: "Avvia partita"
-        },
-        es: {
-            title: "Geopolitical Game",
-            nation_name_label: "Nombre de la Nación",
-            nation_name_placeholder: "Introduce el nombre de la nación",
-            create_game: "Crear partida",
-            join_game: "Unirse a partida",
-            game_code_placeholder: "Introduce código de partida",
-            enter_button: "Entrar",
-            start_game: "Iniciar partida"
-        },
-        fr: {
-            title: "Geopolitical Game",
-            nation_name_label: "Nom de la Nation",
-            nation_name_placeholder: "Entrez le nom de la nation",
-            create_game: "Créer une partie",
-            join_game: "Rejoindre une partie",
-            game_code_placeholder: "Entrez le code de la partie",
-            enter_button: "Entrer",
-            start_game: "Démarrer la partie"
-        },
-        de: {
-            title: "Geopolitical Game",
-            nation_name_label: "Name der Nation",
-            nation_name_placeholder: "Namen der Nation eingeben",
-            create_game: "Spiel erstellen",
-            join_game: "Spiel beitreten",
-            game_code_placeholder: "Spielcode eingeben",
-            enter_button: "Beitreten",
-            start_game: "Spiel starten"
-        }
-    };
-
-    // Funzione traduzione dinamica
-    function translatePage(lang) {
-        document.querySelectorAll('[data-i18n]').forEach(el => {
-            const key = el.getAttribute('data-i18n');
-            if (translations[lang] && translations[lang][key]) {
-                el.textContent = translations[lang][key];
-            }
-        });
-        document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
-            const key = el.getAttribute('data-i18n-placeholder');
-            if (translations[lang] && translations[lang][key]) {
-                el.placeholder = translations[lang][key];
-            }
-        });
-    }
-
-    // Cambio bandiera e lingua
-    document.addEventListener('DOMContentLoaded', function() {
-        const flagMap = {
-            en: 'gb',
-            it: 'it',
-            es: 'es',
-            fr: 'fr',
-            de: 'de'
-        };
-        const langMenu = document.getElementById('language-menu');
-        const flagImg = document.getElementById('flag-current');
-
-        function updateFlagAndLang() {
-            const lang = langMenu.value;
-            const flagCode = flagMap[lang] || 'gb';
-            flagImg.src = `https://flagcdn.com/${flagCode}.svg`;
-            flagImg.alt = langMenu.options[langMenu.selectedIndex].text;
-            translatePage(lang);
-        }
-
-        langMenu.addEventListener('change', updateFlagAndLang);
-        updateFlagAndLang(); // All'avvio
-    });
+    // ... come già nel tuo file ...
     </script>
     <!-- FIREBASE SCRIPTS -->
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-    <!-- CARICA main1.js COME MODULO! -->
     <script type="module" src="main1.js"></script>
 </body>
 </html>
