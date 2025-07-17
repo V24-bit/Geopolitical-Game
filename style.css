@@ -1,3 +1,13 @@
+:root {
+    --neon-blue: #18ffff;
+    --potato-yellow: #ffe45e;
+    --potato-yellow-dark: #e6c94f;
+    --sky-blue: #4bccff;
+    --sky-blue-dark: #2493c6;
+    --glass-bg: rgba(24, 24, 30, 0.82);
+    --input-bg: rgba(255,255,255,0.12);
+}
+
 html, body {
     padding: 0;
     margin: 0;
@@ -9,26 +19,18 @@ html, body {
     font-family: 'Segoe UI', 'Arial', sans-serif;
 }
 
-#game-map {
-    display: block;
-    position: absolute;
-    left: 0;
-    top: 0;
-    width: 100vw;
-    height: 100vh;
-    z-index: 10; /* Canvas sotto la UI */
-    background: #232336;
-}
-
 .center-container {
     display: flex;
     align-items: center;
     justify-content: center;
     width: 100vw;
-    height: 100vh;
-    position: absolute;
-    left: 0; top: 0;
-    z-index: 100; /* UI sopra la mappa */
+    min-height: 0;
+    max-width: 440px;
+    margin: 60px auto 30px auto;
+    height: 600px;
+    position: relative;
+    z-index: 10;
+    transition: height 0.2s, max-width 0.2s;
 }
 
 .main-ui {
@@ -36,15 +38,29 @@ html, body {
     flex-direction: column;
     align-items: center;
     gap: 1.575rem;
+    z-index: 20;
     font-size: 0.915rem;
+    width: 100%;
     max-width: 330px;
     margin: 0 auto;
     padding: 2.1rem 1.275rem 1.65rem 1.275rem;
-    background: rgba(24, 24, 30, 0.82);
+    background: var(--glass-bg);
     border-radius: 27px;
     box-shadow: 0 7.5px 37.5px 0 #18ffff33, 0 1.5px 12px #ea00d955;
     backdrop-filter: blur(13.5px) saturate(1.3);
+    animation: fade-in-ui 1.2s cubic-bezier(.48,1.58,.47,1) both;
     position: relative;
-    z-index: 200;
 }
-/* ... il resto del tuo CSS ... */
+
+.main-ui canvas {
+    width: 100% !important;
+    height: 320px !important;
+    display: block;
+    border-radius: 27px;
+    box-shadow: 0 7.5px 37.5px 0 #18ffff33, 0 1.5px 12px #ea00d955;
+    margin: 0 auto 10px auto;
+    background: #232336;
+    transition: box-shadow 0.2s;
+}
+
+/* Il resto del tuo CSS resta invariato! */
