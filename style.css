@@ -63,4 +63,65 @@ html, body {
     transition: box-shadow 0.2s;
 }
 
+.action-btn {
+    font-size: 1em;
+    padding: 0.36em 1.275em;
+    border-radius: 10px;
+    border: none;
+    font-weight: bold;
+    cursor: pointer;
+    box-shadow: 0 2px 14px #18ffff66, 0 1px 4px #ea00d9;
+    margin: 6px;
+    transition: background 0.18s, transform 0.13s, box-shadow 0.18s;
+}
+
+.potato-yellow {
+    background: linear-gradient(90deg, #fff69e 0%, #ffe45e 60%, #e6c94f 100%);
+    color: #232336;
+    border: 2px solid #ffe45e;
+}
+.potato-yellow:hover {
+    background: linear-gradient(90deg, #ffe45e 0%, #fff69e 100%);
+    box-shadow: 0 4px 18px #ffe45e55;
+    transform: scale(1.06);
+}
+
+.sky-blue {
+    background: linear-gradient(90deg, #7ddbff 0%, #4bccff 60%, #2493c6 100%);
+    color: #fff;
+    border: 2px solid #4bccff;
+}
+.sky-blue:hover {
+    background: linear-gradient(90deg, #4bccff 0%, #7ddbff 100%);
+    box-shadow: 0 4px 18px #4bccff55;
+    transform: scale(1.06);
+}
+
+.bottom-bar {
+    position: fixed;
+    left: 0;
+    bottom: 0;
+    width: 100vw;
+    text-align: center;
+    padding: 10px 0;
+    background: rgba(24,24,30,0.87);
+    z-index: 300;
+    font-size: 1em;
+    color: #18ffff;
+    font-weight: bold;
+    letter-spacing: 1px;
+}
+
+.credit {
+    display: inline-block;
+    text-align: center;
+}
+
+.v24-blue {
+    color: #4bccff;
+    text-shadow: 0 0 8px #18ffff99;
+    font-weight: bold;
+    text-decoration: underline;
+}
+
 /* Il resto del tuo CSS resta invariato! */
