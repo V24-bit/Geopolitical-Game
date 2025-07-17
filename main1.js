@@ -24,7 +24,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const joinSubmitBtn = document.getElementById('join-submit-btn');
     const gameCodeInput = document.getElementById('game-code-input');
     const nationName = document.getElementById('nation-name');
-    const governmentType = document.getElementById('government-type');
     const startGameBtn = document.getElementById('start-game-btn');
 
     let unsubscribeLobby = null;
@@ -88,8 +87,8 @@ document.addEventListener('DOMContentLoaded', function() {
     // Unisciti a partita
     if (joinBtn && joinForm) {
         joinBtn.addEventListener('click', function() {
-            if (nationName && (!nationName.value.trim() || !governmentType.value)) {
-                showTempError('Enter a name and a government type before joining or creating a game');
+            if (nationName && !nationName.value.trim()) {
+                showTempError('Inserisci un nome prima di unirti o creare una partita');
                 return;
             }
             joinForm.style.display = "flex";
@@ -103,8 +102,8 @@ document.addEventListener('DOMContentLoaded', function() {
     // Crea partita
     if (createBtn && gameCodePanel && gameCodeLabel && gameCodeValue) {
         createBtn.addEventListener('click', async function() {
-            if (nationName && (!nationName.value.trim() || !governmentType.value)) {
-                showTempError('Enter a name and a government type before joining or creating a game');
+            if (nationName && !nationName.value.trim()) {
+                showTempError('Inserisci un nome prima di unirti o creare una partita');
                 return;
             }
             if (joinForm) joinForm.style.display = "none";
@@ -118,7 +117,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     codice: code,
                     creatoIl: firebase.firestore.FieldValue.serverTimestamp(),
                     nazione: nationName.value,
-                    governo: governmentType.value,
                     giocatori: [nationName.value],
                     expireAt: expireAt
                 });
@@ -143,8 +141,8 @@ document.addEventListener('DOMContentLoaded', function() {
     // Entra in partita esistente
     if (joinSubmitBtn && gameCodeInput && gameCodePanel && gameCodeLabel && gameCodeValue && joinForm) {
         joinSubmitBtn.addEventListener('click', async function() {
-            if (nationName && (!nationName.value.trim() || !governmentType.value)) {
-                showTempError('Enter a name and a government type before joining or creating a game');
+            if (nationName && !nationName.value.trim()) {
+                showTempError('Inserisci un nome prima di unirti o creare una partita');
                 return;
             }
             const code = gameCodeInput.value.trim().toUpperCase();
