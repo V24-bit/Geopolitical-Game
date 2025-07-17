@@ -10,7 +10,6 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
-// IMPORTA IL GENERATORE DI MAPPA
 import { generateAndShowMapOnStart } from './map-generator.js';
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -110,15 +109,16 @@ document.addEventListener('DOMContentLoaded', function() {
             if (startGameBtn) startGameBtn.style.display = "none";
             const code = Math.random().toString(36).substring(2, 8).toUpperCase();
             currentGameCode = code;
-            const expireAt = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000);
+            // AGGIUNGI IL CAMPO governo come richiesto dalle regole!
+            const governo = "demo"; // puoi cambiarlo con una selezione dal form se vuoi
 
             try {
                 await db.collection("partite").doc(code).set({
                     codice: code,
                     creatoIl: firebase.firestore.FieldValue.serverTimestamp(),
                     nazione: nationName.value,
-                    giocatori: [nationName.value],
-                    expireAt: expireAt
+                    governo: governo,
+                    giocatori: [nationName.value]
                 });
                 if (gameCodePanel && gameCodeLabel && gameCodeValue) {
                     gameCodeLabel.textContent = "Codice partita:";
@@ -157,8 +157,20 @@ document.addEventListener('DOMContentLoaded', function() {
                 const partitaRef = db.collection("partite").doc(code);
                 const doc = await partitaRef.get();
                 if (doc.exists) {
+                    // Per rispettare le regole, devi inviare TUTTI i campi identici tranne giocatori che ha 1 in più
+                    const data = doc.data();
+                    const governo = data.governo || "demo";
+                    const giocatori = Array.isArray(data.giocatori) ? [...data.giocatori] : [];
+                    if (giocatori.includes(nationName.value)) {
+                        output.textContent = "Hai già unito questa partita!";
+                        return;
+                    }
+                    giocatori.push(nationName.value);
                     await partitaRef.update({
-                        giocatori: firebase.firestore.FieldValue.arrayUnion(nationName.value)
+                        codice: data.codice,
+                        nazione: data.nazione,
+                        governo: governo,
+                        giocatori: giocatori
                     });
                     output.textContent = "";
                     joinForm.style.display = "none";
