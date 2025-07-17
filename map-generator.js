@@ -25,14 +25,193 @@ const COLORS = {
   [TILE_RIVER]:    '#3fc2ff'
 };
 
-const MAP_SIZE = 80; // Più piccolo per UI; puoi aumentare se vuoi
+const MAP_SIZE = 120; // Puoi modificare la risoluzione
 
 let pixelWaves = [];
+
+// Rumore Perlin-like semplice
+function noise(x, y, seed=0) {
+    return Math.abs(Math.sin((x*83.1 + y*61.7 + seed*13.7) * 0.017)) % 1;
+}
+
+// Generatore di continente/isole
+function generateLandMask(size, continents=3, islands=12) {
+    let land = Array.from({length:size},()=>Array(size).fill(false));
+    const seed = Math.random()*1000;
+    // Genera continenti
+    for(let c=0;c<continents;c++) {
+        let cx = Math.floor(size*(0.2 + 0.6*Math.random()));
+        let cy = Math.floor(size*(0.2 + 0.6*Math.random()));
+        let cr = size*(0.22 + 0.13*Math.random());
+        for(let y=0;y<size;y++) for(let x=0;x<size;x++) {
+            let dist = Math.sqrt((x-cx)**2 + (y-cy)**2);
+            let n = noise(x*0.12, y*0.12, seed+c*37);
+            if(dist < cr*(0.7+n*0.5)) land[y][x]=true;
+        }
+    }
+    // Genera isole/arcipelaghi
+    for(let i=0;i<islands;i++) {
+        let cx = Math.floor(size*Math.random());
+        let cy = Math.floor(size*Math.random());
+        let cr = size*(0.05+0.05*Math.random());
+        for(let y=0;y<size;y++) for(let x=0;x<size;x++) {
+            let dist = Math.sqrt((x-cx)**2 + (y-cy)**2);
+            let n = noise(x*0.22, y*0.22, seed+i*9);
+            if(dist < cr*(0.7+n*0.7)) land[y][x]=true;
+        }
+    }
+    // Genera penisole random
+    for(let p=0;p<Math.floor(continents*1.5);p++) {
+        let startX = Math.floor(size*(0.1 + 0.8*Math.random()));
+        let startY = Math.floor(size*(0.1 + 0.8*Math.random()));
+        let dir = Math.random()*Math.PI*2;
+        let len = Math.floor(size*(0.15+0.12*Math.random()));
+        for(let l=0;l<len;l++) {
+            let x = Math.floor(startX + Math.cos(dir)*l);
+            let y = Math.floor(startY + Math.sin(dir)*l);
+            for(let dy=-3;dy<=3;dy++) for(let dx=-3;dx<=3;dx++) {
+                let nx = x+dx, ny = y+dy;
+                if(nx>=0 && ny>=0 && nx<size && ny<size) land[ny][nx]=true;
+            }
+        }
+    }
+    return land;
+}
+
+// Generatore di rilievi (montagne/colline)
+function generateElevationMap(size, land) {
+    let elevation = Array.from({length:size},()=>Array(size).fill(0));
+    let seed = Math.random()*1000;
+    // Montagne
+    for(let m=0;m<Math.floor(size/7);m++) {
+        let mx = Math.floor(size*Math.random());
+        let my = Math.floor(size*Math.random());
+        let mr = size*(0.10+0.08*Math.random());
+        for(let y=0;y<size;y++) for(let x=0;x<size;x++) {
+            let dist = Math.sqrt((x-mx)**2 + (y-my)**2);
+            let n = noise(x*0.22, y*0.22, seed+m*97);
+            if(dist < mr*(0.7+n*0.5) && land[y][x]) elevation[y][x]+=0.8-n*0.15;
+        }
+    }
+    // Colline diffuse
+    for(let y=0;y<size;y++) for(let x=0;x<size;x++) {
+        if(land[y][x]) elevation[y][x] += noise(x*0.07, y*0.07, seed+19)*0.4;
+    }
+    return elevation;
+}
+
+// Generatore di fiumi (curve dalle montagne)
+function generateRivers(size, elevation, land) {
+    let riverMap = Array.from({length:size},()=>Array(size).fill(false));
+    let seed = Math.random()*1000;
+    for(let r=0;r<5;r++) {
+        // Trova una sorgente in montagna
+        let tries = 0;
+        let sx,sy;
+        do {
+            sx = Math.floor(size*Math.random());
+            sy = Math.floor(size*Math.random());
+            tries++;
+        } while(((elevation[sy] && elevation[sy][sx])<0.7 || !land[sy][sx]) && tries<100);
+        let len = Math.floor(size*(0.6+0.2*Math.random()));
+        let x = sx, y = sy;
+        for(let l=0;l<len;l++) {
+            riverMap[Math.floor(y)][Math.floor(x)] = true;
+            // Segui la pendenza verso il basso
+            let minE = elevation[Math.floor(y)][Math.floor(x)];
+            let bestDx = 0, bestDy = 0;
+            for(let dy=-1;dy<=1;dy++) for(let dx=-1;dx<=1;dx++) {
+                let nx = Math.floor(x+dx), ny = Math.floor(y+dy);
+                if(nx>=0 && nx<size && ny>=0 && ny<size && land[ny][nx] && elevation[ny][nx]<minE) {
+                    minE = elevation[ny][nx];
+                    bestDx = dx; bestDy = dy;
+                }
+            }
+            x += bestDx + (noise(x*0.1,y*0.1,seed+r*7)-0.5)*0.7;
+            y += bestDy + (noise(x*0.1,y*0.1,seed+r*17)-0.5)*0.7;
+            if(!land[Math.floor(y)][Math.floor(x)]) break;
+        }
+    }
+    // Fiumi piccoli
+    for(let r=0;r<9;r++) {
+        let sx = Math.floor(size*Math.random());
+        let sy = Math.floor(size*Math.random());
+        if(!land[sy][sx] || elevation[sy][sx]<0.45) continue;
+        let len = Math.floor(size*(0.25+0.15*Math.random()));
+        let x = sx, y = sy;
+        for(let l=0;l<len;l++) {
+            riverMap[Math.floor(y)][Math.floor(x)] = true;
+            let minE = elevation[Math.floor(y)][Math.floor(x)];
+            let bestDx = 0, bestDy = 0;
+            for(let dy=-1;dy<=1;dy++) for(let dx=-1;dx<=1;dx++) {
+                let nx = Math.floor(x+dx), ny = Math.floor(y+dy);
+                if(nx>=0 && nx<size && ny>=0 && ny<size && land[ny][nx] && elevation[ny][nx]<minE) {
+                    minE = elevation[ny][nx];
+                    bestDx = dx; bestDy = dy;
+                }
+            }
+            x += bestDx + (noise(x*0.1,y*0.1,seed+r*11)-0.5)*0.3;
+            y += bestDy + (noise(x*0.1,y*0.1,seed+r*13)-0.5)*0.3;
+            if(!land[Math.floor(y)][Math.floor(x)]) break;
+        }
+    }
+    return riverMap;
+}
+
+// Generatore laghi
+function generateLakes(size, elevation, land, rivers) {
+    let lakeMap = Array.from({length:size},()=>Array(size).fill(false));
+    let seed = Math.random()*1000;
+    for(let l=0;l<7;l++) {
+        let lx = Math.floor(size*Math.random());
+        let ly = Math.floor(size*Math.random());
+        if(!land[ly][lx] || elevation[ly][lx]>0.55) continue;
+        let lr = size*(0.03+0.03*Math.random());
+        for(let y=0;y<size;y++) for(let x=0;x<size;x++) {
+            let dist = Math.sqrt((x-lx)**2 + (y-ly)**2);
+            let n = noise(x*0.2, y*0.2, seed+l*13);
+            if(dist < lr*(0.7+n*0.7) && land[y][x] && elevation[y][x]<0.52 && !rivers[y][x]) lakeMap[y][x]=true;
+        }
+    }
+    return lakeMap;
+}
+
+// Biomi principali
+function generateBiomeMap(size) {
+    const land = generateLandMask(size, 3+Math.floor(Math.random()*2), 9+Math.floor(Math.random()*7));
+    const elevation = generateElevationMap(size, land);
+    const rivers = generateRivers(size, elevation, land);
+    const lakes = generateLakes(size, elevation, land, rivers);
+
+    const map = [];
+    for(let y=0;y<size;y++) {
+        const row = [];
+        for(let x=0;x<size;x++) {
+            if(!land[y][x]) {
+                row.push(TILE_OCEAN);
+            } else if (rivers[y][x]) {
+                row.push(TILE_RIVER);
+            } else if (lakes[y][x]) {
+                row.push(TILE_LAKE);
+            } else if (elevation[y][x]>0.78) {
+                row.push(TILE_MOUNTAIN);
+            } else if (elevation[y][x]>0.62) {
+                row.push(TILE_HILL);
+            } else if (noise(x*0.15,y*0.15)+noise(x*0.21,y*0.19)>1.22) {
+                row.push(TILE_FOREST);
+            } else {
+                row.push(TILE_PLAIN);
+            }
+        }
+        map.push(row);
+    }
+    return map;
+}
 
 export function spawnWaves(map, now) {
   if (!spawnWaves.lastSpawn || now - spawnWaves.lastSpawn > 1300) {
     spawnWaves.lastSpawn = now;
-    for (let i = 0; i < 3; i++) {
+    for (let i = 0; i < 5; i++) {
       let tries = 0, found = false, x, y;
       while (!found && tries < 40) {
         x = Math.floor(Math.random() * MAP_SIZE);
@@ -54,51 +233,7 @@ export function spawnWaves(map, now) {
   pixelWaves = pixelWaves.filter(w => now - w.startTime < w.duration);
 }
 
-// Rumore semplice per biomi
-function pseudoNoise(x, y, seed = 0) {
-  return Math.abs(Math.sin(x * 0.037 + y * 0.011 + seed) * 43758.5453) % 1;
-}
-
-function generateBiomeMap(size) {
-  const map = [];
-  const seed = Math.random() * 1000;
-  for (let y = 0; y < size; y++) {
-    const row = [];
-    for (let x = 0; x < size; x++) {
-      const nx = x / size - 0.5, ny = y / size - 0.5;
-      let elevation = (
-        pseudoNoise(x * 0.6, y * 0.6, seed) * 0.55 +
-        pseudoNoise(x * 0.15, y * 0.18, seed + 5) * 0.35 +
-        pseudoNoise(x * 0.02, y * 0.02, seed + 11) * 0.10
-      );
-
-      // Oceano ai bordi
-      if (Math.abs(nx) > 0.48 || Math.abs(ny) > 0.48) {
-        row.push(TILE_OCEAN);
-        continue;
-      }
-      // Fiume centrale
-      if (Math.abs(nx) < 0.04) {
-        row.push(TILE_RIVER);
-        continue;
-      }
-      // Laghi sparsi
-      if (pseudoNoise(x * 2.2, y * 2.2, seed + 8) > 0.97 && elevation > 0.30 && elevation < 0.60) {
-        row.push(TILE_LAKE); continue;
-      }
-      // Montagne
-      if (elevation > 0.80) { row.push(TILE_MOUNTAIN); }
-      // Colline
-      else if (elevation > 0.65) { row.push(TILE_HILL); }
-      // Foreste
-      else if (pseudoNoise(x * 1.3, y * 1.3, seed + 23) > 0.73) { row.push(TILE_FOREST); }
-      else { row.push(TILE_PLAIN); }
-    }
-    map.push(row);
-  }
-  return map;
-}
-
+// Disegna la mappa e le onde animate
 export function drawMapOnCanvas(map, canvas, zoom = 1, offsetX = 0, offsetY = 0, now = 0) {
   let width = canvas.width;
   let height = canvas.height;
@@ -135,40 +270,5 @@ export function drawMapOnCanvas(map, canvas, zoom = 1, offsetX = 0, offsetY = 0,
           waveAnim,
           frameIdx * WAVE_FRAME_WIDTH, 0,
           WAVE_FRAME_WIDTH, WAVE_FRAME_HEIGHT,
-          x * tX, y * tY, tX * 2, tY * 2
-        );
-        continue;
-      }
-      ctx.fillStyle = color;
-      ctx.fillRect(x * tX, y * tY, tX + 1, tY + 1);
-    }
-  }
-  ctx.restore();
-}
-
-// Mostra la mappa SOLO nel div centrale
-export function generateAndShowMapOnStart() {
-    let map = generateBiomeMap(MAP_SIZE);
-
-    // Cerca il container centrale per la UI
-    let container = document.querySelector('.main-ui') || document.querySelector('.center-container');
-    if (!container) container = document.body;
-
-    let canvas = document.getElementById('game-map');
-    if (!canvas) {
-        canvas = document.createElement('canvas');
-        canvas.id = 'game-map';
-        canvas.style.width = "100%";
-        canvas.style.height = "320px"; // Puoi cambiare l'altezza
-        canvas.width = container.offsetWidth;
-        canvas.height = 320; // Puoi cambiare qui l'altezza
-        container.appendChild(canvas);
-    } else {
-        canvas.width = container.offsetWidth;
-        canvas.height = 320;
-        canvas.style.width = "100%";
-        canvas.style.height = "320px";
-    }
-
-    drawMapOnCanvas(map, canvas, 1, 0, 0, Date.now());
-}
+          x * tX, y **
+
