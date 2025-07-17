@@ -109,8 +109,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (startGameBtn) startGameBtn.style.display = "none";
             const code = Math.random().toString(36).substring(2, 8).toUpperCase();
             currentGameCode = code;
-            // AGGIUNGI IL CAMPO governo come richiesto dalle regole!
-            const governo = "demo"; // puoi cambiarlo con una selezione dal form se vuoi
+            const governo = "demo";
 
             try {
                 await db.collection("partite").doc(code).set({
@@ -157,7 +156,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 const partitaRef = db.collection("partite").doc(code);
                 const doc = await partitaRef.get();
                 if (doc.exists) {
-                    // Per rispettare le regole, devi inviare TUTTI i campi identici tranne giocatori che ha 1 in più
                     const data = doc.data();
                     const governo = data.governo || "demo";
                     const giocatori = Array.isArray(data.giocatori) ? [...data.giocatori] : [];
@@ -199,7 +197,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Start Game click handler: AVVIA LA MAPPA
     if (startGameBtn) {
         startGameBtn.addEventListener('click', function() {
-            generateAndShowMapOnStart(); // Generazione e visualizzazione mappa a schermo intero
+            generateAndShowMapOnStart();
         });
     }
 });
