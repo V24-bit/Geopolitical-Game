@@ -17,7 +17,8 @@ const COLORS = {
 };
 
 const MAP_SIZE = 80;
-const simplex = new window.SimplexNoise(Math.random);
+// CORRETTO: usa direttamente SimplexNoise, NON window.SimplexNoise!
+const simplex = new SimplexNoise(Math.random);
 
 function generateBiomeMap(size) {
     const map = [];
@@ -41,6 +42,7 @@ function generateBiomeMap(size) {
         }
         map.push(row);
     }
+    // Montagne e colline
     for(let y=0; y<size; y++) for(let x=0; x<size; x++) {
         if(map[y][x]===TILE_PLAIN) {
             let mtn = simplex.noise2D(x * 0.18, y * 0.18);
@@ -48,6 +50,7 @@ function generateBiomeMap(size) {
             else if(mtn > 0.42) map[y][x] = TILE_HILL;
         }
     }
+    // Fiumi principali
     for(let f=0;f<3;f++) {
         let fx = Math.floor(size*(0.2+0.6*Math.random()));
         let fy = Math.floor(size*(0.2+0.6*Math.random()));
@@ -62,6 +65,7 @@ function generateBiomeMap(size) {
                 map[iy][ix]=TILE_RIVER;
         }
     }
+    // Fiumi minori
     for(let f=0;f<6;f++) {
         let fx = Math.floor(size*(0.15+0.7*Math.random()));
         let fy = Math.floor(size*(0.15+0.7*Math.random()));
@@ -76,6 +80,7 @@ function generateBiomeMap(size) {
                 map[iy][ix]=TILE_RIVER;
         }
     }
+    // Laghi
     for(let l=0; l<8; l++) {
         let lx = Math.floor(size*Math.random());
         let ly = Math.floor(size*Math.random());
@@ -85,10 +90,12 @@ function generateBiomeMap(size) {
                 map[y][x]=TILE_LAKE;
         }
     }
+    // Foreste
     for(let y=0; y<size; y++) for(let x=0; x<size; x++) {
         if((map[y][x]===TILE_PLAIN || map[y][x]===TILE_HILL) && simplex.noise2D(x*forestScale, y*forestScale+17)>0.34)
             map[y][x]=TILE_FOREST;
     }
+    // Piccole isole
     for(let i=0; i<9; i++) {
         let ix = Math.floor(size*Math.random());
         let iy = Math.floor(size*Math.random());
@@ -98,6 +105,7 @@ function generateBiomeMap(size) {
                 map[y][x]=TILE_PLAIN;
         }
     }
+    // Piccole penisole
     for(let p=0;p<4;p++) {
         let sx = Math.floor(size*(0.2 + 0.6*Math.random()));
         let sy = Math.floor(size*(0.2 + 0.6*Math.random()));
@@ -152,6 +160,7 @@ export function generateAndShowMapOnStart() {
     drawMapOnCanvas(map, canvas);
 }
 
+// Rigenera la mappa al resize
 window.addEventListener('resize', () => {
     let canvas = document.getElementById('game-map');
     if (canvas) {
