@@ -20,9 +20,7 @@ const MAP_SIZE = 80;
 const simplex = new window.SimplexNoise(Math.random);
 
 function generateBiomeMap(size) {
-    // ... come già nei tuoi file ...
-    // (puoi usare la versione che preferisci delle funzioni, l'importante è che sia quella "giusta")
-    // vedi sopra per il codice completo, lo puoi incollare qui dentro!
+    // ... come il tuo attuale algoritmo, puoi usare la versione che hai già!
 }
 
 export function drawMapOnCanvas(map, canvas) {
@@ -43,18 +41,27 @@ export function drawMapOnCanvas(map, canvas) {
 
 export function generateAndShowMapOnStart() {
     let map = generateBiomeMap(MAP_SIZE);
+
+    // Canvas nel container main-ui
+    let container = document.querySelector('.main-ui');
     let canvas = document.getElementById('game-map');
     if (!canvas) {
         canvas = document.createElement('canvas');
         canvas.id = 'game-map';
-        document.body.appendChild(canvas);
+        canvas.width = container.offsetWidth || 330;
+        canvas.height = 320;
+        container.insertBefore(canvas, container.firstChild);
+    } else {
+        canvas.width = container.offsetWidth || 330;
+        canvas.height = 320;
     }
-    // Adatta canvas al body
-    canvas.width = document.body.clientWidth;
-    canvas.height = document.body.clientHeight;
+
     drawMapOnCanvas(map, canvas);
 }
 
 window.addEventListener('resize', () => {
-    generateAndShowMapOnStart();
+    let canvas = document.getElementById('game-map');
+    if (canvas) {
+        generateAndShowMapOnStart();
+    }
 });
