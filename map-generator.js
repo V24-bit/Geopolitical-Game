@@ -1,5 +1,3 @@
-// --- Simplex Noise (resta invariato, lascia la tua implementazione qui) ---
-
 // === CONFIGURAZIONE SPRITESHEET ONDA ===
 const waveAnim = new window.Image();
 waveAnim.src = "assets/animations/wave01.png";
@@ -59,6 +57,69 @@ export function spawnWaves(map, now) {
   pixelWaves = pixelWaves.filter(w => now - w.startTime < w.duration);
 }
 
+// --- Generatore di biomi con rumore semplice ---
+function pseudoNoise(x, y, seed = 0) {
+  // Semplice funzione di hash per pseudo-random
+  return Math.abs(Math.sin(x * 0.027 + y * 0.017 + seed) * 43758.5453) % 1;
+}
+
+// Funzione di generazione della mappa con biomi vari
+function generateBiomeMap(size) {
+  const map = [];
+  const seed = Math.random() * 1000;
+  for (let y = 0; y < size; y++) {
+    const row = [];
+    for (let x = 0; x < size; x++) {
+      // Normalizza coordinate tra -1 e 1 (centro della mappa = 0,0)
+      const nx = x / size - 0.5, ny = y / size - 0.5;
+
+      // Elevazione (montagne, colline, pianure)
+      let elevation = (
+        pseudoNoise(x * 0.6, y * 0.6, seed) * 0.55 +
+        pseudoNoise(x * 0.15, y * 0.18, seed + 5) * 0.35 +
+        pseudoNoise(x * 0.02, y * 0.02, seed + 11) * 0.10
+      );
+
+      // Genera oceano ai bordi
+      if (Math.abs(nx) > 0.48 || Math.abs(ny) > 0.48) {
+        row.push(TILE_OCEAN);
+        continue;
+      }
+
+      // Fiume centrale (verticale e orizzontale)
+      if (Math.abs(nx) < 0.01 || Math.abs(ny) < 0.01) {
+        row.push(TILE_RIVER);
+        continue;
+      }
+
+      // Laghi sparsi
+      if (pseudoNoise(x * 2.2, y * 2.2, seed + 8) > 0.97 && elevation > 0.30 && elevation < 0.60) {
+        row.push(TILE_LAKE);
+        continue;
+      }
+
+      // Montagne
+      if (elevation > 0.80) {
+        row.push(TILE_MOUNTAIN);
+      }
+      // Colline
+      else if (elevation > 0.65) {
+        row.push(TILE_HILL);
+      }
+      // Foreste
+      else if (pseudoNoise(x * 1.3, y * 1.3, seed + 23) > 0.73) {
+        row.push(TILE_FOREST);
+      }
+      // Pianure
+      else {
+        row.push(TILE_PLAIN);
+      }
+    }
+    map.push(row);
+  }
+  return map;
+}
+
 // Disegna la mappa e le onde animate
 export function drawMapOnCanvas(map, canvas, zoom = 1, offsetX = 0, offsetY = 0, now = 0) {
   let width = canvas.width;
@@ -112,12 +173,10 @@ export function drawMapOnCanvas(map, canvas, zoom = 1, offsetX = 0, offsetY = 0,
   ctx.restore();
 }
 
-// Funzione aggiunta per avviare la mappa a schermo intero
+// Funzione aggiornata: genera una mappa variegata!
 export function generateAndShowMapOnStart() {
-    // Crea una mappa di pianure (modifica qui se vuoi una generazione più complessa)
-    let map = Array.from({length: MAP_SIZE}, () => Array(MAP_SIZE).fill(TILE_PLAIN));
+    let map = generateBiomeMap(MAP_SIZE);
 
-    // Crea o usa il canvas a schermo intero
     let canvas = document.getElementById('game-map');
     if (!canvas) {
         canvas = document.createElement('canvas');
@@ -130,6 +189,5 @@ export function generateAndShowMapOnStart() {
         canvas.height = window.innerHeight;
     }
 
-    // Disegna la mappa
     drawMapOnCanvas(map, canvas, 1, 0, 0, Date.now());
 }
