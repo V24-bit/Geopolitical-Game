@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <title>Geopolitical Game - Select Nation</title>
     <link rel="stylesheet" href="style.css">
-    <!-- SimplexNoise library -->
+    <!-- SimplexNoise library (DEVE essere PRIMA di tutti gli script che lo usano!) -->
     <script src="https://cdn.jsdelivr.net/npm/simplex-noise@4.0.1/simplex-noise.min.js"></script>
 </head>
 <body>
@@ -62,6 +62,7 @@
     <!-- FIREBASE SCRIPTS -->
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <!-- main JS (assicurati che sia dopo SimplexNoise e map-generator!) -->
     <script type="module" src="main1.js"></script>
 </body>
 </html>
