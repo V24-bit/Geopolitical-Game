@@ -17,30 +17,24 @@ const COLORS = {
   [TILE_RIVER]:    '#3fc2ff'
 };
 
-// --- MAPPA ---
-const MAP_SIZE = 80; // Puoi modificarlo per più/meno dettaglio
+const MAP_SIZE = 80; // Puoi aumentare per più dettaglio
 
-// --- SimplexNoise: usa la versione globale già caricata
 const simplex = new window.SimplexNoise(Math.random);
 
-// --- Generatore di biomi realistico ---
 function generateBiomeMap(size) {
     const map = [];
-    const scale = 0.08; // scala per i continenti
+    const scale = 0.08;
     const riverScale = 0.3;
     const lakeScale = 0.17;
     const forestScale = 0.15;
-    const continentThreshold = 0.25 + Math.random()*0.1; // randomizza la quantità di oceano/continenti
+    const continentThreshold = 0.25 + Math.random()*0.1;
 
-    // Primo passaggio: elevazione/continenti
     for(let y=0; y<size; y++) {
         const row = [];
         for(let x=0; x<size; x++) {
             let nx = x/size - 0.5, ny = y/size - 0.5;
             let elevation = simplex.noise2D(x * scale, y * scale);
             elevation = (elevation + 1) / 2;
-
-            // Oceani e mari
             if (elevation < continentThreshold || Math.abs(nx) > 0.47 || Math.abs(ny) > 0.47) {
                 row.push(TILE_OCEAN);
             } else {
@@ -50,7 +44,6 @@ function generateBiomeMap(size) {
         map.push(row);
     }
 
-    // Montagne a cresta
     for(let y=0; y<size; y++) for(let x=0; x<size; x++) {
         if(map[y][x]===TILE_PLAIN) {
             let mtn = simplex.noise2D(x * 0.18, y * 0.18);
@@ -59,7 +52,6 @@ function generateBiomeMap(size) {
         }
     }
 
-    // Fiumi grandi
     for(let f=0;f<3;f++) {
         let fx = Math.floor(size*(0.2+0.6*Math.random()));
         let fy = Math.floor(size*(0.2+0.6*Math.random()));
@@ -74,7 +66,6 @@ function generateBiomeMap(size) {
                 map[iy][ix]=TILE_RIVER;
         }
     }
-    // Fiumi piccoli
     for(let f=0;f<6;f++) {
         let fx = Math.floor(size*(0.15+0.7*Math.random()));
         let fy = Math.floor(size*(0.15+0.7*Math.random()));
@@ -89,8 +80,6 @@ function generateBiomeMap(size) {
                 map[iy][ix]=TILE_RIVER;
         }
     }
-
-    // Laghi sparsi su pianure/colline
     for(let l=0; l<8; l++) {
         let lx = Math.floor(size*Math.random());
         let ly = Math.floor(size*Math.random());
@@ -100,14 +89,10 @@ function generateBiomeMap(size) {
                 map[y][x]=TILE_LAKE;
         }
     }
-
-    // Foreste random su pianure/colline
     for(let y=0; y<size; y++) for(let x=0; x<size; x++) {
         if((map[y][x]===TILE_PLAIN || map[y][x]===TILE_HILL) && simplex.noise2D(x*forestScale, y*forestScale+17)>0.34)
             map[y][x]=TILE_FOREST;
     }
-
-    // Isole e arcipelaghi
     for(let i=0; i<9; i++) {
         let ix = Math.floor(size*Math.random());
         let iy = Math.floor(size*Math.random());
@@ -117,8 +102,6 @@ function generateBiomeMap(size) {
                 map[y][x]=TILE_PLAIN;
         }
     }
-
-    // Penisole (lingue di terra)
     for(let p=0;p<4;p++) {
         let sx = Math.floor(size*(0.2 + 0.6*Math.random()));
         let sy = Math.floor(size*(0.2 + 0.6*Math.random()));
@@ -129,5 +112,62 @@ function generateBiomeMap(size) {
             let y = Math.floor(sy + Math.sin(dir)*l);
             for(let dx=-1;dx<=1;dx++) for(let dy=-1;dy<=1;dy++) {
                 let nx=x+dx, ny=y+dy;
-                if(nx>=0&&ny>=0&&nx<size&&ny<size && map[
-
+                if(nx>=0&&ny>=0&&nx<size&&ny<size && map[ny][nx]===TILE_OCEAN)
+                    map[ny][nx]=TILE_PLAIN;
+            }
+        }
+    }
+    return map;
+}
+
+export function drawMapOnCanvas(map, canvas) {
+    let width = canvas.width;
+    let height = canvas.height;
+    let ctx = canvas.getContext('2d');
+    ctx.clearRect(0,0,width,height);
+    let tX = width / MAP_SIZE;
+    let tY = height / MAP_SIZE;
+    for(let y=0; y<MAP_SIZE; y++) {
+        for(let x=0; x<MAP_SIZE; x++) {
+            let color = COLORS[map[y][x]] || "#fff";
+            ctx.fillStyle = color;
+            ctx.fillRect(x*tX, y*tY, tX, tY);
+        }
+    }
+}
+
+// --- GENERA E MOSTRA LA MAPPA ---
+export function generateAndShowMapOnStart() {
+    let map = generateBiomeMap(MAP_SIZE);
+
+    // CENTRA IL CANVAS NELLA PAGINA/SITO, NON FULLSCREEN
+    let container = document.querySelector('.center-container');
+    if (!container) container = document.querySelector('.main-ui');
+    if (!container) container = document.body;
+
+    // Elimina canvas precedente se esiste (bug fix!)
+    let oldCanvas = document.getElementById('game-map');
+    if (oldCanvas) oldCanvas.remove();
+
+    // Calcola dimensioni da container, al netto di padding e bordi
+    let rect = container.getBoundingClientRect();
+    let canvas = document.createElement('canvas');
+    canvas.id = 'game-map';
+    canvas.style.width = '100%';
+    canvas.style.height = '100%';
+    canvas.style.display = 'block';
+    canvas.style.margin = '0 auto';
+    canvas.style.borderRadius = '27px';
+    canvas.width = Math.floor(rect.width);
+    canvas.height = Math.floor(rect.height);
+
+    container.appendChild(canvas);
+
+    drawMapOnCanvas(map, canvas);
+}
+
+// --- RIGENERA MAPPA AL RESIZE DELLA PAGINA ---
+window.addEventListener('resize', () => {
+    const canvas = document.getElementById('game-map');
+    if (canvas) generateAndShowMapOnStart();
+});
