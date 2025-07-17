@@ -17,7 +17,6 @@ const COLORS = {
 };
 
 const MAP_SIZE = 80;
-// CORRETTO: usa direttamente SimplexNoise, NON window.SimplexNoise!
 const simplex = new SimplexNoise(Math.random);
 
 function generateBiomeMap(size) {
@@ -142,8 +141,6 @@ export function drawMapOnCanvas(map, canvas) {
 
 export function generateAndShowMapOnStart() {
     let map = generateBiomeMap(MAP_SIZE);
-
-    // Canvas nel container main-ui
     let container = document.querySelector('.main-ui');
     let canvas = document.getElementById('game-map');
     if (!canvas) {
@@ -156,7 +153,6 @@ export function generateAndShowMapOnStart() {
         canvas.width = container.offsetWidth || 330;
         canvas.height = 320;
     }
-
     drawMapOnCanvas(map, canvas);
 }
 
