@@ -112,7 +112,26 @@ function drawMapOnCanvas(map, canvas, zoom = 1, offsetX = 0, offsetY = 0, now = 
   ctx.restore();
 }
 
-// Le altre funzioni (generazione mappa, export, ecc.) rimangono come nel tuo file originale!
-// Se vuoi puoi semplicemente incollare solo la parte sopra, lasciando tutto il resto invariato.
+// Funzione aggiunta per avviare la mappa a schermo intero
+function generateAndShowMapOnStart() {
+    // Crea una mappa di pianure (modifica qui se vuoi una generazione più complessa)
+    let map = Array.from({length: MAP_SIZE}, () => Array(MAP_SIZE).fill(TILE_PLAIN));
 
-export { spawnWaves, drawMapOnCanvas /*, altre funzioni se necessario */ };
+    // Crea o usa il canvas a schermo intero
+    let canvas = document.getElementById('game-map');
+    if (!canvas) {
+        canvas = document.createElement('canvas');
+        canvas.id = 'game-map';
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        document.body.appendChild(canvas);
+    } else {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+    }
+
+    // Disegna la mappa
+    drawMapOnCanvas(map, canvas, 1, 0, 0, Date.now());
+}
+
+export { spawnWaves, drawMapOnCanvas, generateAndShowMapOnStart };
