@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <title>Geopolitical Game - Select Nation</title>
     <link rel="stylesheet" href="style.css">
+    <!-- SimplexNoise library -->
+    <script src="https://cdn.jsdelivr.net/npm/simplex-noise@4.0.1/simplex-noise.min.js"></script>
 </head>
 <body>
     <div class="center-container">
@@ -32,7 +34,6 @@
             </form>
 
             <!-- CANVAS MAPPA: JS lo aggiunge qui -->
-            <!-- PULSANTI COLORATI -->
             <div class="actions">
                 <button type="button" id="create-game-btn" class="action-btn potato-yellow" data-i18n="create_game">Crea partita</button>
                 <button type="button" id="join-game-btn" class="action-btn sky-blue" data-i18n="join_game">Unisciti a partita</button>
@@ -58,10 +59,6 @@
             Made by <a href="https://github.com/V24-bit" class="v24-blue" target="_blank">V24-bit</a>
         </div>
     </div>
-    <script>
-    // Dizionario traduzioni (come tuo file attuale)
-    // ...
-    </script>
     <!-- FIREBASE SCRIPTS -->
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
