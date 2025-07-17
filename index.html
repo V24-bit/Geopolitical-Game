@@ -6,7 +6,6 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <canvas id="game-map"></canvas>
     <div class="center-container">
         <div class="main-ui">
             <!-- MENU LINGUA -->
@@ -23,8 +22,10 @@
                 </select>
             </div>
 
+            <!-- TITOLO -->
             <h1 id="title" data-i18n="title">Geopolitical Game</h1>
 
+            <!-- FORM NAZIONE -->
             <form id="nation-form" autocomplete="off">
                 <div class="form-group">
                     <label for="nation-name" id="label-nation-name" data-i18n="nation_name_label">Nome della Nazione</label>
@@ -32,24 +33,31 @@
                 </div>
             </form>
 
+            <!-- PULSANTI COLORATI -->
             <div class="actions">
                 <button type="button" id="create-game-btn" class="action-btn potato-yellow" data-i18n="create_game">Crea partita</button>
                 <button type="button" id="join-game-btn" class="action-btn sky-blue" data-i18n="join_game">Unisciti a partita</button>
             </div>
 
+            <!-- FORM UNISCITI -->
             <div id="join-form" style="display:none;">
                 <input type="text" id="game-code-input" placeholder="Inserisci codice partita" maxlength="8" data-i18n-placeholder="game_code_placeholder">
                 <button type="button" id="join-submit-btn" class="action-btn sky-blue" data-i18n="enter_button">Entra</button>
             </div>
 
+            <!-- PANEL CODICE PARTITA -->
             <div id="game-code-panel" style="display:none;">
                 <div class="game-code-label" id="game-code-label"></div>
                 <div class="game-code-value" id="game-code-value"></div>
             </div>
 
+            <!-- START GAME BUTTON -->
             <button type="button" id="start-game-btn" class="action-btn potato-yellow" style="display:none;" data-i18n="start_game">Start Game</button>
 
+            <!-- OUTPUT -->
             <div class="output" id="output"></div>
+
+            <!-- CANVAS MAPPA: lo aggiunge JS! -->
         </div>
     </div>
     <div class="bottom-bar">
@@ -58,8 +66,8 @@
         </div>
     </div>
     <script>
-    // Dizionario traduzioni
-    // ... come già nel tuo file ...
+    // Dizionario traduzioni (come tuo file attuale)
+    // ...
     </script>
     <!-- FIREBASE SCRIPTS -->
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
