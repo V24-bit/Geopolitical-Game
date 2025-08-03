@@ -5,10 +5,13 @@
     <title>Geopolitical Game</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <!-- 🔧 Evita errore favicon -->
+    <!-- 🔧 Favicon fix -->
     <link rel="icon" href="data:,">
 
-    <!-- 🌈 CSS -->
+    <!-- 📦 Libreria SimplexNoise -->
+    <script src="https://cdn.jsdelivr.net/npm/simplex-noise@3.0.0/simplex-noise.min.js"></script>
+
+    <!-- 🌈 Stili -->
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -20,13 +23,9 @@
         <button onclick="joinGame()">Unisciti a Partita</button>
         <div id="log"></div>
     </div>
-
     <canvas id="canvas"></canvas>
 
-    <!-- 📦 SimplexNoise DEVE venire prima -->
-    <script src="https://cdn.jsdelivr.net/npm/simplex-noise@3.0.0/simplex-noise.min.js"></script>
-
-    <!-- 🗺️ Generazione mappa -->
+    <!-- 🗺️ Generatore della mappa -->
     <script src="map-generator.js"></script>
 
     <!-- 🎮 Logica di gioco -->
