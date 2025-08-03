@@ -8,7 +8,7 @@
   <!-- ✅ Favicon fix -->
   <link rel="icon" href="data:," />
 
-  <!-- ✅ SimplexNoise (deve venire prima degli script che lo usano) -->
+  <!-- ✅ SimplexNoise (usata in map-generator.js) -->
   <script src="https://cdn.jsdelivr.net/npm/simplex-noise@4.0.1/simplex-noise.min.js"></script>
 </head>
 <body>
@@ -37,24 +37,28 @@
         </div>
       </form>
 
-      <!-- CANVAS MAPPA: JS lo aggiunge qui -->
+      <!-- Pulsanti azione -->
       <div class="actions">
         <button type="button" id="create-game-btn" class="action-btn potato-yellow" data-i18n="create_game">Crea partita</button>
         <button type="button" id="join-game-btn" class="action-btn sky-blue" data-i18n="join_game">Unisciti a partita</button>
       </div>
 
+      <!-- Form unisciti -->
       <div id="join-form" style="display:none;">
         <input type="text" id="game-code-input" placeholder="Inserisci codice partita" maxlength="8" data-i18n-placeholder="game_code_placeholder">
         <button type="button" id="join-submit-btn" class="action-btn sky-blue" data-i18n="enter_button">Entra</button>
       </div>
 
+      <!-- Codice partita -->
       <div id="game-code-panel" style="display:none;">
         <div class="game-code-label" id="game-code-label"></div>
         <div class="game-code-value" id="game-code-value"></div>
       </div>
 
+      <!-- Pulsante avvio -->
       <button type="button" id="start-game-btn" class="action-btn potato-yellow" style="display:none;" data-i18n="start_game">Start Game</button>
 
+      <!-- Output lobby -->
       <div class="output" id="output"></div>
     </div>
   </div>
@@ -65,14 +69,11 @@
     </div>
   </div>
 
-  <!-- ✅ Firebase scripts -->
+  <!-- ✅ Firebase -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
-  <!-- ✅ Script mappa (usa SimplexNoise, deve venire prima) -->
-  <script src="map-generator.js"></script>
-
-  <!-- ✅ Main JS (modulo ES, deve venire per ultimo) -->
+  <!-- ✅ Main JS (usa moduli) -->
   <script type="module" src="main1.js"></script>
 </body>
 </html>
