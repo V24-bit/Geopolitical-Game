@@ -41,7 +41,6 @@ function generateBiomeMap(size) {
         map.push(row);
     }
 
-    // Aggiungi fiumi casuali
     for (let r = 0; r < 5; r++) {
         let x = Math.floor(Math.random() * size);
         let y = 0;
@@ -78,20 +77,24 @@ export function drawMapOnCanvas(map, canvas) {
 
 export function generateAndShowMapOnStart() {
     const map = generateBiomeMap(MAP_SIZE);
+    const container = document.querySelector('.main-ui');
     let canvas = document.getElementById('game-map');
 
     if (!canvas) {
         canvas = document.createElement('canvas');
         canvas.id = 'game-map';
-        canvas.style.position = 'fixed';
-        canvas.style.top = '0';
-        canvas.style.left = '0';
-        canvas.style.zIndex = '-1'; // dietro l’interfaccia
-        document.body.appendChild(canvas);
+        container.appendChild(canvas);
     }
 
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
+    // Dimensioni dinamiche e responsive
+    canvas.style.width = "100%";
+    canvas.style.height = "100%";
+    canvas.style.position = "absolute";
+    canvas.style.top = "0";
+    canvas.style.left = "0";
+    canvas.style.zIndex = "0";
+    canvas.width = container.clientWidth;
+    canvas.height = container.clientHeight;
 
     drawMapOnCanvas(map, canvas);
 }
