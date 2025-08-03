@@ -20,13 +20,12 @@ const MAP_SIZE = 80;
 
 function pseudoNoise(x, y, scale = 1) {
     const seed = 12345;
-    return (Math.sin((x + seed) * 12.9898 + (y + seed) * 78.233) * 43758.5453 * scale) % 1;
+    return Math.abs(Math.sin((x + seed)*12.9898 + (y + seed)*78.233) * 43758.5453 % 1);
 }
 
 function generateBiomeMap(size) {
     const map = [];
     const scale = 0.1;
-
     for (let y = 0; y < size; y++) {
         const row = [];
         for (let x = 0; x < size; x++) {
@@ -40,36 +39,26 @@ function generateBiomeMap(size) {
         }
         map.push(row);
     }
-
     for (let r = 0; r < 5; r++) {
-        let x = Math.floor(Math.random() * size);
-        let y = 0;
+        let x = Math.floor(Math.random() * size), y = 0;
         for (let i = 0; i < size; i++) {
-            if (x >= 0 && x < size && y >= 0 && y < size) {
-                if (map[y][x] !== TILE_OCEAN) {
-                    map[y][x] = TILE_RIVER;
-                }
+            if (x >= 0 && x < size && y >= 0 && y < size && map[y][x] !== TILE_OCEAN) {
+                map[y][x] = TILE_RIVER;
             }
             y += 1;
             x += Math.floor(Math.random() * 3) - 1;
         }
     }
-
     return map;
 }
 
 export function drawMapOnCanvas(map, canvas) {
     const ctx = canvas.getContext('2d');
-    const width = canvas.width;
-    const height = canvas.height;
-    const tX = width / MAP_SIZE;
-    const tY = height / MAP_SIZE;
-
-    ctx.clearRect(0, 0, width, height);
-
+    const tX = canvas.width / MAP_SIZE, tY = canvas.height / MAP_SIZE;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
     for (let y = 0; y < MAP_SIZE; y++) {
         for (let x = 0; x < MAP_SIZE; x++) {
-            ctx.fillStyle = COLORS[map[y][x]] || "#fff";
+            ctx.fillStyle = COLORS[map[y][x]] || "#000";
             ctx.fillRect(x * tX, y * tY, tX, tY);
         }
     }
@@ -77,31 +66,22 @@ export function drawMapOnCanvas(map, canvas) {
 
 export function generateAndShowMapOnStart() {
     const map = generateBiomeMap(MAP_SIZE);
-    const container = document.querySelector('.main-ui');
     let canvas = document.getElementById('game-map');
-
     if (!canvas) {
         canvas = document.createElement('canvas');
         canvas.id = 'game-map';
-        container.appendChild(canvas);
+        canvas.style.position = 'fixed';
+        canvas.style.top = '0';
+        canvas.style.left = '0';
+        canvas.style.zIndex = '-1';
+        document.body.appendChild(canvas);
     }
-
-    // Dimensioni dinamiche e responsive
-    canvas.style.width = "100%";
-    canvas.style.height = "100%";
-    canvas.style.position = "absolute";
-    canvas.style.top = "0";
-    canvas.style.left = "0";
-    canvas.style.zIndex = "0";
-    canvas.width = container.clientWidth;
-    canvas.height = container.clientHeight;
-
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
     drawMapOnCanvas(map, canvas);
 }
 
 window.addEventListener('resize', () => {
-    const canvas = document.getElementById('game-map');
-    if (canvas) {
-        generateAndShowMapOnStart();
-    }
+    const c = document.getElementById('game-map');
+    if (c) generateAndShowMapOnStart();
 });
