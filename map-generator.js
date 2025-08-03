@@ -17,133 +17,71 @@ const COLORS = {
 };
 
 const MAP_SIZE = 80;
-const simplex = new SimplexNoise(Math.random);
+
+// Funzione di rumore pseudo-perlinico semplificata
+function pseudoNoise(x, y, scale = 1) {
+    const seed = 12345;
+    return (Math.sin((x + seed) * 12.9898 + (y + seed) * 78.233) * 43758.5453 * scale) % 1;
+}
 
 function generateBiomeMap(size) {
     const map = [];
-    const scale = 0.08;
-    const riverScale = 0.3;
-    const lakeScale = 0.17;
-    const forestScale = 0.15;
-    const continentThreshold = 0.25 + Math.random()*0.1;
+    const scale = 0.1;
 
-    for(let y=0; y<size; y++) {
+    for (let y = 0; y < size; y++) {
         const row = [];
-        for(let x=0; x<size; x++) {
-            let nx = x/size - 0.5, ny = y/size - 0.5;
-            let elevation = simplex.noise2D(x * scale, y * scale);
-            elevation = (elevation + 1) / 2;
-            if (elevation < continentThreshold || Math.abs(nx) > 0.47 || Math.abs(ny) > 0.47) {
-                row.push(TILE_OCEAN);
-            } else {
-                row.push(TILE_PLAIN);
-            }
+        for (let x = 0; x < size; x++) {
+            const val = pseudoNoise(x * scale, y * scale);
+            if (val < 0.3) row.push(TILE_OCEAN);
+            else if (val < 0.35) row.push(TILE_LAKE);
+            else if (val < 0.5) row.push(TILE_PLAIN);
+            else if (val < 0.65) row.push(TILE_FOREST);
+            else if (val < 0.8) row.push(TILE_HILL);
+            else row.push(TILE_MOUNTAIN);
         }
         map.push(row);
     }
 
-    for(let y=0; y<size; y++) for(let x=0; x<size; x++) {
-        if(map[y][x]===TILE_PLAIN) {
-            let mtn = simplex.noise2D(x * 0.18, y * 0.18);
-            if(mtn > 0.53) map[y][x] = TILE_MOUNTAIN;
-            else if(mtn > 0.42) map[y][x] = TILE_HILL;
-        }
-    }
-
-    for(let f=0;f<3;f++) {
-        let fx = Math.floor(size*(0.2+0.6*Math.random()));
-        let fy = Math.floor(size*(0.2+0.6*Math.random()));
-        let len = Math.floor(size*(0.55+0.25*Math.random()));
-        let angle = Math.random()*2*Math.PI;
-        let x=fx, y=fy;
-        for(let l=0;l<len;l++) {
-            x += Math.cos(angle) + (simplex.noise2D(x*riverScale,y*riverScale)-0.5)*2;
-            y += Math.sin(angle) + (simplex.noise2D(x*riverScale,y*riverScale+17)-0.5)*2;
-            let ix = Math.round(x), iy = Math.round(y);
-            if(ix>=0 && iy>=0 && ix<size && iy<size && map[iy][ix]!==TILE_OCEAN)
-                map[iy][ix]=TILE_RIVER;
-        }
-    }
-
-    for(let f=0;f<6;f++) {
-        let fx = Math.floor(size*(0.15+0.7*Math.random()));
-        let fy = Math.floor(size*(0.15+0.7*Math.random()));
-        let len = Math.floor(size*(0.23+0.16*Math.random()));
-        let angle = Math.random()*2*Math.PI;
-        let x=fx, y=fy;
-        for(let l=0;l<len;l++) {
-            x += Math.cos(angle) + (simplex.noise2D(x*riverScale,y*riverScale+23)-0.5);
-            y += Math.sin(angle) + (simplex.noise2D(x*riverScale,y*riverScale+29)-0.5);
-            let ix = Math.round(x), iy = Math.round(y);
-            if(ix>=0 && iy>=0 && ix<size && iy<size && map[iy][ix]!==TILE_OCEAN)
-                map[iy][ix]=TILE_RIVER;
-        }
-    }
-
-    for(let l=0; l<8; l++) {
-        let lx = Math.floor(size*Math.random());
-        let ly = Math.floor(size*Math.random());
-        let lr = 3+Math.floor(Math.random()*3);
-        for(let y=ly-lr; y<=ly+lr; y++) for(let x=lx-lr; x<=lx+lr; x++) {
-            if(x>=0 && y>=0 && x<size && y<size && (map[y][x]===TILE_PLAIN || map[y][x]===TILE_HILL) && Math.hypot(x-lx,y-ly)<lr)
-                map[y][x]=TILE_LAKE;
-        }
-    }
-
-    for(let y=0; y<size; y++) for(let x=0; x<size; x++) {
-        if((map[y][x]===TILE_PLAIN || map[y][x]===TILE_HILL) && simplex.noise2D(x*forestScale, y*forestScale+17)>0.34)
-            map[y][x]=TILE_FOREST;
-    }
-
-    for(let i=0; i<9; i++) {
-        let ix = Math.floor(size*Math.random());
-        let iy = Math.floor(size*Math.random());
-        let ir = 2+Math.floor(Math.random()*3);
-        for(let y=iy-ir; y<=iy+ir; y++) for(let x=ix-ir; x<=ix+ir; x++) {
-            if(x>=0 && y>=0 && x<size && y<size && map[y][x]===TILE_OCEAN && Math.hypot(x-ix,y-iy)<ir)
-                map[y][x]=TILE_PLAIN;
-        }
-    }
-
-    for(let p=0;p<4;p++) {
-        let sx = Math.floor(size*(0.2 + 0.6*Math.random()));
-        let sy = Math.floor(size*(0.2 + 0.6*Math.random()));
-        let dir = Math.random()*2*Math.PI;
-        let len = Math.floor(size*(0.11 + 0.09*Math.random()));
-        for(let l=0;l<len;l++) {
-            let x = Math.floor(sx + Math.cos(dir)*l);
-            let y = Math.floor(sy + Math.sin(dir)*l);
-            for(let dx=-1;dx<=1;dx++) for(let dy=-1;dy<=1;dy++) {
-                let nx=x+dx, ny=y+dy;
-                if(nx>=0&&ny>=0&&nx<size&&ny<size && map[ny][nx]===TILE_OCEAN)
-                    map[ny][nx]=TILE_PLAIN;
+    // Aggiungi fiumi casuali
+    for (let r = 0; r < 5; r++) {
+        let x = Math.floor(Math.random() * size);
+        let y = 0;
+        for (let i = 0; i < size; i++) {
+            if (x >= 0 && x < size && y >= 0 && y < size) {
+                if (map[y][x] !== TILE_OCEAN) {
+                    map[y][x] = TILE_RIVER;
+                }
             }
+            y += 1;
+            x += Math.floor(Math.random() * 3) - 1; // -1, 0 o 1
         }
     }
 
     return map;
 }
 
-function drawMapOnCanvas(map, canvas) {
-    let width = canvas.width;
-    let height = canvas.height;
-    let ctx = canvas.getContext('2d');
-    ctx.clearRect(0,0,width,height);
-    let tX = width / MAP_SIZE;
-    let tY = height / MAP_SIZE;
-    for(let y=0; y<MAP_SIZE; y++) {
-        for(let x=0; x<MAP_SIZE; x++) {
-            let color = COLORS[map[y][x]] || "#fff";
-            ctx.fillStyle = color;
-            ctx.fillRect(x*tX, y*tY, tX, tY);
+export function drawMapOnCanvas(map, canvas) {
+    const ctx = canvas.getContext('2d');
+    const width = canvas.width;
+    const height = canvas.height;
+    const tX = width / MAP_SIZE;
+    const tY = height / MAP_SIZE;
+
+    ctx.clearRect(0, 0, width, height);
+
+    for (let y = 0; y < MAP_SIZE; y++) {
+        for (let x = 0; x < MAP_SIZE; x++) {
+            ctx.fillStyle = COLORS[map[y][x]] || "#fff";
+            ctx.fillRect(x * tX, y * tY, tX, tY);
         }
     }
 }
 
-function generateAndShowMapOnStart() {
-    let map = generateBiomeMap(MAP_SIZE);
-    let container = document.querySelector('.main-ui');
+export function generateAndShowMapOnStart() {
+    const map = generateBiomeMap(MAP_SIZE);
+    const container = document.querySelector('.main-ui');
     let canvas = document.getElementById('game-map');
+
     if (!canvas) {
         canvas = document.createElement('canvas');
         canvas.id = 'game-map';
@@ -154,16 +92,13 @@ function generateAndShowMapOnStart() {
         canvas.width = container.offsetWidth || 330;
         canvas.height = 320;
     }
+
     drawMapOnCanvas(map, canvas);
 }
 
-// Rende globali le funzioni
-window.generateAndShowMapOnStart = generateAndShowMapOnStart;
-window.drawMapOnCanvas = drawMapOnCanvas;
-
 // Rigenera la mappa al resize
 window.addEventListener('resize', () => {
-    let canvas = document.getElementById('game-map');
+    const canvas = document.getElementById('game-map');
     if (canvas) {
         generateAndShowMapOnStart();
     }
