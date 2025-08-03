@@ -18,7 +18,6 @@ const COLORS = {
 
 const MAP_SIZE = 80;
 
-// Funzione di rumore pseudo-perlinico semplificata
 function pseudoNoise(x, y, scale = 1) {
     const seed = 12345;
     return (Math.sin((x + seed) * 12.9898 + (y + seed) * 78.233) * 43758.5453 * scale) % 1;
@@ -53,7 +52,7 @@ function generateBiomeMap(size) {
                 }
             }
             y += 1;
-            x += Math.floor(Math.random() * 3) - 1; // -1, 0 o 1
+            x += Math.floor(Math.random() * 3) - 1;
         }
     }
 
@@ -79,24 +78,24 @@ export function drawMapOnCanvas(map, canvas) {
 
 export function generateAndShowMapOnStart() {
     const map = generateBiomeMap(MAP_SIZE);
-    const container = document.querySelector('.main-ui');
     let canvas = document.getElementById('game-map');
 
     if (!canvas) {
         canvas = document.createElement('canvas');
         canvas.id = 'game-map';
-        canvas.width = container.offsetWidth || 330;
-        canvas.height = 320;
-        container.insertBefore(canvas, container.firstChild);
-    } else {
-        canvas.width = container.offsetWidth || 330;
-        canvas.height = 320;
+        canvas.style.position = 'fixed';
+        canvas.style.top = '0';
+        canvas.style.left = '0';
+        canvas.style.zIndex = '-1'; // dietro l’interfaccia
+        document.body.appendChild(canvas);
     }
+
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
 
     drawMapOnCanvas(map, canvas);
 }
 
-// Rigenera la mappa al resize
 window.addEventListener('resize', () => {
     const canvas = document.getElementById('game-map');
     if (canvas) {
