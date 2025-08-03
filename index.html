@@ -8,7 +8,7 @@
   <!-- ✅ Favicon fix -->
   <link rel="icon" href="data:," />
 
-  <!-- ✅ SimplexNoise (prima di qualsiasi script che lo usa) -->
+  <!-- ✅ SimplexNoise (deve venire prima degli script che lo usano) -->
   <script src="https://cdn.jsdelivr.net/npm/simplex-noise@4.0.1/simplex-noise.min.js"></script>
 </head>
 <body>
@@ -69,7 +69,10 @@
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
-  <!-- ✅ Main JS (usa SimplexNoise, quindi va dopo) -->
+  <!-- ✅ Script mappa (usa SimplexNoise, deve venire prima) -->
+  <script src="map-generator.js"></script>
+
+  <!-- ✅ Main JS (modulo ES, deve venire per ultimo) -->
   <script type="module" src="main1.js"></script>
 </body>
 </html>
