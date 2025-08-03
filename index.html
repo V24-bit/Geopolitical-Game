@@ -1,34 +1,78 @@
+‎index.html
++2
+-1
+Lines changed: 2 additions & 1 deletion
+Original file line number	Diff line number	Diff line change
+@@ -1,67 +1,68 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="it">
 <head>
     <meta charset="UTF-8">
-    <title>Geopolitical Game</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <!-- 🔧 Favicon fix -->
-    <link rel="icon" href="data:,">
-
-    <!-- 📦 Libreria SimplexNoise -->
-    <script src="https://cdn.jsdelivr.net/npm/simplex-noise@3.0.0/simplex-noise.min.js"></script>
-
-    <!-- 🌈 Stili -->
+    <title>Geopolitical Game - Select Nation</title>
     <link rel="stylesheet" href="style.css">
+    <!-- SimplexNoise library -->
+    <!-- SimplexNoise library (DEVE essere PRIMA di tutti gli script che lo usano!) -->
+    <script src="https://cdn.jsdelivr.net/npm/simplex-noise@4.0.1/simplex-noise.min.js"></script>
 </head>
 <body>
-    <div class="sidebar">
-        <h1>Geopolitical Game</h1>
-        <button onclick="startGame()">Start Game</button>
-        <button onclick="nextTurn()">Next Turn</button>
-        <button onclick="createGame()">Crea Partita</button>
-        <button onclick="joinGame()">Unisciti a Partita</button>
-        <div id="log"></div>
+    <div class="center-container">
+        <div class="main-ui">
+            <!-- MENU LINGUA -->
+            <div class="language-select">
+                <label for="language-menu" style="margin-right:6px;">
+                    <img src="https://flagcdn.com/gb.svg" width="28" alt="English" id="flag-current" class="flag-icon">
+                </label>
+                <select id="language-menu">
+                    <option value="en" data-flag="gb">&#127468;&#127463; English</option>
+                    <option value="it" data-flag="it">&#127470;&#127481; Italiano</option>
+                    <option value="es" data-flag="es">&#127466;&#127480; Español</option>
+                    <option value="fr" data-flag="fr">&#127467;&#127479; Français</option>
+                    <option value="de" data-flag="de">&#127465;&#127466; Deutsch</option>
+                </select>
+            </div>
+
+            <h1 id="title" data-i18n="title">Geopolitical Game</h1>
+
+            <form id="nation-form" autocomplete="off">
+                <div class="form-group">
+                    <label for="nation-name" id="label-nation-name" data-i18n="nation_name_label">Nome della Nazione</label>
+                    <input type="text" id="nation-name" name="nation-name" placeholder="Inserisci il nome della nazione" required maxlength="20" data-i18n-placeholder="nation_name_placeholder">
+                </div>
+            </form>
+
+            <!-- CANVAS MAPPA: JS lo aggiunge qui -->
+            <div class="actions">
+                <button type="button" id="create-game-btn" class="action-btn potato-yellow" data-i18n="create_game">Crea partita</button>
+                <button type="button" id="join-game-btn" class="action-btn sky-blue" data-i18n="join_game">Unisciti a partita</button>
+            </div>
+
+            <div id="join-form" style="display:none;">
+                <input type="text" id="game-code-input" placeholder="Inserisci codice partita" maxlength="8" data-i18n-placeholder="game_code_placeholder">
+                <button type="button" id="join-submit-btn" class="action-btn sky-blue" data-i18n="enter_button">Entra</button>
+            </div>
+
+            <div id="game-code-panel" style="display:none;">
+                <div class="game-code-label" id="game-code-label"></div>
+                <div class="game-code-value" id="game-code-value"></div>
+            </div>
+
+            <button type="button" id="start-game-btn" class="action-btn potato-yellow" style="display:none;" data-i18n="start_game">Start Game</button>
+
+            <div class="output" id="output"></div>
+        </div>
     </div>
-    <canvas id="canvas"></canvas>
-
-    <!-- 🗺️ Generatore della mappa -->
-    <script src="map-generator.js"></script>
-
-    <!-- 🎮 Logica di gioco -->
-    <script src="main1.js"></script>
+    <div class="bottom-bar">
+        <div class="credit">
+            Made by <a href="https://github.com/V24-bit" class="v24-blue" target="_blank">V24-bit</a>
+        </div>
+    </div>
+    <!-- FIREBASE SCRIPTS -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <!-- main JS (assicurati che sia dopo SimplexNoise e map-generator!) -->
+    <script type="module" src="main1.js"></script>
 </body>
 </html>
+0 commit comments
+Comments
+0
