@@ -85,14 +85,14 @@ document.addEventListener('DOMContentLoaded', function () {
   };
 
   joinSubmitBtn.onclick = async () => {
-    if (!nationName.value.trim()) return showTempError("Inserisci un nome");
+    if (!nationName.value.trim()) return showTempError("Enter a name");
     const code = gameCodeInput.value.trim().toUpperCase();
-    if (code.length < 4) return showTempError("Codice non valido");
+    if (code.length < 4) return showTempError("Invalid code");
     currentGameCode = code;
     try {
       const ref = db.collection("partite").doc(code);
       const doc = await ref.get();
-      if (!doc.exists) return showTempError("Partita non trovata");
+      if (!doc.exists) return showTempError("Match not found");
       const data = doc.data();
       const p = Array.isArray(data.giocatori)?data.giocatori.slice():[];
       if (!p.includes(nationName.value)) {
@@ -102,7 +102,7 @@ document.addEventListener('DOMContentLoaded', function () {
       joinForm.style.display = "none";
       unsubscribeLobby = ref.onSnapshot(doc => showLobby(doc, nationName.value));
     } catch {
-      showTempError("Errore Firebase!");
+      showTempError("Firebase error!");
     }
   };
 
