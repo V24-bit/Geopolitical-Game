@@ -20,7 +20,7 @@ const MAP_SIZE = 80;
 
 function pseudoNoise(x, y, scale = 1) {
     const seed = 12345;
-    return Math.abs(Math.sin((x + seed)*12.9898 + (y + seed)*78.233) * 43758.5453 % 1);
+    return Math.abs(Math.sin((x + seed) * 12.9898 + (y + seed) * 78.233) * 43758.5453 % 1);
 }
 
 function generateBiomeMap(size) {
@@ -39,6 +39,8 @@ function generateBiomeMap(size) {
         }
         map.push(row);
     }
+
+    // Aggiungi 5 fiumi
     for (let r = 0; r < 5; r++) {
         let x = Math.floor(Math.random() * size), y = 0;
         for (let i = 0; i < size; i++) {
@@ -49,10 +51,11 @@ function generateBiomeMap(size) {
             x += Math.floor(Math.random() * 3) - 1;
         }
     }
+
     return map;
 }
 
-export function drawMapOnCanvas(map, canvas) {
+window.drawMapOnCanvas = function(map, canvas) {
     const ctx = canvas.getContext('2d');
     const tX = canvas.width / MAP_SIZE, tY = canvas.height / MAP_SIZE;
     ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -62,9 +65,9 @@ export function drawMapOnCanvas(map, canvas) {
             ctx.fillRect(x * tX, y * tY, tX, tY);
         }
     }
-}
+};
 
-export function generateAndShowMapOnStart() {
+window.generateAndShowMapOnStart = function() {
     const map = generateBiomeMap(MAP_SIZE);
     let canvas = document.getElementById('game-map');
     if (!canvas) {
@@ -74,14 +77,15 @@ export function generateAndShowMapOnStart() {
         canvas.style.top = '0';
         canvas.style.left = '0';
         canvas.style.zIndex = '-1';
+        canvas.style.pointerEvents = 'none';
         document.body.appendChild(canvas);
     }
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
-    drawMapOnCanvas(map, canvas);
-}
+    window.drawMapOnCanvas(map, canvas);
+};
 
+// Ridisegna la mappa quando si ridimensiona la finestra
 window.addEventListener('resize', () => {
-    const c = document.getElementById('game-map');
-    if (c) generateAndShowMapOnStart();
+    window.generateAndShowMapOnStart();
 });
