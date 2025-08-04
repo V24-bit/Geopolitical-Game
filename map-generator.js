@@ -177,10 +177,10 @@ class AdvancedMapGenerator {
     // Genera centri continentali
     for (let i = 0; i < numContinents; i++) {
       this.continentCenters.push({
-        x: this.random() * this.width,
-        y: this.random() * this.height,
+        x: Math.floor(this.random() * this.width),
+        y: Math.floor(this.random() * this.height),
         strength: 0.5 + this.random() * 0.5,
-        radius: 80 + this.random() * 120
+        radius: Math.floor(80 + this.random() * 120)
       });
     }
     
@@ -241,12 +241,17 @@ class AdvancedMapGenerator {
     
     for (let i = 0; i < numArchipelagos; i++) {
       // Posiziona gli arcipelaghi lontano dai continenti principali
-      let bestX, bestY, maxDistanceFromContinents = 0;
+      let bestX = 0, bestY = 0, maxDistanceFromContinents = 0;
       
       // Trova la posizione più lontana dai continenti  
       for (let attempt = 0; attempt < 20; attempt++) {
         const testX = Math.floor(50 + this.random() * (this.width - 100));
         const testY = Math.floor(50 + this.random() * (this.height - 100));
+        
+        // Controllo di sicurezza per gli indici
+        if (testX < 0 || testX >= this.width || testY < 0 || testY >= this.height) {
+          continue;
+        }
         
         let minDistanceFromContinents = Infinity;
         for (const continent of this.continentCenters) {
@@ -258,14 +263,20 @@ class AdvancedMapGenerator {
         
         if (minDistanceFromContinents > maxDistanceFromContinents) {
           maxDistanceFromContinents = minDistanceFromContinents;
-          bestX = Math.floor(testX);
-          bestY = Math.floor(testY);
+          bestX = testX;
+          bestY = testY;
         }
       }
       
+      // Controllo di sicurezza per bestX e bestY
+      if (bestX < 0 || bestX >= this.width || bestY < 0 || bestY >= this.height) {
+        console.warn(`Posizione arcipelago non valida: ${bestX}, ${bestY}`);
+        continue;
+      }
+      
       // Genera l'arcipelago
-      const archipelagoSize = 15 + this.random() * 25; // 15-40 isole
-      const clusterRadius = 30 + this.random() * 40; // Raggio dell'arcipelago
+      const archipelagoSize = Math.floor(15 + this.random() * 25); // 15-40 isole
+      const clusterRadius = Math.floor(30 + this.random() * 40); // Raggio dell'arcipelago
       
       for (let j = 0; j < archipelagoSize; j++) {
         // Posizione casuale nell'area dell'arcipelago
@@ -274,20 +285,28 @@ class AdvancedMapGenerator {
         const islandX = Math.floor(bestX + Math.cos(angle) * distance);
         const islandY = Math.floor(bestY + Math.sin(angle) * distance);
         
-        if (islandX >= 0 && islandX < this.width && islandY >= 0 && islandY < this.height) {
-          // Crea una piccola isola
-          const islandSize = 3 + this.random() * 8; // 3-10 tile per isola
-          
-          for (let dy = -islandSize; dy <= islandSize; dy++) {
-            for (let dx = -islandSize; dx <= islandSize; dx++) {
-              const nx = islandX + dx;
-              const ny = islandY + dy;
-              
-              if (nx >= 0 && nx < this.width && ny >= 0 && ny < this.height) {
-                const distanceFromCenter = Math.sqrt(dx * dx + dy * dy);
-                if (distanceFromCenter <= islandSize) {
-                  const falloff = 1 - (distanceFromCenter / islandSize);
-                  const elevation = 0.2 + falloff * 0.4; // Elevazione moderata
+        // Controllo di sicurezza per le coordinate dell'isola
+        if (islandX < 0 || islandX >= this.width || islandY < 0 || islandY >= this.height) {
+          continue;
+        }
+        
+        // Crea una piccola isola
+        const islandSize = Math.floor(3 + this.random() * 8); // 3-10 tile per isola
+        
+        for (let dy = -islandSize; dy <= islandSize; dy++) {
+          for (let dx = -islandSize; dx <= islandSize; dx++) {
+            const nx = islandX + dx;
+            const ny = islandY + dy;
+            
+            // Controllo di sicurezza per ogni tile dell'isola
+            if (nx >= 0 && nx < this.width && ny >= 0 && ny < this.height) {
+              const distanceFromCenter = Math.sqrt(dx * dx + dy * dy);
+              if (distanceFromCenter <= islandSize) {
+                const falloff = 1 - (distanceFromCenter / islandSize);
+                const elevation = 0.2 + falloff * 0.4; // Elevazione moderata
+                
+                // Controllo di sicurezza per l'accesso all'array
+                if (this.elevationMap[ny] && typeof this.elevationMap[ny][nx] !== 'undefined') {
                   this.elevationMap[ny][nx] = Math.max(this.elevationMap[ny][nx], elevation);
                 }
               }
