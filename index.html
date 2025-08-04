@@ -2,12 +2,11 @@
 <html lang="it">
 <head>
   <meta charset="UTF-8">
-  <title>Geopolitical Game - Seleziona Nazione</title>
+  <title>Geopolitical Game</title>
   <link rel="stylesheet" href="style.css">
   <link rel="icon" href="data:," />
 </head>
 <body>
-  <!-- Contenitore della UI -->
   <div id="ui-container" class="center-container">
     <div class="main-ui">
       <h1 id="title">Geopolitical Game</h1>
@@ -47,7 +46,9 @@
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
-  <!-- Main -->
+  <!-- Map generator (scrive su window.generateAndShowMapOnStart) -->
+  <script src="map-generator.js"></script>
+  <!-- Main logic, non è un modulo -->
   <script src="main1.js"></script>
 </body>
 </html>
