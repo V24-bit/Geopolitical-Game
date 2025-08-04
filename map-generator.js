@@ -7,20 +7,22 @@ const TILE_MOUNTAIN = 5;
 const TILE_RIVER    = 6;
 
 const COLORS = {
-  [TILE_OCEAN]:    '#3b77b7',
-  [TILE_LAKE]:     '#6ec5e3',
-  [TILE_PLAIN]:    '#b6e36c',
-  [TILE_FOREST]:   '#2c7d36',
-  [TILE_HILL]:     '#d2b48c',
+  [TILE_OCEAN]: '#3b77b7',
+  [TILE_LAKE]:  '#6ec5e3',
+  [TILE_PLAIN]: '#b6e36c',
+  [TILE_FOREST]: '#2c7d36',
+  [TILE_HILL]: '#d2b48c',
   [TILE_MOUNTAIN]: '#e0e0e0',
-  [TILE_RIVER]:    '#3fc2ff'
+  [TILE_RIVER]: '#3fc2ff'
 };
 
 const MAP_SIZE = 80;
 
 function pseudoNoise(x, y, scale = 1) {
   const seed = 12345;
-  return Math.abs(Math.sin((x + seed)*12.9898 + (y + seed)*78.233) * 43758.5453 % 1);
+  return Math.abs(
+    Math.sin((x + seed)*12.9898 + (y + seed)*78.233) * 43758.5453 % 1
+  );
 }
 
 function generateBiomeMap(size) {
@@ -39,51 +41,43 @@ function generateBiomeMap(size) {
     }
     map.push(row);
   }
-
-  // Genera fiumi
+  // Fiumi
   for (let r = 0; r < 5; r++) {
     let x = Math.floor(Math.random() * size), y = 0;
     for (let i = 0; i < size; i++) {
-      if (x >= 0 && x < size && y >= 0 && y < size && map[y][x] !== TILE_OCEAN) {
+      if (x>=0&&x<size&&y>=0&&y<size&&map[y][x]!==TILE_OCEAN) {
         map[y][x] = TILE_RIVER;
       }
-      y += 1;
-      x += Math.floor(Math.random() * 3) - 1;
+      y++; x += Math.floor(Math.random()*3)-1;
     }
   }
-
   return map;
 }
 
-function drawMapOnCanvas(map, canvas) {
+window.drawMapOnCanvas = function(map, canvas) {
   const ctx = canvas.getContext('2d');
-  const tX = canvas.width / MAP_SIZE;
-  const tY = canvas.height / MAP_SIZE;
+  const tX = canvas.width / MAP_SIZE, tY = canvas.height / MAP_SIZE;
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   for (let y = 0; y < MAP_SIZE; y++) {
     for (let x = 0; x < MAP_SIZE; x++) {
       ctx.fillStyle = COLORS[map[y][x]] || "#000";
-      ctx.fillRect(x * tX, y * tY, tX, tY);
+      ctx.fillRect(x*tX, y*tT, tX, tY);
     }
   }
-}
+};
 
-function generateAndShowMapOnStart() {
+window.generateAndShowMapOnStart = function() {
   const map = generateBiomeMap(MAP_SIZE);
   const canvas = document.getElementById('game-map');
   canvas.width = window.innerWidth;
   canvas.height = window.innerHeight;
   canvas.style.display = 'block';
-  drawMapOnCanvas(map, canvas);
-}
+  window.drawMapOnCanvas(map, canvas);
+};
 
-// Rende la mappa responsive
-window.addEventListener('resize', () => {
+window.addEventListener('resize', function() {
   const canvas = document.getElementById('game-map');
-  if (canvas.style.display !== 'none') {
-    generateAndShowMapOnStart();
+  if (canvas.style.display === 'block') {
+    window.generateAndShowMapOnStart();
   }
 });
-
-// Esponi solo una funzione globale
-window.generateAndShowMapOnStart = generateAndShowMapOnStart;
