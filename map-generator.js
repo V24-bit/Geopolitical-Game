@@ -5,26 +5,30 @@ function pseudoNoise(x, y) {
   return Math.abs(Math.sin(x * 12.9898 + y * 78.233) * 43758.5453 % 1);
 }
 
-// Risoluzione griglia
+// Dimensione griglia
 const MAP_SIZE = 240;
 
 // Tipi di terreno
 const TILE_OCEAN    = 0;
-const TILE_PLAIN    = 1;
-const TILE_FOREST   = 2;
-const TILE_HILL     = 3;
-const TILE_MOUNTAIN = 4;
+const TILE_LAKE     = 1;
+const TILE_PLAIN    = 2;
+const TILE_FOREST   = 3;
+const TILE_HILL     = 4;
+const TILE_MOUNTAIN = 5;
+const TILE_RIVER    = 6;
 
-// Palette colori
+// Colori dei biomi
 const COLORS = {
   [TILE_OCEAN]:    '#3b77b7',
+  [TILE_LAKE]:     '#6ec5e3',
   [TILE_PLAIN]:    '#b6e36c',
   [TILE_FOREST]:   '#2c7d36',
   [TILE_HILL]:     '#d2b48c',
-  [TILE_MOUNTAIN]: '#e0e0e0'
+  [TILE_MOUNTAIN]: '#e0e0e0',
+  [TILE_RIVER]:    '#3fc2ff'
 };
 
-// 1) Genera heightmap multi-octave + maschera soft
+// 1) Genera heightmap multi-octave + maschera continentale soft
 function generateHeightMap(size) {
   const H = Array.from({ length: size }, () => Array(size).fill(0));
   for (let y = 0; y < size; y++) {
@@ -50,56 +54,82 @@ function percentile(sortedArr, p) {
   return sortedArr[idx];
 }
 
-// 3) Costruisci biomi e isole
+// 3) Costruisci biomi con oceano 60%, laghi, colline, montagne, foreste, fiumi
 function generateBiomeMap(size) {
   const H = generateHeightMap(size);
   const flat = H.flat().sort((a,b)=>a-b);
 
-  // vattene il 60% in oceano
-  const seaLevel = percentile(flat, 0.60);
+  const seaLevel      = percentile(flat, 0.60);
+  const lakeLevel     = percentile(flat, 0.62);
+  const hillLevel     = percentile(flat, 0.80);
+  const mountainLevel = percentile(flat, 0.92);
 
-  // classificazione base (solo oceano vs terra)
+  // classificazione base
   const map = Array.from({ length: size }, () => Array(size).fill(0));
   for (let y = 0; y < size; y++) {
     for (let x = 0; x < size; x++) {
-      map[y][x] = (H[y][x] < seaLevel ? TILE_OCEAN : TILE_PLAIN);
+      const h = H[y][x];
+      if      (h < seaLevel)            map[y][x] = TILE_OCEAN;
+      else if (h < lakeLevel)           map[y][x] = TILE_LAKE;
+      else if (h >= mountainLevel)      map[y][x] = TILE_MOUNTAIN;
+      else if (h >= hillLevel)          map[y][x] = TILE_HILL;
+      else                               map[y][x] = TILE_PLAIN;
     }
   }
 
-  // 4) Aggiungi isole: 30 centri casuali
-  for (let i = 0; i < 30; i++) {
-    const cx = Math.floor(Math.random() * size);
-    const cy = Math.floor(Math.random() * size);
-    const r  = 2 + Math.floor(Math.random() * 4); // raggio 2–5
-    for (let dy = -r; dy <= r; dy++) {
-      for (let dx = -r; dx <= r; dx++) {
-        const xx = cx + dx, yy = cy + dy;
-        if (xx >= 0 && xx < size && yy >= 0 && yy < size) {
-          if (dx*dx + dy*dy <= r*r) {
-            map[yy][xx] = TILE_PLAIN;
-          }
+  // Laghi interni (cluster casuali)
+  for (let i = 0; i < 6; i++) {
+    const lx = Math.floor(Math.random() * size);
+    const ly = Math.floor(Math.random() * size);
+    const lr = 2 + Math.floor(Math.random() * 3);
+    for (let dy = -lr; dy <= lr; dy++) {
+      for (let dx = -lr; dx <= lr; dx++) {
+        const xx = lx + dx, yy = ly + dy;
+        if (xx>=0&&xx<size&&yy>=0&&yy<size && map[yy][xx] !== TILE_OCEAN) {
+          map[yy][xx] = TILE_LAKE;
         }
       }
     }
   }
 
-  // 5) Planure → colline/montagne/foreste
+  // Foreste
   for (let y = 0; y < size; y++) {
     for (let x = 0; x < size; x++) {
-      if (map[y][x] !== TILE_OCEAN) {
-        const h = H[y][x];
-        if      (h > 0.75) map[y][x] = TILE_MOUNTAIN;
-        else if (h > 0.50) map[y][x] = TILE_HILL;
-        else if (pseudoNoise(x*0.2, y*0.2) > 0.7) map[y][x] = TILE_FOREST;
-        else map[y][x] = TILE_PLAIN;
+      if (map[y][x] === TILE_PLAIN && pseudoNoise(x*0.2, y*0.2) > 0.7) {
+        map[y][x] = TILE_FOREST;
       }
+    }
+  }
+
+  // Fiumi principali
+  for (let f = 0; f < 4; f++) {
+    let sx, sy;
+    do {
+      sx = Math.floor(Math.random() * size);
+      sy = Math.floor(Math.random() * size);
+    } while (![TILE_HILL, TILE_MOUNTAIN].includes(map[sy][sx]));
+
+    let x = sx, y = sy;
+    for (let i = 0; i < size * 1.5; i++) {
+      if (map[y][x] === TILE_OCEAN) break;
+      map[y][x] = TILE_RIVER;
+      let best = H[y][x], nx = x, ny = y;
+      for (let dy = -1; dy <= 1; dy++) {
+        for (let dx = -1; dx <= 1; dx++) {
+          const xx = x + dx, yy = y + dy;
+          if (xx>=0&&xx<size&&yy>=0&&yy<size && H[yy][xx] < best) {
+            best = H[yy][xx]; nx = xx; ny = yy;
+          }
+        }
+      }
+      x = nx; y = ny;
     }
   }
 
   return map;
 }
 
-// 6) Disegna full-screen
+// 4) Disegna full-screen
 window.generateAndShowMapOnStart = function() {
   const map = generateBiomeMap(MAP_SIZE);
   const c = document.getElementById('game-map');
@@ -107,12 +137,12 @@ window.generateAndShowMapOnStart = function() {
   c.height = window.innerHeight;
   c.style.display = 'block';
   const ctx = c.getContext('2d');
-  const tX = c.width  / MAP_SIZE;
+  const tX = c.width / MAP_SIZE;
   const tY = c.height / MAP_SIZE;
   for (let y = 0; y < MAP_SIZE; y++) {
     for (let x = 0; x < MAP_SIZE; x++) {
       ctx.fillStyle = COLORS[map[y][x]];
-      ctx.fillRect(x*tX, y*tY, tX, tY);
+      ctx.fillRect(x * tX, y * tY, tX, tY);
     }
   }
 };
