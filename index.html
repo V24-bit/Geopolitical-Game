@@ -5,10 +5,10 @@
   <title>Geopolitical Game - Seleziona Nazione</title>
   <link rel="stylesheet" href="style.css">
   <link rel="icon" href="data:," />
-  <script src="https://cdn.jsdelivr.net/npm/simplex-noise@4.0.1/simplex-noise.min.js"></script>
 </head>
 <body>
-  <div class="center-container">
+  <!-- Contenitore della UI -->
+  <div id="ui-container" class="center-container">
     <div class="main-ui">
       <h1 id="title">Geopolitical Game</h1>
 
@@ -40,17 +40,14 @@
     </div>
   </div>
 
-  <div class="bottom-bar">
-    <div class="credit">
-      Made by <a href="https://github.com/V24-bit" class="v24-blue" target="_blank">V24-bit</a>
-    </div>
-  </div>
+  <!-- Canvas della mappa -->
+  <canvas id="game-map" style="display:none; position:fixed; top:0; left:0; z-index:0;"></canvas>
 
   <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
-  <!-- Main script as ES module -->
-  <script type="module" src="main1.js"></script>
+  <!-- Main -->
+  <script src="main1.js"></script>
 </body>
 </html>
