@@ -29,28 +29,27 @@
       </div>
 
       <div id="game-code-panel" style="display:none;">
-        <div id="game-code-label" class="game-code-label"></div>
+        <div id="game-code-label" class="game-code-label">Codice partita:</div>
         <div id="game-code-value" class="game-code-value"></div>
       </div>
 
-      <button id="start-game-btn" class="action-btn potato-yellow" style="display:none;">Start Game</button>
+      <button id="start-game-btn" class="action-btn potato-yellow" style="display:none;">Inizia Partita</button>
 
       <div id="output" class="output"></div>
     </div>
   </div>
 
   <!-- Canvas mappa -->
-  <canvas id="game-map"
-          style="display:none; position:fixed; top:0; left:0; z-index:0;"></canvas>
+  <canvas id="game-map" style="display:none; position:fixed; top:0; left:0; z-index:0;"></canvas>
 
-  <!-- SimplexNoise -->
-  <script src="https://cdn.jsdelivr.net/npm/simplex-noise@4.0.1/simplex-noise.min.js"></script>
-  <!-- Generatore mappa -->
+  <!-- Ordine degli script -->
   <script src="map-generator.js"></script>
+
   <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-  <!-- Script principale -->
+
+  <!-- Logica principale -->
   <script src="main1.js"></script>
 </body>
 </html>
