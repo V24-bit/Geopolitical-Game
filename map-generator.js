@@ -1,14 +1,12 @@
 // map-generator.js
 
-// Rumore “pseudo-Perlin” semplice
+// simple pseudo-Perlin noise
 function pseudoNoise(x, y) {
   return Math.abs(Math.sin(x * 12.9898 + y * 78.233) * 43758.5453 % 1);
 }
 
-// Dimensione griglia
 const MAP_SIZE = 240;
 
-// Tipi di terreno
 const TILE_OCEAN    = 0;
 const TILE_LAKE     = 1;
 const TILE_PLAIN    = 2;
@@ -17,7 +15,6 @@ const TILE_HILL     = 4;
 const TILE_MOUNTAIN = 5;
 const TILE_RIVER    = 6;
 
-// Colori dei biomi
 const COLORS = {
   [TILE_OCEAN]:    '#3b77b7',
   [TILE_LAKE]:     '#6ec5e3',
@@ -28,7 +25,6 @@ const COLORS = {
   [TILE_RIVER]:    '#3fc2ff'
 };
 
-// 1) Genera heightmap multi-octave + maschera continentale soft
 function generateHeightMap(size) {
   const H = Array.from({ length: size }, () => Array(size).fill(0));
   for (let y = 0; y < size; y++) {
@@ -48,23 +44,20 @@ function generateHeightMap(size) {
   return H;
 }
 
-// 2) Percentile helper
 function percentile(sortedArr, p) {
   const idx = Math.floor((sortedArr.length - 1) * p);
   return sortedArr[idx];
 }
 
-// 3) Costruisci biomi con oceano 60%, laghi, colline, montagne, foreste, fiumi
 function generateBiomeMap(size) {
   const H = generateHeightMap(size);
-  const flat = H.flat().sort((a,b)=>a-b);
+  const flat = H.flat().sort((a,b) => a - b);
 
   const seaLevel      = percentile(flat, 0.60);
   const lakeLevel     = percentile(flat, 0.62);
   const hillLevel     = percentile(flat, 0.80);
   const mountainLevel = percentile(flat, 0.92);
 
-  // classificazione base
   const map = Array.from({ length: size }, () => Array(size).fill(0));
   for (let y = 0; y < size; y++) {
     for (let x = 0; x < size; x++) {
@@ -77,7 +70,7 @@ function generateBiomeMap(size) {
     }
   }
 
-  // Laghi interni (cluster casuali)
+  // internal lakes
   for (let i = 0; i < 6; i++) {
     const lx = Math.floor(Math.random() * size);
     const ly = Math.floor(Math.random() * size);
@@ -85,14 +78,14 @@ function generateBiomeMap(size) {
     for (let dy = -lr; dy <= lr; dy++) {
       for (let dx = -lr; dx <= lr; dx++) {
         const xx = lx + dx, yy = ly + dy;
-        if (xx>=0&&xx<size&&yy>=0&&yy<size && map[yy][xx] !== TILE_OCEAN) {
+        if (xx >= 0 && xx < size && yy >= 0 && yy < size && map[yy][xx] !== TILE_OCEAN) {
           map[yy][xx] = TILE_LAKE;
         }
       }
     }
   }
 
-  // Foreste
+  // forests
   for (let y = 0; y < size; y++) {
     for (let x = 0; x < size; x++) {
       if (map[y][x] === TILE_PLAIN && pseudoNoise(x*0.2, y*0.2) > 0.7) {
@@ -101,7 +94,7 @@ function generateBiomeMap(size) {
     }
   }
 
-  // Fiumi principali
+  // major rivers
   for (let f = 0; f < 4; f++) {
     let sx, sy;
     do {
@@ -117,7 +110,7 @@ function generateBiomeMap(size) {
       for (let dy = -1; dy <= 1; dy++) {
         for (let dx = -1; dx <= 1; dx++) {
           const xx = x + dx, yy = y + dy;
-          if (xx>=0&&xx<size&&yy>=0&&yy<size && H[yy][xx] < best) {
+          if (xx>=0 && xx<size && yy>=0 && yy<size && H[yy][xx] < best) {
             best = H[yy][xx]; nx = xx; ny = yy;
           }
         }
@@ -129,7 +122,6 @@ function generateBiomeMap(size) {
   return map;
 }
 
-// 4) Disegna full-screen
 window.generateAndShowMapOnStart = function() {
   const map = generateBiomeMap(MAP_SIZE);
   const c = document.getElementById('game-map');
@@ -137,8 +129,7 @@ window.generateAndShowMapOnStart = function() {
   c.height = window.innerHeight;
   c.style.display = 'block';
   const ctx = c.getContext('2d');
-  const tX = c.width / MAP_SIZE;
-  const tY = c.height / MAP_SIZE;
+  const tX = c.width / MAP_SIZE, tY = c.height / MAP_SIZE;
   for (let y = 0; y < MAP_SIZE; y++) {
     for (let x = 0; x < MAP_SIZE; x++) {
       ctx.fillStyle = COLORS[map[y][x]];
@@ -146,6 +137,7 @@ window.generateAndShowMapOnStart = function() {
     }
   }
 };
+
 window.addEventListener('resize', () => {
   const c = document.getElementById('game-map');
   if (c.style.display === 'block') window.generateAndShowMapOnStart();
