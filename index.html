@@ -9,37 +9,13 @@
 <body>
   <div id="ui-container" class="center-container">
     <div class="main-ui">
-      <h1 id="title">Geopolitical Game</h1>
-
-      <form id="nation-form" autocomplete="off">
-        <div class="form-group">
-          <label for="nation-name">Nome della Nazione</label>
-          <input type="text" id="nation-name" placeholder="Inserisci il nome della nazione" required maxlength="20">
-        </div>
-      </form>
-
-      <div class="actions">
-        <button id="create-game-btn" class="action-btn potato-yellow">Crea partita</button>
-        <button id="join-game-btn" class="action-btn sky-blue">Unisciti a partita</button>
-      </div>
-
-      <div id="join-form" style="display:none;">
-        <input type="text" id="game-code-input" placeholder="Inserisci codice partita" maxlength="8">
-        <button id="join-submit-btn" class="action-btn sky-blue">Entra</button>
-      </div>
-
-      <div id="game-code-panel" style="display:none;">
-        <div id="game-code-label" class="game-code-label"></div>
-        <div id="game-code-value" class="game-code-value"></div>
-      </div>
-
-      <button id="start-game-btn" class="action-btn potato-yellow" style="display:none;">Start Game</button>
-      <div id="output" class="output"></div>
+      <!-- Qui la UI: titoli, form e bottoni Crea/Unisciti/Start -->
     </div>
   </div>
 
-  <!-- Canvas della mappa -->
-  <canvas id="game-map" style="display:none; position:fixed; top:0; left:0; z-index:0;"></canvas>
+  <!-- Canvas per la mappa (nascosto finché non si clicca Start Game) -->
+  <canvas id="game-map"
+          style="display:none; position:fixed; top:0; left:0; z-index:0;"></canvas>
 
   <!-- Script -->
   <script src="map-generator.js"></script>
