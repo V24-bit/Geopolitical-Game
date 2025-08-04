@@ -1,4 +1,4 @@
-// Non usiamo import, ci affidiamo alle funzioni globali di map-generator.js
+// Non utilizziamo import/export, usiamo le funzioni globali di map-generator.js
 
 const firebaseConfig = {
   apiKey: "AIzaSyC-nxzpcf5I_NHkKbWbLXRFRRzQLv9ilWU",
@@ -111,3 +111,4 @@ document.addEventListener('DOMContentLoaded', function () {
     window.generateAndShowMapOnStart();
   };
 });
+
