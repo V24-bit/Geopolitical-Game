@@ -1,4 +1,3 @@
-
 // Mini Simplex Noise - versione compatta
 function SimplexNoise(seed = Math.random()) {
   const grad3 = [
@@ -85,341 +84,180 @@ const TILE_TYPES = {
   FOREST: 5
 };
 
-// Colori per ogni tipo di tile
+// Colori corretti per ogni tipo di tile
 const TILE_COLORS = {
-  [TILE_TYPES.OCEAN]: { r: 0, g: 105, b: 148 },
-  [TILE_TYPES.COAST]: { r: 240, g: 240, b: 170 },
-  [TILE_TYPES.PLAINS]: { r: 124, g: 200, b: 83 },
-  [TILE_TYPES.HILLS]: { r: 156, g: 142, b: 90 },
-  [TILE_TYPES.MOUNTAINS]: { r: 120, g: 120, b: 120 },
-  [TILE_TYPES.FOREST]: { r: 34, g: 139, b: 34 }
+  [TILE_TYPES.OCEAN]: { r: 0, g: 105, b: 148 },      // Blu oceano
+  [TILE_TYPES.COAST]: { r: 240, g: 240, b: 170 },    // Beige costa
+  [TILE_TYPES.PLAINS]: { r: 144, g: 238, b: 144 },   // Verde chiaro pianure
+  [TILE_TYPES.HILLS]: { r: 255, g: 255, b: 0 },      // Giallo colline
+  [TILE_TYPES.MOUNTAINS]: { r: 64, g: 64, b: 64 },   // Nero-grigio montagne
+  [TILE_TYPES.FOREST]: { r: 0, g: 100, b: 0 }        // Verde scuro foreste
 };
 
 class TileMapGenerator {
   constructor(gridWidth = 480, gridHeight = 480, seed = Math.random()) {
     this.gridWidth = gridWidth;
     this.gridHeight = gridHeight;
-    this.totalTiles = gridWidth * gridHeight;
     this.simplex = new SimplexNoise(seed);
-    this.map = [];
-    this.seed = seed;
-    
-    // Inizializza la griglia
+    this.map = new Array(gridHeight);
+
+    // Inizializza con oceano - più efficiente
     for (let y = 0; y < gridHeight; y++) {
-      this.map[y] = [];
-      for (let x = 0; x < gridWidth; x++) {
-        this.map[y][x] = TILE_TYPES.OCEAN;
-      }
+      this.map[y] = new Array(gridWidth).fill(TILE_TYPES.OCEAN);
     }
   }
 
-  // Genera la mappa completa
+  // Genera la mappa completa - ottimizzata
   generateMap() {
-    // Step 1: Genera i continenti principali
-    this.generateContinents();
-    
-    // Step 2: Genera arcipelaghi e isole
-    this.generateArchipelagos();
-    
-    // Step 3: Applica le regole di coerenza
-    this.applyCoherenceRules();
-    
-    // Step 4: Genera i biomi terrestri
+    console.log("Generando mappa...");
+
+    // Genera terre emerse usando noise direttamente
+    this.generateLandmasses();
+
+    // Applica biomi
     this.generateBiomes();
-    
-    // Step 5: Genera le coste
+
+    // Genera coste
     this.generateCoasts();
-    
+
+    console.log("Mappa generata!");
     return this.map;
   }
 
-  // Genera i continenti principali
-  generateContinents() {
-    const numContinents = 3 + Math.floor(Math.random() * 2); // 3-4 continenti
-    
-    for (let i = 0; i < numContinents; i++) {
-      const centerX = Math.floor(Math.random() * this.gridWidth);
-      const centerY = Math.floor(Math.random() * this.gridHeight);
-      const size = 8000 + Math.floor(Math.random() * 12000); // 8000-20000 tile
-      
-      this.createLandmass(centerX, centerY, size, 0.7);
-    }
-  }
+  // Genera terre emerse usando noise - molto più efficiente
+  generateLandmasses() {
+    const scale = 0.02; // Scala del noise per continenti
+    const threshold = 0.1; // Soglia per la terra
 
-  // Genera arcipelaghi e isole più piccole
-  generateArchipelagos() {
-    const numArchipelagos = 8 + Math.floor(Math.random() * 6); // 8-13 arcipelaghi
-    
-    for (let i = 0; i < numArchipelagos; i++) {
-      const centerX = Math.floor(Math.random() * this.gridWidth);
-      const centerY = Math.floor(Math.random() * this.gridHeight);
-      const size = 500 + Math.floor(Math.random() * 2000); // 500-2500 tile
-      
-      this.createLandmass(centerX, centerY, size, 0.5);
+    // Genera 3-4 centri continentali
+    const continentCenters = [];
+    for (let i = 0; i < 4; i++) {
+      continentCenters.push({
+        x: Math.random() * this.gridWidth,
+        y: Math.random() * this.gridHeight,
+        strength: 0.3 + Math.random() * 0.4
+      });
     }
-  }
 
-  // Crea una massa di terra centrata in (centerX, centerY)
-  createLandmass(centerX, centerY, targetSize, density) {
-    const visited = new Set();
-    const toProcess = [{ x: centerX, y: centerY, distance: 0 }];
-    let tilesCreated = 0;
-    
-    while (toProcess.length > 0 && tilesCreated < targetSize) {
-      const current = toProcess.shift();
-      const key = `${current.x},${current.y}`;
-      
-      if (visited.has(key) || !this.isValidCoord(current.x, current.y)) {
-        continue;
-      }
-      
-      visited.add(key);
-      
-      // Calcola la probabilità basata su rumore e distanza
-      const noiseValue = (this.simplex.noise2D(current.x * 0.01, current.y * 0.01) + 1) / 2;
-      const distanceFactor = Math.max(0, 1 - current.distance / 25);
-      const probability = noiseValue * distanceFactor * density;
-      
-      if (Math.random() < probability) {
-        this.map[current.y][current.x] = TILE_TYPES.PLAINS;
-        tilesCreated++;
-        
-        // Aggiungi i vicini alla coda
-        const neighbors = this.getNeighbors(current.x, current.y);
-        for (const neighbor of neighbors) {
-          const neighborKey = `${neighbor.x},${neighbor.y}`;
-          if (!visited.has(neighborKey)) {
-            toProcess.push({ 
-              x: neighbor.x, 
-              y: neighbor.y, 
-              distance: current.distance + 1 
-            });
-          }
-        }
-      }
-    }
-  }
-
-  // Applica regole di coerenza (es. isole troppo piccole)
-  applyCoherenceRules() {
-    // Trova tutte le isole e rimuovi quelle troppo piccole
-    const islands = this.findIslands();
-    
-    for (const island of islands) {
-      if (island.tiles.length < 100) {
-        // Rimuovi isole troppo piccole
-        for (const tile of island.tiles) {
-          this.map[tile.y][tile.x] = TILE_TYPES.OCEAN;
-        }
-      }
-    }
-  }
-
-  // Trova tutte le isole separate
-  findIslands() {
-    const visited = new Set();
-    const islands = [];
-    
     for (let y = 0; y < this.gridHeight; y++) {
       for (let x = 0; x < this.gridWidth; x++) {
-        if (this.map[y][x] !== TILE_TYPES.OCEAN && !visited.has(`${x},${y}`)) {
-          const island = this.floodFillIsland(x, y, visited);
-          if (island.length > 0) {
-            islands.push({ tiles: island });
+        // Combina noise generale con influenza dei centri continentali
+        let noiseValue = (this.simplex.noise2D(x * scale, y * scale) + 1) / 2;
+
+        // Aggiungi influenza dei centri continentali
+        let continentInfluence = 0;
+        for (const center of continentCenters) {
+          const distance = Math.sqrt(
+            Math.pow(x - center.x, 2) + Math.pow(y - center.y, 2)
+          );
+          const maxDistance = Math.min(this.gridWidth, this.gridHeight) * 0.4;
+          if (distance < maxDistance) {
+            continentInfluence += center.strength * (1 - distance / maxDistance);
           }
+        }
+
+        // Combina noise e influenza continentale
+        const finalValue = noiseValue * 0.6 + continentInfluence * 0.4;
+
+        if (finalValue > threshold) {
+          this.map[y][x] = TILE_TYPES.PLAINS;
         }
       }
     }
-    
-    return islands;
   }
 
-  // Flood fill per trovare tutti i tile di un'isola
-  floodFillIsland(startX, startY, visited) {
-    const island = [];
-    const toProcess = [{ x: startX, y: startY }];
-    
-    while (toProcess.length > 0) {
-      const current = toProcess.pop();
-      const key = `${current.x},${current.y}`;
-      
-      if (visited.has(key) || !this.isValidCoord(current.x, current.y) || 
-          this.map[current.y][current.x] === TILE_TYPES.OCEAN) {
-        continue;
-      }
-      
-      visited.add(key);
-      island.push(current);
-      
-      const neighbors = this.getNeighbors(current.x, current.y);
-      for (const neighbor of neighbors) {
-        toProcess.push(neighbor);
-      }
-    }
-    
-    return island;
-  }
-
-  // Genera i biomi terrestri
+  // Genera biomi - ottimizzato
   generateBiomes() {
-    const islands = this.findIslands();
-    
-    for (const island of islands) {
-      if (island.tiles.length >= 100) {
-        this.generateBiomesForIsland(island.tiles);
-      }
-    }
-  }
+    const mountainScale = 0.05;
+    const forestScale = 0.08;
+    const hillScale = 0.06;
 
-  // Genera biomi per una specifica isola
-  generateBiomesForIsland(islandTiles) {
-    // Trova il centro dell'isola
-    const centerX = islandTiles.reduce((sum, tile) => sum + tile.x, 0) / islandTiles.length;
-    const centerY = islandTiles.reduce((sum, tile) => sum + tile.y, 0) / islandTiles.length;
-    
-    // Genera montagne centrali se l'isola è abbastanza grande
-    if (islandTiles.length > 500) {
-      this.createMountainRange(centerX, centerY, islandTiles);
-    }
-    
-    // Genera foreste e colline
-    for (const tile of islandTiles) {
-      if (this.map[tile.y][tile.x] === TILE_TYPES.PLAINS) {
-        const distanceFromCenter = Math.sqrt(
-          Math.pow(tile.x - centerX, 2) + Math.pow(tile.y - centerY, 2)
-        );
-        const maxDistance = Math.sqrt(islandTiles.length) / 2;
-        const centerFactor = 1 - (distanceFromCenter / maxDistance);
-        
-        const noiseValue = (this.simplex.noise2D(tile.x * 0.4, tile.y * 0.4) + 1) / 2;
-        
-        // Probabilità di foresta
-        if (noiseValue > 0.6 && Math.random() < 0.4) {
-          this.map[tile.y][tile.x] = TILE_TYPES.FOREST;
-        }
-        // Probabilità di colline
-        else if (centerFactor > 0.3 && noiseValue > 0.4 && Math.random() < 0.3) {
-          this.map[tile.y][tile.x] = TILE_TYPES.HILLS;
-        }
-      }
-    }
-  }
+    for (let y = 0; y < this.gridHeight; y++) {
+      for (let x = 0; x < this.gridWidth; x++) {
+        if (this.map[y][x] === TILE_TYPES.PLAINS) {
+          // Calcola valori noise per diversi biomi
+          const mountainNoise = (this.simplex.noise2D(x * mountainScale, y * mountainScale) + 1) / 2;
+          const forestNoise = (this.simplex.noise2D(x * forestScale + 100, y * forestScale + 100) + 1) / 2;
+          const hillNoise = (this.simplex.noise2D(x * hillScale + 200, y * hillScale + 200) + 1) / 2;
 
-  // Crea una catena montuosa
-  createMountainRange(centerX, centerY, islandTiles) {
-    const mountainCenters = [];
-    const numPeaks = 1 + Math.floor(Math.random() * 3); // 1-3 picchi
-    
-    for (let i = 0; i < numPeaks; i++) {
-      const angle = (i / numPeaks) * Math.PI * 2;
-      const distance = 2 + Math.random() * 3;
-      const peakX = Math.round(centerX + Math.cos(angle) * distance);
-      const peakY = Math.round(centerY + Math.sin(angle) * distance);
-      
-      if (this.isValidCoord(peakX, peakY) && 
-          this.map[peakY][peakX] !== TILE_TYPES.OCEAN) {
-        mountainCenters.push({ x: peakX, y: peakY });
-      }
-    }
-    
-    // Crea montagne intorno ai picchi
-    for (const peak of mountainCenters) {
-      const mountainSize = 3 + Math.floor(Math.random() * 4); // 3-6 tile
-      this.createMountainCluster(peak.x, peak.y, mountainSize, islandTiles);
-    }
-  }
-
-  // Crea un cluster di montagne
-  createMountainCluster(centerX, centerY, size, islandTiles) {
-    const visited = new Set();
-    const toProcess = [{ x: centerX, y: centerY, distance: 0 }];
-    let mountainsCreated = 0;
-    
-    while (toProcess.length > 0 && mountainsCreated < size) {
-      const current = toProcess.shift();
-      const key = `${current.x},${current.y}`;
-      
-      if (visited.has(key) || !this.isValidCoord(current.x, current.y) ||
-          this.map[current.y][current.x] === TILE_TYPES.OCEAN) {
-        continue;
-      }
-      
-      visited.add(key);
-      
-      const distanceFactor = Math.max(0, 1 - current.distance / 3);
-      if (Math.random() < distanceFactor * 0.8) {
-        this.map[current.y][current.x] = TILE_TYPES.MOUNTAINS;
-        mountainsCreated++;
-        
-        const neighbors = this.getNeighbors(current.x, current.y);
-        for (const neighbor of neighbors) {
-          const neighborKey = `${neighbor.x},${neighbor.y}`;
-          if (!visited.has(neighborKey)) {
-            toProcess.push({ 
-              x: neighbor.x, 
-              y: neighbor.y, 
-              distance: current.distance + 1 
-            });
+          // Priorità: Montagne > Foreste > Colline > Pianure
+          if (mountainNoise > 0.75) {
+            this.map[y][x] = TILE_TYPES.MOUNTAINS;
+          } else if (forestNoise > 0.6) {
+            this.map[y][x] = TILE_TYPES.FOREST;
+          } else if (hillNoise > 0.65) {
+            this.map[y][x] = TILE_TYPES.HILLS;
           }
+          // Altrimenti rimane PLAINS
         }
       }
     }
   }
 
-  // Genera le coste
+  // Genera le coste - ottimizzato
   generateCoasts() {
+    const coastMap = [];
+    for (let y = 0; y < this.gridHeight; y++) {
+      coastMap[y] = [...this.map[y]];
+    }
+
     for (let y = 0; y < this.gridHeight; y++) {
       for (let x = 0; x < this.gridWidth; x++) {
         if (this.map[y][x] !== TILE_TYPES.OCEAN) {
           // Controlla se è adiacente all'oceano
-          const neighbors = this.getNeighbors(x, y);
+          let isCoast = false;
+
+          // Controlla i 4 vicini principali
+          const neighbors = [
+            {x: x-1, y}, {x: x+1, y}, {x, y: y-1}, {x, y: y+1}
+          ];
+
           for (const neighbor of neighbors) {
-            if (this.isValidCoord(neighbor.x, neighbor.y) &&
-                this.map[neighbor.y][neighbor.x] === TILE_TYPES.OCEAN) {
-              this.map[y][x] = TILE_TYPES.COAST;
-              break;
+            if (neighbor.x >= 0 && neighbor.x < this.gridWidth && 
+                neighbor.y >= 0 && neighbor.y < this.gridHeight) {
+              if (this.map[neighbor.y][neighbor.x] === TILE_TYPES.OCEAN) {
+                isCoast = true;
+                break;
+              }
             }
+          }
+
+          if (isCoast) {
+            coastMap[y][x] = TILE_TYPES.COAST;
           }
         }
       }
     }
-  }
 
-  // Ottieni i vicini di un tile
-  getNeighbors(x, y) {
-    return [
-      { x: x - 1, y: y },     // sinistra
-      { x: x + 1, y: y },     // destra
-      { x: x, y: y - 1 },     // sopra
-      { x: x, y: y + 1 },     // sotto
-    ];
-  }
-
-  // Controlla se le coordinate sono valide
-  isValidCoord(x, y) {
-    return x >= 0 && x < this.gridWidth && y >= 0 && y < this.gridHeight;
+    this.map = coastMap;
   }
 }
 
-// Funzione principale per disegnare la mappa
+// Funzione principale per disegnare la mappa - ottimizzata
 function drawTileMapOnCanvas(canvas) {
   const ctx = canvas.getContext("2d");
   const width = canvas.width = 1200;
   const height = canvas.height = 800;
 
-  // Crea un nuovo generatore con seed casuale per varietà
+  console.log("Iniziando generazione mappa...");
+  const startTime = performance.now();
+
+  // Crea un nuovo generatore
   const generator = new TileMapGenerator(480, 480, Math.random());
   const tileMap = generator.generateMap();
+
+  const endTime = performance.now();
+  console.log(`Mappa generata in ${(endTime - startTime).toFixed(2)}ms`);
 
   const tileWidth = width / generator.gridWidth;
   const tileHeight = height / generator.gridHeight;
 
-  // Disegna ogni tile
+  // Disegna ogni tile - senza bordi per performance
   for (let y = 0; y < generator.gridHeight; y++) {
     for (let x = 0; x < generator.gridWidth; x++) {
       const tileType = tileMap[y][x];
       const color = TILE_COLORS[tileType];
-      
+
       ctx.fillStyle = `rgb(${color.r}, ${color.g}, ${color.b})`;
       ctx.fillRect(
         x * tileWidth, 
@@ -427,18 +265,10 @@ function drawTileMapOnCanvas(canvas) {
         tileWidth, 
         tileHeight
       );
-
-      // Aggiungi un leggero bordo per visualizzare meglio i tile
-      ctx.strokeStyle = 'rgba(0, 0, 0, 0.1)';
-      ctx.lineWidth = 0.5;
-      ctx.strokeRect(
-        x * tileWidth, 
-        y * tileHeight, 
-        tileWidth, 
-        tileHeight
-      );
     }
   }
+
+  console.log("Mappa disegnata!");
 }
 
 // Espone la funzione al main.js
