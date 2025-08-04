@@ -34,22 +34,17 @@
       </div>
 
       <button id="start-game-btn" class="action-btn potato-yellow" style="display:none;">Start Game</button>
-
       <div id="output" class="output"></div>
     </div>
   </div>
 
-  <!-- Canvas della mappa, nascosto finché Start Game non viene cliccato -->
-  <canvas id="game-map"
-          style="display:none; position:fixed; top:0; left:0; z-index:0;">
-  </canvas>
+  <!-- Canvas mappa nascosto -->
+  <canvas id="game-map" style="display:none; position:fixed; top:0; left:0; z-index:0;"></canvas>
 
-  <!-- Map generator (incluso Simplex inline) -->
+  <!-- Script -->
   <script src="map-generator.js"></script>
-  <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-  <!-- Main logic -->
   <script src="main1.js"></script>
 </body>
 </html>
