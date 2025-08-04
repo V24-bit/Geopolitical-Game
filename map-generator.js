@@ -1,7 +1,10 @@
 // map-generator.js
 
-// Istanza di SimplexNoise (richiede <script src="https://cdn.jsdelivr.net/npm/simplex-noise@4.0.1/simplex-noise.min.js"></script>)
-const simplex = new SimplexNoise();
+// Assicurati che SimplexNoise sia stato caricato prima (vedi index.html):
+// <script src="https://cdn.jsdelivr.net/npm/simplex-noise@4.0.1/simplex-noise.min.js"></script>
+
+// Crea l’istanza usando window.SimplexNoise
+const simplex = new window.SimplexNoise();
 
 // Tipi di terreno
 const TILE_OCEAN    = 0;
