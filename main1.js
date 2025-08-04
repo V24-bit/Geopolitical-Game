@@ -1,43 +1,39 @@
+// Inizializza Firebase (usa i tuoi valori del progetto!)
 const firebaseConfig = {
-  apiKey: "TUO_API_KEY",
-  authDomain: "geopolitical-game-5f135.firebaseapp.com",
+  apiKey: "API_KEY_TUA",
+  authDomain: "DOMINIO.firebaseapp.com",
   projectId: "geopolitical-game-5f135",
   storageBucket: "geopolitical-game-5f135.appspot.com",
-  messagingSenderId: "ID_MESSAGGISTICA",
-  appId: "ID_APP"
+  messagingSenderId: "123456789",
+  appId: "APP_ID_TUA"
 };
 
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
+// --- UI ---
 const createGameBtn = document.getElementById("create-game-btn");
 const joinGameBtn = document.getElementById("join-game-btn");
+const joinForm = document.getElementById("join-form");
 const joinSubmitBtn = document.getElementById("join-submit-btn");
+const gameCodeInput = document.getElementById("game-code-input");
 const startGameBtn = document.getElementById("start-game-btn");
-
 const gameCodePanel = document.getElementById("game-code-panel");
 const gameCodeValue = document.getElementById("game-code-value");
+const nationInput = document.getElementById("nation-name");
+const uiContainer = document.getElementById("ui-container");
 
-function generaCodicePartita() {
-  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-  let codice = "";
-  for (let i = 0; i < 6; i++) {
-    codice += chars.charAt(Math.floor(Math.random() * chars.length));
-  }
-  return codice;
-}
-
+// --- Crea Partita ---
 createGameBtn.onclick = async () => {
-  const nomeNazione = document.getElementById("nation-name").value.trim();
-  if (!nomeNazione) return alert("Inserisci un nome per la tua nazione.");
+  const codice = Math.random().toString(36).substring(2, 6).toUpperCase();
+  const nazione = nationInput.value.trim();
 
-  const codice = generaCodicePartita();
-  const partitaRef = db.collection("partite").doc(codice);
+  if (!nazione) return alert("Inserisci il nome della nazione");
 
-  await partitaRef.set({
+  await db.collection("partite").doc(codice).set({
     codice,
-    nazione: nomeNazione,
-    giocatori: [nomeNazione]
+    nazione,
+    giocatori: [nazione]
   });
 
   gameCodePanel.style.display = "block";
@@ -45,34 +41,40 @@ createGameBtn.onclick = async () => {
   startGameBtn.style.display = "inline-block";
 };
 
+// --- Unisciti a Partita ---
 joinGameBtn.onclick = () => {
-  document.getElementById("join-form").style.display = "block";
+  joinForm.style.display = "block";
 };
 
 joinSubmitBtn.onclick = async () => {
-  const codice = document.getElementById("game-code-input").value.trim().toUpperCase();
-  const nomeNazione = document.getElementById("nation-name").value.trim();
-  if (!codice || !nomeNazione) return alert("Inserisci codice e nome nazione.");
+  const codice = gameCodeInput.value.trim().toUpperCase();
+  const nazione = nationInput.value.trim();
+
+  if (!codice || !nazione) return alert("Inserisci tutti i campi");
 
   const partitaRef = db.collection("partite").doc(codice);
   const doc = await partitaRef.get();
+  if (!doc.exists) return alert("Partita non trovata");
 
-  if (!doc.exists) return alert("Partita non trovata.");
   const data = doc.data();
-  if (data.giocatori.includes(nomeNazione)) return alert("Nome già usato.");
+  if (data.giocatori.includes(nazione)) return alert("Nome già usato");
 
   await partitaRef.update({
-    giocatori: [...data.giocatori, nomeNazione]
+    giocatori: [...data.giocatori, nazione]
   });
 
-  alert("Sei entrato nella partita!");
+  alert("Ti sei unito alla partita " + codice);
 };
 
+// --- Inizia partita ---
 startGameBtn.onclick = () => {
-  document.getElementById("ui-container").style.display = "none";
-
+  uiContainer.style.display = "none";
   const canvas = document.getElementById("game-map");
   canvas.style.display = "block";
 
-  window.generateAndShowMapOnStart(canvas);
+  if (typeof window.generateAndShowMapOnStart === "function") {
+    window.generateAndShowMapOnStart();
+  } else {
+    console.error("Funzione generateAndShowMapOnStart non trovata");
+  }
 };
