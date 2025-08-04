@@ -243,10 +243,10 @@ class AdvancedMapGenerator {
       // Posiziona gli arcipelaghi lontano dai continenti principali
       let bestX, bestY, maxDistanceFromContinents = 0;
       
-      // Trova la posizione più lontana dai continenti
+      // Trova la posizione più lontana dai continenti  
       for (let attempt = 0; attempt < 20; attempt++) {
-        const testX = 50 + this.random() * (this.width - 100);
-        const testY = 50 + this.random() * (this.height - 100);
+        const testX = Math.floor(50 + this.random() * (this.width - 100));
+        const testY = Math.floor(50 + this.random() * (this.height - 100));
         
         let minDistanceFromContinents = Infinity;
         for (const continent of this.continentCenters) {
@@ -258,8 +258,8 @@ class AdvancedMapGenerator {
         
         if (minDistanceFromContinents > maxDistanceFromContinents) {
           maxDistanceFromContinents = minDistanceFromContinents;
-          bestX = testX;
-          bestY = testY;
+          bestX = Math.floor(testX);
+          bestY = Math.floor(testY);
         }
       }
       
