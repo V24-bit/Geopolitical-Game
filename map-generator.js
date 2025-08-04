@@ -135,27 +135,27 @@ class TileMapGenerator {
 
   // Genera i continenti principali
   generateContinents() {
-    const numContinents = 2 + Math.floor(Math.random() * 2); // 2-3 continenti
+    const numContinents = 3 + Math.floor(Math.random() * 2); // 3-4 continenti
     
     for (let i = 0; i < numContinents; i++) {
       const centerX = Math.floor(Math.random() * this.gridWidth);
       const centerY = Math.floor(Math.random() * this.gridHeight);
-      const size = 40 + Math.floor(Math.random() * 60); // 40-100 tile
+      const size = 8000 + Math.floor(Math.random() * 12000); // 8000-20000 tile
       
-      this.createLandmass(centerX, centerY, size, 0.6);
+      this.createLandmass(centerX, centerY, size, 0.7);
     }
   }
 
   // Genera arcipelaghi e isole più piccole
   generateArchipelagos() {
-    const numArchipelagos = 3 + Math.floor(Math.random() * 4); // 3-6 arcipelaghi
+    const numArchipelagos = 8 + Math.floor(Math.random() * 6); // 8-13 arcipelaghi
     
     for (let i = 0; i < numArchipelagos; i++) {
       const centerX = Math.floor(Math.random() * this.gridWidth);
       const centerY = Math.floor(Math.random() * this.gridHeight);
-      const size = 15 + Math.floor(Math.random() * 25); // 15-40 tile
+      const size = 500 + Math.floor(Math.random() * 2000); // 500-2500 tile
       
-      this.createLandmass(centerX, centerY, size, 0.4);
+      this.createLandmass(centerX, centerY, size, 0.5);
     }
   }
 
@@ -176,8 +176,8 @@ class TileMapGenerator {
       visited.add(key);
       
       // Calcola la probabilità basata su rumore e distanza
-      const noiseValue = (this.simplex.noise2D(current.x * 0.3, current.y * 0.3) + 1) / 2;
-      const distanceFactor = Math.max(0, 1 - current.distance / 8);
+      const noiseValue = (this.simplex.noise2D(current.x * 0.01, current.y * 0.01) + 1) / 2;
+      const distanceFactor = Math.max(0, 1 - current.distance / 25);
       const probability = noiseValue * distanceFactor * density;
       
       if (Math.random() < probability) {
@@ -206,7 +206,7 @@ class TileMapGenerator {
     const islands = this.findIslands();
     
     for (const island of islands) {
-      if (island.tiles.length < 15) {
+      if (island.tiles.length < 100) {
         // Rimuovi isole troppo piccole
         for (const tile of island.tiles) {
           this.map[tile.y][tile.x] = TILE_TYPES.OCEAN;
@@ -265,7 +265,7 @@ class TileMapGenerator {
     const islands = this.findIslands();
     
     for (const island of islands) {
-      if (island.tiles.length >= 15) {
+      if (island.tiles.length >= 100) {
         this.generateBiomesForIsland(island.tiles);
       }
     }
@@ -278,7 +278,7 @@ class TileMapGenerator {
     const centerY = islandTiles.reduce((sum, tile) => sum + tile.y, 0) / islandTiles.length;
     
     // Genera montagne centrali se l'isola è abbastanza grande
-    if (islandTiles.length > 30) {
+    if (islandTiles.length > 500) {
       this.createMountainRange(centerX, centerY, islandTiles);
     }
     
