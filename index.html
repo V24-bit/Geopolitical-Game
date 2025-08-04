@@ -39,16 +39,18 @@
     </div>
   </div>
 
-  <!-- Canvas mappa (inizialmente nascosto) -->
-  <canvas id="game-map" style="display:none; position:fixed; top:0; left:0; z-index:0;"></canvas>
+  <!-- Il canvas della mappa, nascosto fino a Start Game -->
+  <canvas id="game-map"
+          style="display:none; position:fixed; top:0; left:0; z-index:0;"></canvas>
 
-  <!-- Firebase -->
+  <!-- 1) SimplexNoise (necessario per map-generator.js) -->
+  <script src="https://cdn.jsdelivr.net/npm/simplex-noise@4.0.1/simplex-noise.min.js"></script>
+  <!-- 2) Map generator definisce window.generateAndShowMapOnStart -->
+  <script src="map-generator.js"></script>
+  <!-- 3) Firebase -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-
-  <!-- Map generator (definisce window.generateAndShowMapOnStart) -->
-  <script src="map-generator.js"></script>
-  <!-- Main logic -->
+  <!-- 4) Main logic (non-modulo) -->
   <script src="main1.js"></script>
 </body>
 </html>
