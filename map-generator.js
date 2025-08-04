@@ -7,13 +7,13 @@ const TILE_MOUNTAIN = 5;
 const TILE_RIVER    = 6;
 
 const COLORS = {
-  [TILE_OCEAN]: '#3b77b7',
-  [TILE_LAKE]:  '#6ec5e3',
-  [TILE_PLAIN]: '#b6e36c',
-  [TILE_FOREST]: '#2c7d36',
-  [TILE_HILL]: '#d2b48c',
+  [TILE_OCEAN]:    '#3b77b7',
+  [TILE_LAKE]:     '#6ec5e3',
+  [TILE_PLAIN]:    '#b6e36c',
+  [TILE_FOREST]:   '#2c7d36',
+  [TILE_HILL]:     '#d2b48c',
   [TILE_MOUNTAIN]: '#e0e0e0',
-  [TILE_RIVER]: '#3fc2ff'
+  [TILE_RIVER]:    '#3fc2ff'
 };
 
 const MAP_SIZE = 80;
@@ -41,7 +41,7 @@ function generateBiomeMap(size) {
     }
     map.push(row);
   }
-  // Fiumi
+  // Aggiungi fiumi
   for (let r = 0; r < 5; r++) {
     let x = Math.floor(Math.random() * size), y = 0;
     for (let i = 0; i < size; i++) {
@@ -61,7 +61,7 @@ window.drawMapOnCanvas = function(map, canvas) {
   for (let y = 0; y < MAP_SIZE; y++) {
     for (let x = 0; x < MAP_SIZE; x++) {
       ctx.fillStyle = COLORS[map[y][x]] || "#000";
-      ctx.fillRect(x*tX, y*tT, tX, tY);
+      ctx.fillRect(x*tX, y*tY, tX, tY);
     }
   }
 };
