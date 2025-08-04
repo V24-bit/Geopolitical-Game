@@ -1,4 +1,4 @@
-// Non utilizziamo import/export, usiamo le funzioni globali di map-generator.js
+// main1.js
 
 const firebaseConfig = {
   apiKey: "AIzaSyC-nxzpcf5I_NHkKbWbLXRFRRzQLv9ilWU",
@@ -11,7 +11,7 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
-document.addEventListener('DOMContentLoaded', function () {
+document.addEventListener('DOMContentLoaded', () => {
   const joinBtn       = document.getElementById('join-game-btn');
   const createBtn     = document.getElementById('create-game-btn');
   const joinForm      = document.getElementById('join-form');
@@ -31,84 +31,93 @@ document.addEventListener('DOMContentLoaded', function () {
     output.innerHTML = `<div id="temp-error-msg" style="
       color:#fff;background:#c00;margin:10px 0;font-weight:bold;
       text-align:center;padding:14px 18px;border-radius:9px;
-      z-index:1000;font-size:1.14em;box-shadow:0 2px 16px #000a;">
-      ${msg}</div>`;
-    setTimeout(() => output.innerHTML = "", 4000);
+      box-shadow:0 2px 16px #000a;">${msg}</div>`;
+    setTimeout(() => { if (document.getElementById('temp-error-msg')) output.innerHTML = ""; }, 4000);
   }
 
   function showLobby(doc, myNation) {
-    if (!doc.exists) return showTempError("Partita non trovata!");
+    if (!doc.exists) {
+      showTempError("Game not found!");
+      gameCodePanel.style.display = "none";
+      startGameBtn.style.display = "none";
+      return;
+    }
     const data = doc.data();
-    gameCodeLabel.textContent = "Codice partita:";
-    gameCodeValue.textContent = data.codice || currentGameCode;
+    gameCodeLabel.textContent = "Game Code:";
+    gameCodeValue.textContent = data.code || currentGameCode;
     gameCodePanel.style.display = "block";
 
-    let html = `Creatore: <b>${data.nazione}</b><br>Giocatori:<ul>`;
-    data.giocatori.forEach(n => {
-      html += `<li>${n}${n===data.nazione?" (creatore)":""}${n===myNation&&n!==data.nazione?" (tu)":""}</li>`;
+    let html = `Host: <b>${data.nation}</b><br>Players:<ul>`;
+    data.players.forEach(p => {
+      html += `<li>${p}${p === data.nation ? " (host)" : ""}${p === myNation && p !== data.nation ? " (you)" : ""}</li>`;
     });
     html += "</ul>";
     output.innerHTML = html;
     startGameBtn.style.display = "inline-block";
   }
 
+  // initial state
   joinForm.style.display = "none";
   gameCodePanel.style.display = "none";
   startGameBtn.style.display = "none";
 
+  // Join button
   joinBtn.onclick = () => {
-    if (!nationName.value.trim()) return showTempError("Inserisci un nome");
+    if (!nationName.value.trim()) return showTempError("Enter your nation’s name first");
     joinForm.style.display = "flex";
     gameCodePanel.style.display = "none";
-    output.textContent = ""; gameCodeInput.value = "";
+    output.textContent = "";
+    gameCodeInput.value = "";
     startGameBtn.style.display = "none";
   };
 
+  // Create button
   createBtn.onclick = async () => {
-    if (!nationName.value.trim()) return showTempError("Inserisci un nome");
-    joinForm.style.display = "none"; startGameBtn.style.display = "none";
-    const code = Math.random().toString(36).substring(2,8).toUpperCase();
+    if (!nationName.value.trim()) return showTempError("Enter your nation’s name first");
+    joinForm.style.display = "none";
+    startGameBtn.style.display = "none";
+    const code = Math.random().toString(36).substring(2, 8).toUpperCase();
     currentGameCode = code;
     try {
-      await db.collection("partite").doc(code).set({
-        codice: code,
-        creatoIl: firebase.firestore.FieldValue.serverTimestamp(),
-        nazione: nationName.value,
-        governo: "demo",
-        giocatori: [nationName.value]
+      await db.collection("games").doc(code).set({
+        code: code,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+        nation: nationName.value,
+        players: [nationName.value]
       });
-      unsubscribeLobby = db.collection("partite").doc(code)
+      unsubscribeLobby = db.collection("games").doc(code)
         .onSnapshot(doc => showLobby(doc, nationName.value));
     } catch {
-      showTempError("Errore Firebase!");
+      showTempError("Failed to create game. Try again.");
     }
   };
 
+  // Join submit
   joinSubmitBtn.onclick = async () => {
-    if (!nationName.value.trim()) return showTempError("Enter a name");
+    if (!nationName.value.trim()) return showTempError("Enter your nation’s name first");
     const code = gameCodeInput.value.trim().toUpperCase();
-    if (code.length < 4) return showTempError("Invalid code");
+    if (code.length < 4) return showTempError("Invalid code!");
     currentGameCode = code;
     try {
-      const ref = db.collection("partite").doc(code);
+      const ref = db.collection("games").doc(code);
       const doc = await ref.get();
-      if (!doc.exists) return showTempError("Match not found");
+      if (!doc.exists) return showTempError("Game not found!");
       const data = doc.data();
-      const p = Array.isArray(data.giocatori)?data.giocatori.slice():[];
-      if (!p.includes(nationName.value)) {
-        p.push(nationName.value);
-        await ref.update({ giocatori: p });
+      const players = Array.isArray(data.players) ? [...data.players] : [];
+      if (!players.includes(nationName.value)) {
+        players.push(nationName.value);
+        await ref.update({ players });
       }
       joinForm.style.display = "none";
       unsubscribeLobby = ref.onSnapshot(doc => showLobby(doc, nationName.value));
     } catch {
-      showTempError("Firebase error!");
+      showTempError("Connection error. Try again.");
     }
   };
 
+  // Start game
   startGameBtn.onclick = () => {
     uiContainer.remove();
     window.generateAndShowMapOnStart();
   };
 });
-
