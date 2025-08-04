@@ -148,8 +148,8 @@ class AdvancedMapGenerator {
     // Step 2: Genera elevazione con Perlin noise multi-ottava
     this.generateElevationMap();
     
-    // Step 3: Simula erosione e sedimentazione
-    this.simulateErosion();
+    // Step 3: Aggiungi arcipelaghi sparsi
+    this.generateArchipelagos();
     
     // Step 4: Genera temperatura basata su latitudine e elevazione
     this.generateTemperatureMap();
@@ -233,45 +233,71 @@ class AdvancedMapGenerator {
     }
   }
 
-  // Step 3: Simulazione erosione semplificata
-  simulateErosion() {
-    console.log("Simulando erosione...");
+  // Step 3: Genera arcipelaghi sparsi
+  generateArchipelagos() {
+    console.log("Generando arcipelaghi...");
     
-    const iterations = 3;
-    for (let iter = 0; iter < iterations; iter++) {
-      const newElevation = [];
-      for (let y = 0; y < this.height; y++) {
-        newElevation[y] = [...this.elevationMap[y]];
+    const numArchipelagos = 4 + Math.floor(this.random() * 3); // 4-6 arcipelaghi
+    
+    for (let i = 0; i < numArchipelagos; i++) {
+      // Posiziona gli arcipelaghi lontano dai continenti principali
+      let bestX, bestY, maxDistanceFromContinents = 0;
+      
+      // Trova la posizione più lontana dai continenti
+      for (let attempt = 0; attempt < 20; attempt++) {
+        const testX = 50 + this.random() * (this.width - 100);
+        const testY = 50 + this.random() * (this.height - 100);
+        
+        let minDistanceFromContinents = Infinity;
+        for (const continent of this.continentCenters) {
+          const distance = Math.sqrt(
+            Math.pow(testX - continent.x, 2) + Math.pow(testY - continent.y, 2)
+          );
+          minDistanceFromContinents = Math.min(minDistanceFromContinents, distance);
+        }
+        
+        if (minDistanceFromContinents > maxDistanceFromContinents) {
+          maxDistanceFromContinents = minDistanceFromContinents;
+          bestX = testX;
+          bestY = testY;
+        }
       }
       
-      for (let y = 1; y < this.height - 1; y++) {
-        for (let x = 1; x < this.width - 1; x++) {
-          if (this.elevationMap[y][x] > this.seaLevelThreshold) {
-            // Calcola gradiente medio
-            let avgNeighbor = 0;
-            let count = 0;
-            
-            for (let dy = -1; dy <= 1; dy++) {
-              for (let dx = -1; dx <= 1; dx++) {
-                if (dx === 0 && dy === 0) continue;
-                avgNeighbor += this.elevationMap[y + dy][x + dx];
-                count++;
+      // Genera l'arcipelago
+      const archipelagoSize = 15 + this.random() * 25; // 15-40 isole
+      const clusterRadius = 30 + this.random() * 40; // Raggio dell'arcipelago
+      
+      for (let j = 0; j < archipelagoSize; j++) {
+        // Posizione casuale nell'area dell'arcipelago
+        const angle = this.random() * Math.PI * 2;
+        const distance = this.random() * clusterRadius;
+        const islandX = Math.floor(bestX + Math.cos(angle) * distance);
+        const islandY = Math.floor(bestY + Math.sin(angle) * distance);
+        
+        if (islandX >= 0 && islandX < this.width && islandY >= 0 && islandY < this.height) {
+          // Crea una piccola isola
+          const islandSize = 3 + this.random() * 8; // 3-10 tile per isola
+          
+          for (let dy = -islandSize; dy <= islandSize; dy++) {
+            for (let dx = -islandSize; dx <= islandSize; dx++) {
+              const nx = islandX + dx;
+              const ny = islandY + dy;
+              
+              if (nx >= 0 && nx < this.width && ny >= 0 && ny < this.height) {
+                const distanceFromCenter = Math.sqrt(dx * dx + dy * dy);
+                if (distanceFromCenter <= islandSize) {
+                  const falloff = 1 - (distanceFromCenter / islandSize);
+                  const elevation = 0.2 + falloff * 0.4; // Elevazione moderata
+                  this.elevationMap[ny][nx] = Math.max(this.elevationMap[ny][nx], elevation);
+                }
               }
-            }
-            avgNeighbor /= count;
-            
-            const current = this.elevationMap[y][x];
-            if (current > avgNeighbor) {
-              const erosionRate = 0.1;
-              const diff = (current - avgNeighbor) * erosionRate;
-              newElevation[y][x] = current - diff * 0.5;
             }
           }
         }
       }
-      
-      this.elevationMap = newElevation;
     }
+    
+    console.log(`Generati ${numArchipelagos} arcipelaghi`);
   }
 
   // Step 4: Mappa temperatura
