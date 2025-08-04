@@ -1,3 +1,4 @@
+
 // Mini Simplex Noise - versione compatta
 function SimplexNoise(seed = Math.random()) {
   const grad3 = [
@@ -84,177 +85,426 @@ const TILE_TYPES = {
   FOREST: 5
 };
 
-// Colori corretti per ogni tipo di tile
+// Colori per ogni tipo di tile
 const TILE_COLORS = {
-  [TILE_TYPES.OCEAN]: { r: 0, g: 105, b: 148 },      // Blu oceano
-  [TILE_TYPES.COAST]: { r: 240, g: 240, b: 170 },    // Beige costa
+  [TILE_TYPES.OCEAN]: { r: 30, g: 90, b: 150 },      // Blu oceano profondo
+  [TILE_TYPES.COAST]: { r: 240, g: 220, b: 130 },    // Sabbia costa
   [TILE_TYPES.PLAINS]: { r: 144, g: 238, b: 144 },   // Verde chiaro pianure
-  [TILE_TYPES.HILLS]: { r: 255, g: 255, b: 0 },      // Giallo colline
-  [TILE_TYPES.MOUNTAINS]: { r: 64, g: 64, b: 64 },   // Nero-grigio montagne
-  [TILE_TYPES.FOREST]: { r: 0, g: 100, b: 0 }        // Verde scuro foreste
+  [TILE_TYPES.HILLS]: { r: 255, g: 215, b: 0 },      // Giallo colline
+  [TILE_TYPES.MOUNTAINS]: { r: 64, g: 64, b: 64 },   // Grigio scuro montagne
+  [TILE_TYPES.FOREST]: { r: 34, g: 139, b: 34 }      // Verde scuro foreste
 };
 
-class TileMapGenerator {
-  constructor(gridWidth = 480, gridHeight = 480, seed = Math.random()) {
-    this.gridWidth = gridWidth;
-    this.gridHeight = gridHeight;
+class AdvancedMapGenerator {
+  constructor(width = 480, height = 480, seed = Math.random()) {
+    this.width = width;
+    this.height = height;
+    this.seed = seed;
     this.simplex = new SimplexNoise(seed);
-    this.map = new Array(gridHeight);
-
-    // Inizializza con oceano - più efficiente
-    for (let y = 0; y < gridHeight; y++) {
-      this.map[y] = new Array(gridWidth).fill(TILE_TYPES.OCEAN);
+    this.random = this.createSeededRandom(seed);
+    
+    // Mappe per diversi layer
+    this.elevationMap = new Array(height);
+    this.temperatureMap = new Array(height);
+    this.humidityMap = new Array(height);
+    this.finalMap = new Array(height);
+    
+    // Inizializza tutte le mappe
+    for (let y = 0; y < height; y++) {
+      this.elevationMap[y] = new Array(width).fill(0);
+      this.temperatureMap[y] = new Array(width).fill(0);
+      this.humidityMap[y] = new Array(width).fill(0);
+      this.finalMap[y] = new Array(width).fill(TILE_TYPES.OCEAN);
     }
+    
+    // Parametri continentali
+    this.continentCenters = [];
+    this.oceanDepthThreshold = -0.15;
+    this.seaLevelThreshold = 0.0;
+    this.hillThreshold = 0.3;
+    this.mountainThreshold = 0.6;
   }
 
-  // Genera la mappa completa - ottimizzata
+  // Generatore di numeri casuali con seed
+  createSeededRandom(seed) {
+    let m = 0x80000000;
+    let a = 1103515245;
+    let c = 12345;
+    let state = Math.floor(seed * m);
+    
+    return function() {
+      state = (a * state + c) % m;
+      return state / (m - 1);
+    };
+  }
+
+  // Generazione completa della mappa
   generateMap() {
-    console.log("Generando mappa...");
-
-    // Genera terre emerse usando noise direttamente
-    this.generateLandmasses();
-
-    // Applica biomi
-    this.generateBiomes();
-
-    // Genera coste
-    this.generateCoasts();
-
-    console.log("Mappa generata!");
-    return this.map;
+    console.log("=== GENERAZIONE MAPPA AVANZATA ===");
+    
+    // Step 1: Genera continenti con tettonica delle placche
+    this.generateContinentalStructure();
+    
+    // Step 2: Genera elevazione con Perlin noise multi-ottava
+    this.generateElevationMap();
+    
+    // Step 3: Simula erosione e sedimentazione
+    this.simulateErosion();
+    
+    // Step 4: Genera temperatura basata su latitudine e elevazione
+    this.generateTemperatureMap();
+    
+    // Step 5: Genera umidità basata su oceani e venti
+    this.generateHumidityMap();
+    
+    // Step 6: Assegna biomi basati su elevazione, temperatura e umidità
+    this.assignBiomes();
+    
+    // Step 7: Refina con automata cellulari
+    this.applyCellularAutomata();
+    
+    // Step 8: Genera coste
+    this.generateCoastlines();
+    
+    console.log("=== MAPPA GENERATA CON SUCCESSO ===");
+    return this.finalMap;
   }
 
-  // Genera terre emerse usando noise - molto più efficiente
-  generateLandmasses() {
-    const scale = 0.02; // Scala del noise per continenti
-    const threshold = 0.1; // Soglia per la terra
-
-    // Genera 3-4 centri continentali
-    const continentCenters = [];
-    for (let i = 0; i < 4; i++) {
-      continentCenters.push({
-        x: Math.random() * this.gridWidth,
-        y: Math.random() * this.gridHeight,
-        strength: 0.3 + Math.random() * 0.4
+  // Step 1: Struttura continentale usando Voronoi
+  generateContinentalStructure() {
+    const numContinents = 3 + Math.floor(this.random() * 3); // 3-5 continenti
+    
+    // Genera centri continentali
+    for (let i = 0; i < numContinents; i++) {
+      this.continentCenters.push({
+        x: this.random() * this.width,
+        y: this.random() * this.height,
+        strength: 0.5 + this.random() * 0.5,
+        radius: 80 + this.random() * 120
       });
     }
+    
+    console.log(`Generati ${numContinents} centri continentali`);
+  }
 
-    for (let y = 0; y < this.gridHeight; y++) {
-      for (let x = 0; x < this.gridWidth; x++) {
-        // Combina noise generale con influenza dei centri continentali
-        let noiseValue = (this.simplex.noise2D(x * scale, y * scale) + 1) / 2;
-
-        // Aggiungi influenza dei centri continentali
-        let continentInfluence = 0;
-        for (const center of continentCenters) {
+  // Step 2: Mappa di elevazione multi-scala
+  generateElevationMap() {
+    console.log("Generando mappa di elevazione...");
+    
+    for (let y = 0; y < this.height; y++) {
+      for (let x = 0; x < this.width; x++) {
+        let elevation = 0;
+        
+        // Influenza continentale (Voronoi)
+        let continentInfluence = -1; // Inizia come oceano profondo
+        for (const continent of this.continentCenters) {
           const distance = Math.sqrt(
-            Math.pow(x - center.x, 2) + Math.pow(y - center.y, 2)
+            Math.pow(x - continent.x, 2) + Math.pow(y - continent.y, 2)
           );
-          const maxDistance = Math.min(this.gridWidth, this.gridHeight) * 0.4;
-          if (distance < maxDistance) {
-            continentInfluence += center.strength * (1 - distance / maxDistance);
+          if (distance < continent.radius) {
+            const falloff = 1 - (distance / continent.radius);
+            continentInfluence = Math.max(continentInfluence, 
+              continent.strength * falloff * falloff);
           }
         }
-
-        // Combina noise e influenza continentale
-        const finalValue = noiseValue * 0.6 + continentInfluence * 0.4;
-
-        if (finalValue > threshold) {
-          this.map[y][x] = TILE_TYPES.PLAINS;
+        
+        // Perlin noise multi-ottava per dettagli
+        let noiseValue = 0;
+        let amplitude = 1;
+        let frequency = 0.005;
+        
+        // 6 ottave di noise
+        for (let i = 0; i < 6; i++) {
+          noiseValue += this.simplex.noise2D(x * frequency, y * frequency) * amplitude;
+          amplitude *= 0.5;
+          frequency *= 2;
         }
+        
+        // Combina influenza continentale e noise
+        elevation = continentInfluence * 0.7 + noiseValue * 0.3;
+        
+        // Effetto bordo (più oceano ai bordi)
+        const edgeDistance = Math.min(x, this.width - x, y, this.height - y);
+        const edgeFactor = Math.min(1, edgeDistance / 50);
+        elevation *= edgeFactor;
+        
+        this.elevationMap[y][x] = elevation;
       }
     }
   }
 
-  // Genera biomi - ottimizzato
-  generateBiomes() {
-    const mountainScale = 0.05;
-    const forestScale = 0.08;
-    const hillScale = 0.06;
-
-    for (let y = 0; y < this.gridHeight; y++) {
-      for (let x = 0; x < this.gridWidth; x++) {
-        if (this.map[y][x] === TILE_TYPES.PLAINS) {
-          // Calcola valori noise per diversi biomi
-          const mountainNoise = (this.simplex.noise2D(x * mountainScale, y * mountainScale) + 1) / 2;
-          const forestNoise = (this.simplex.noise2D(x * forestScale + 100, y * forestScale + 100) + 1) / 2;
-          const hillNoise = (this.simplex.noise2D(x * hillScale + 200, y * hillScale + 200) + 1) / 2;
-
-          // Priorità: Montagne > Foreste > Colline > Pianure
-          if (mountainNoise > 0.75) {
-            this.map[y][x] = TILE_TYPES.MOUNTAINS;
-          } else if (forestNoise > 0.6) {
-            this.map[y][x] = TILE_TYPES.FOREST;
-          } else if (hillNoise > 0.65) {
-            this.map[y][x] = TILE_TYPES.HILLS;
+  // Step 3: Simulazione erosione semplificata
+  simulateErosion() {
+    console.log("Simulando erosione...");
+    
+    const iterations = 3;
+    for (let iter = 0; iter < iterations; iter++) {
+      const newElevation = [];
+      for (let y = 0; y < this.height; y++) {
+        newElevation[y] = [...this.elevationMap[y]];
+      }
+      
+      for (let y = 1; y < this.height - 1; y++) {
+        for (let x = 1; x < this.width - 1; x++) {
+          if (this.elevationMap[y][x] > this.seaLevelThreshold) {
+            // Calcola gradiente medio
+            let avgNeighbor = 0;
+            let count = 0;
+            
+            for (let dy = -1; dy <= 1; dy++) {
+              for (let dx = -1; dx <= 1; dx++) {
+                if (dx === 0 && dy === 0) continue;
+                avgNeighbor += this.elevationMap[y + dy][x + dx];
+                count++;
+              }
+            }
+            avgNeighbor /= count;
+            
+            const current = this.elevationMap[y][x];
+            if (current > avgNeighbor) {
+              const erosionRate = 0.1;
+              const diff = (current - avgNeighbor) * erosionRate;
+              newElevation[y][x] = current - diff * 0.5;
+            }
           }
-          // Altrimenti rimane PLAINS
         }
+      }
+      
+      this.elevationMap = newElevation;
+    }
+  }
+
+  // Step 4: Mappa temperatura
+  generateTemperatureMap() {
+    console.log("Generando mappa temperature...");
+    
+    for (let y = 0; y < this.height; y++) {
+      for (let x = 0; x < this.width; x++) {
+        // Temperatura basata su latitudine (più freddo ai poli)
+        const latitude = Math.abs(y - this.height / 2) / (this.height / 2);
+        let temperature = 1 - latitude * 0.8;
+        
+        // Effetto altitudine (più freddo in montagna)
+        const elevation = this.elevationMap[y][x];
+        if (elevation > this.seaLevelThreshold) {
+          temperature -= elevation * 0.4;
+        }
+        
+        // Variazione con noise
+        temperature += this.simplex.noise2D(x * 0.02, y * 0.02) * 0.2;
+        
+        this.temperatureMap[y][x] = Math.max(0, Math.min(1, temperature));
       }
     }
   }
 
-  // Genera le coste - ottimizzato
-  generateCoasts() {
-    const coastMap = [];
-    for (let y = 0; y < this.gridHeight; y++) {
-      coastMap[y] = [...this.map[y]];
-    }
-
-    for (let y = 0; y < this.gridHeight; y++) {
-      for (let x = 0; x < this.gridWidth; x++) {
-        if (this.map[y][x] !== TILE_TYPES.OCEAN) {
-          // Controlla se è adiacente all'oceano
-          let isCoast = false;
-
-          // Controlla i 4 vicini principali
-          const neighbors = [
-            {x: x-1, y}, {x: x+1, y}, {x, y: y-1}, {x, y: y+1}
-          ];
-
-          for (const neighbor of neighbors) {
-            if (neighbor.x >= 0 && neighbor.x < this.gridWidth && 
-                neighbor.y >= 0 && neighbor.y < this.gridHeight) {
-              if (this.map[neighbor.y][neighbor.x] === TILE_TYPES.OCEAN) {
-                isCoast = true;
-                break;
+  // Step 5: Mappa umidità
+  generateHumidityMap() {
+    console.log("Generando mappa umidità...");
+    
+    for (let y = 0; y < this.height; y++) {
+      for (let x = 0; x < this.width; x++) {
+        let humidity = 0.5; // Umidità base
+        
+        // Distanza dall'oceano
+        let minDistanceToOcean = Infinity;
+        for (let dy = -20; dy <= 20; dy++) {
+          for (let dx = -20; dx <= 20; dx++) {
+            const nx = x + dx;
+            const ny = y + dy;
+            if (nx >= 0 && nx < this.width && ny >= 0 && ny < this.height) {
+              if (this.elevationMap[ny][nx] <= this.seaLevelThreshold) {
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                minDistanceToOcean = Math.min(minDistanceToOcean, distance);
               }
             }
           }
+        }
+        
+        // Più umido vicino all'oceano
+        if (minDistanceToOcean < Infinity) {
+          humidity += Math.max(0, 0.5 - minDistanceToOcean / 40);
+        }
+        
+        // Effetto temperatura (aria calda tiene più umidità)
+        humidity += this.temperatureMap[y][x] * 0.3;
+        
+        // Variazione con noise
+        humidity += this.simplex.noise2D(x * 0.03, y * 0.03) * 0.3;
+        
+        this.humidityMap[y][x] = Math.max(0, Math.min(1, humidity));
+      }
+    }
+  }
 
-          if (isCoast) {
+  // Step 6: Assegnazione biomi
+  assignBiomes() {
+    console.log("Assegnando biomi...");
+    
+    for (let y = 0; y < this.height; y++) {
+      for (let x = 0; x < this.width; x++) {
+        const elevation = this.elevationMap[y][x];
+        const temperature = this.temperatureMap[y][x];
+        const humidity = this.humidityMap[y][x];
+        
+        // Oceano profondo
+        if (elevation < this.oceanDepthThreshold) {
+          this.finalMap[y][x] = TILE_TYPES.OCEAN;
+        }
+        // Oceano poco profondo
+        else if (elevation < this.seaLevelThreshold) {
+          this.finalMap[y][x] = TILE_TYPES.OCEAN;
+        }
+        // Montagne
+        else if (elevation > this.mountainThreshold) {
+          this.finalMap[y][x] = TILE_TYPES.MOUNTAINS;
+        }
+        // Colline
+        else if (elevation > this.hillThreshold) {
+          // Le colline possono essere boscose se c'è abbastanza umidità
+          if (humidity > 0.6 && temperature > 0.3) {
+            this.finalMap[y][x] = TILE_TYPES.FOREST;
+          } else {
+            this.finalMap[y][x] = TILE_TYPES.HILLS;
+          }
+        }
+        // Terre basse
+        else {
+          // Foreste se umido e caldo
+          if (humidity > 0.5 && temperature > 0.4) {
+            this.finalMap[y][x] = TILE_TYPES.FOREST;
+          }
+          // Altrimenti pianure
+          else {
+            this.finalMap[y][x] = TILE_TYPES.PLAINS;
+          }
+        }
+      }
+    }
+  }
+
+  // Step 7: Automata cellulari per raffinare
+  applyCellularAutomata() {
+    console.log("Applicando automata cellulari...");
+    
+    const iterations = 2;
+    for (let iter = 0; iter < iterations; iter++) {
+      const newMap = [];
+      for (let y = 0; y < this.height; y++) {
+        newMap[y] = [...this.finalMap[y]];
+      }
+      
+      for (let y = 1; y < this.height - 1; y++) {
+        for (let x = 1; x < this.width - 1; x++) {
+          const currentType = this.finalMap[y][x];
+          
+          // Conta i tipi vicini
+          const neighbors = {};
+          for (let dy = -1; dy <= 1; dy++) {
+            for (let dx = -1; dx <= 1; dx++) {
+              const type = this.finalMap[y + dy][x + dx];
+              neighbors[type] = (neighbors[type] || 0) + 1;
+            }
+          }
+          
+          // Regole per foreste: si espandono in pianure umide
+          if (currentType === TILE_TYPES.PLAINS && 
+              (neighbors[TILE_TYPES.FOREST] || 0) >= 3 &&
+              this.humidityMap[y][x] > 0.5) {
+            newMap[y][x] = TILE_TYPES.FOREST;
+          }
+          
+          // Regole per montagne: mantieni cluster compatti
+          if (currentType === TILE_TYPES.MOUNTAINS &&
+              (neighbors[TILE_TYPES.MOUNTAINS] || 0) < 3) {
+            newMap[y][x] = TILE_TYPES.HILLS;
+          }
+        }
+      }
+      
+      this.finalMap = newMap;
+    }
+  }
+
+  // Step 8: Genera coste
+  generateCoastlines() {
+    console.log("Generando linee costiere...");
+    
+    const coastMap = [];
+    for (let y = 0; y < this.height; y++) {
+      coastMap[y] = [...this.finalMap[y]];
+    }
+    
+    for (let y = 0; y < this.height; y++) {
+      for (let x = 0; x < this.width; x++) {
+        if (this.finalMap[y][x] !== TILE_TYPES.OCEAN) {
+          // Controlla se è adiacente all'oceano
+          let isCoast = false;
+          
+          for (let dy = -1; dy <= 1; dy++) {
+            for (let dx = -1; dx <= 1; dx++) {
+              const nx = x + dx;
+              const ny = y + dy;
+              if (nx >= 0 && nx < this.width && ny >= 0 && ny < this.height) {
+                if (this.finalMap[ny][nx] === TILE_TYPES.OCEAN) {
+                  isCoast = true;
+                  break;
+                }
+              }
+            }
+            if (isCoast) break;
+          }
+          
+          if (isCoast && this.finalMap[y][x] === TILE_TYPES.PLAINS) {
             coastMap[y][x] = TILE_TYPES.COAST;
           }
         }
       }
     }
-
-    this.map = coastMap;
+    
+    this.finalMap = coastMap;
   }
 }
 
-// Funzione principale per disegnare la mappa - ottimizzata
+// Funzione principale per disegnare la mappa
 function drawTileMapOnCanvas(canvas) {
   const ctx = canvas.getContext("2d");
   const width = canvas.width = 1200;
   const height = canvas.height = 800;
 
-  console.log("Iniziando generazione mappa...");
+  console.log("=== INIZIANDO GENERAZIONE MAPPA AVANZATA ===");
   const startTime = performance.now();
 
-  // Crea un nuovo generatore
-  const generator = new TileMapGenerator(480, 480, Math.random());
+  // Crea il nuovo generatore avanzato
+  const generator = new AdvancedMapGenerator(480, 480, Math.random());
   const tileMap = generator.generateMap();
 
   const endTime = performance.now();
-  console.log(`Mappa generata in ${(endTime - startTime).toFixed(2)}ms`);
+  console.log(`=== MAPPA GENERATA IN ${(endTime - startTime).toFixed(2)}ms ===`);
 
-  const tileWidth = width / generator.gridWidth;
-  const tileHeight = height / generator.gridHeight;
+  // Calcola statistiche
+  const stats = {};
+  for (let y = 0; y < generator.height; y++) {
+    for (let x = 0; x < generator.width; x++) {
+      const type = tileMap[y][x];
+      stats[type] = (stats[type] || 0) + 1;
+    }
+  }
+  
+  console.log("Statistiche mappa:");
+  console.log(`Oceano: ${stats[TILE_TYPES.OCEAN] || 0} tiles (${((stats[TILE_TYPES.OCEAN] || 0) / (480*480) * 100).toFixed(1)}%)`);
+  console.log(`Costa: ${stats[TILE_TYPES.COAST] || 0} tiles (${((stats[TILE_TYPES.COAST] || 0) / (480*480) * 100).toFixed(1)}%)`);
+  console.log(`Pianure: ${stats[TILE_TYPES.PLAINS] || 0} tiles (${((stats[TILE_TYPES.PLAINS] || 0) / (480*480) * 100).toFixed(1)}%)`);
+  console.log(`Colline: ${stats[TILE_TYPES.HILLS] || 0} tiles (${((stats[TILE_TYPES.HILLS] || 0) / (480*480) * 100).toFixed(1)}%)`);
+  console.log(`Montagne: ${stats[TILE_TYPES.MOUNTAINS] || 0} tiles (${((stats[TILE_TYPES.MOUNTAINS] || 0) / (480*480) * 100).toFixed(1)}%)`);
+  console.log(`Foreste: ${stats[TILE_TYPES.FOREST] || 0} tiles (${((stats[TILE_TYPES.FOREST] || 0) / (480*480) * 100).toFixed(1)}%)`);
 
-  // Disegna ogni tile - senza bordi per performance
-  for (let y = 0; y < generator.gridHeight; y++) {
-    for (let x = 0; x < generator.gridWidth; x++) {
+  const tileWidth = width / generator.width;
+  const tileHeight = height / generator.height;
+
+  // Disegna ogni tile
+  for (let y = 0; y < generator.height; y++) {
+    for (let x = 0; x < generator.width; x++) {
       const tileType = tileMap[y][x];
       const color = TILE_COLORS[tileType];
 
@@ -268,7 +518,7 @@ function drawTileMapOnCanvas(canvas) {
     }
   }
 
-  console.log("Mappa disegnata!");
+  console.log("=== MAPPA DISEGNATA CON SUCCESSO ===");
 }
 
 // Espone la funzione al main.js
