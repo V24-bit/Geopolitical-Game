@@ -3,8 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <title>Geopolitical Game</title>
-  <meta name="description" content="Geopolitical Game is a multiplayer strategy game where players lead a nation and compete for global dominance.">
+  <meta name="description" content="Geopolitical Game is a multiplayer strategy game where you lead a nation to global dominance.">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
   <link rel="stylesheet" href="style.css">
   <link rel="icon" href="data:," />
 </head>
@@ -16,7 +17,7 @@
       <form id="nation-form" autocomplete="off">
         <div class="form-group">
           <label for="nation-name">Nation Name</label>
-          <input type="text" id="nation-name" placeholder="Enter your nation's name" required maxlength="20">
+          <input type="text" id="nation-name" placeholder="Enter your nation’s name" required maxlength="20">
         </div>
       </form>
 
@@ -36,23 +37,17 @@
       </div>
 
       <button id="start-game-btn" class="action-btn potato-yellow" style="display:none;">Start Game</button>
-
       <div id="output" class="output"></div>
     </div>
   </div>
 
   <!-- Map Canvas (hidden until Start Game) -->
-  <canvas id="game-map"
-          style="display:none; position:fixed; top:0; left:0; z-index:0;"></canvas>
+  <canvas id="game-map" style="display:none; position:fixed; top:0; left:0; z-index:0;"></canvas>
 
-  <!-- SimplexNoise -->
-  <script src="https://cdn.jsdelivr.net/npm/simplex-noise@4.0.1/simplex-noise.min.js"></script>
-  <!-- Map Generator -->
+  <!-- Scripts -->
   <script src="map-generator.js"></script>
-  <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-  <!-- Main Game Logic -->
   <script src="main1.js"></script>
 </body>
 </html>
