@@ -96,7 +96,7 @@ const TILE_COLORS = {
 };
 
 class TileMapGenerator {
-  constructor(gridWidth = 24, gridHeight = 20, seed = Math.random()) {
+  constructor(gridWidth = 25, gridHeight = 20, seed = Math.random()) {
     this.gridWidth = gridWidth;
     this.gridHeight = gridHeight;
     this.totalTiles = gridWidth * gridHeight;
@@ -408,7 +408,7 @@ function drawTileMapOnCanvas(canvas) {
   const height = canvas.height = 800;
 
   // Crea un nuovo generatore con seed casuale per varietà
-  const generator = new TileMapGenerator(24, 20, Math.random());
+  const generator = new TileMapGenerator(25, 20, Math.random());
   const tileMap = generator.generateMap();
 
   const tileWidth = width / generator.gridWidth;
