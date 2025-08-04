@@ -1,67 +1,56 @@
-// Firebase Config
+// Firebase config
 const firebaseConfig = {
-  apiKey: "TUO_API_KEY",
-  authDomain: "TUO_PROJECT.firebaseapp.com",
-  projectId: "TUO_PROJECT",
-  storageBucket: "TUO_PROJECT.appspot.com",
-  messagingSenderId: "XXX",
-  appId: "XXX"
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+  projectId: "YOUR_PROJECT_ID",
+  storageBucket: "YOUR_PROJECT_ID.appspot.com",
+  messagingSenderId: "YOUR_SENDER_ID",
+  appId: "YOUR_APP_ID"
 };
 
-// Inizializza Firebase
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
-// Autenticazione anonima
+// Sign in anonymously
 firebase.auth().signInAnonymously().catch((error) => {
-  console.error("Auth error:", error);
+  console.error("Auth Error:", error);
 });
 
-// Utility
-function generateGameCode(length = 6) {
-  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-  let code = '';
-  for (let i = 0; i < length; i++) code += chars.charAt(Math.floor(Math.random() * chars.length));
-  return code;
-}
-
-// Elementi DOM
 const createGameBtn = document.getElementById("create-game-btn");
 const joinGameBtn = document.getElementById("join-game-btn");
-const joinForm = document.getElementById("join-form");
 const joinSubmitBtn = document.getElementById("join-submit-btn");
-const gameCodeInput = document.getElementById("game-code-input");
-const gameCodePanel = document.getElementById("game-code-panel");
-const gameCodeLabel = document.getElementById("game-code-label");
-const gameCodeValue = document.getElementById("game-code-value");
 const startGameBtn = document.getElementById("start-game-btn");
+
+const joinForm = document.getElementById("join-form");
+const gameCodePanel = document.getElementById("game-code-panel");
+const gameCodeValue = document.getElementById("game-code-value");
 const output = document.getElementById("output");
-const uiContainer = document.getElementById("ui-container");
-const mapCanvas = document.getElementById("game-map");
+const nationNameInput = document.getElementById("nation-name");
 
 let currentGameCode = null;
 
-createGameBtn.onclick = async () => {
-  const nationName = document.getElementById("nation-name").value.trim();
-  if (!nationName) {
-    alert("Please enter your nation's name.");
-    return;
-  }
+function generateGameCode(length = 6) {
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  return Array.from({ length }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
+}
 
-  const gameCode = generateGameCode();
-  await db.collection("games").doc(gameCode).set({
-    host: nationName,
-    players: [nationName],
+createGameBtn.onclick = async () => {
+  const nationName = nationNameInput.value.trim();
+  if (!nationName) return alert("Please enter a nation name.");
+
+  const code = generateGameCode();
+  currentGameCode = code;
+
+  await db.collection("games").doc(code).set({
     createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-    started: false
+    nations: [{ name: nationName }]
   });
 
-  currentGameCode = gameCode;
-  gameCodeLabel.textContent = "Game Code:";
-  gameCodeValue.textContent = gameCode;
+  gameCodeValue.textContent = code;
   gameCodePanel.style.display = "block";
   startGameBtn.style.display = "inline-block";
-  output.textContent = "Game created. Share the code with others to join.";
+
+  output.textContent = "Game created successfully.";
 };
 
 joinGameBtn.onclick = () => {
@@ -69,49 +58,28 @@ joinGameBtn.onclick = () => {
 };
 
 joinSubmitBtn.onclick = async () => {
-  const gameCode = gameCodeInput.value.trim().toUpperCase();
-  const nationName = document.getElementById("nation-name").value.trim();
-  if (!gameCode || !nationName) {
-    alert("Enter both game code and nation name.");
-    return;
-  }
+  const code = document.getElementById("game-code-input").value.trim();
+  const nationName = nationNameInput.value.trim();
+  if (!code || !nationName) return alert("Enter both code and nation name.");
 
-  const gameRef = db.collection("games").doc(gameCode);
-  const gameDoc = await gameRef.get();
+  const doc = await db.collection("games").doc(code).get();
+  if (!doc.exists) return alert("Game not found.");
 
-  if (!gameDoc.exists) {
-    alert("Game not found.");
-    return;
-  }
-
-  const gameData = gameDoc.data();
-  if (gameData.started) {
-    alert("Game already started.");
-    return;
-  }
-
-  await gameRef.update({
-    players: firebase.firestore.FieldValue.arrayUnion(nationName)
+  await db.collection("games").doc(code).update({
+    nations: firebase.firestore.FieldValue.arrayUnion({ name: nationName })
   });
 
-  currentGameCode = gameCode;
-  gameCodeLabel.textContent = "Joined Game:";
-  gameCodeValue.textContent = gameCode;
-  gameCodePanel.style.display = "block";
-  startGameBtn.style.display = "none";
-  output.textContent = "Joined the game.";
+  output.textContent = "Joined game successfully.";
+  currentGameCode = code;
+  startGameBtn.style.display = "inline-block";
 };
 
-startGameBtn.onclick = async () => {
-  if (!currentGameCode) return;
-  await db.collection("games").doc(currentGameCode).update({ started: true });
-
-  // Nasconde la UI e mostra la mappa
-  uiContainer.style.display = "none";
-  mapCanvas.style.display = "block";
-
-  if (typeof window.generateAndShowMapOnStart === "function") {
-    window.generateAndShowMapOnStart();
+startGameBtn.onclick = () => {
+  document.getElementById("ui-container").style.display = "none";
+  const canvas = document.getElementById("game-map");
+  canvas.style.display = "block";
+  if (window.generateAndShowMapOnStart) {
+    window.generateAndShowMapOnStart(canvas);
   } else {
     console.error("Map generator function not found.");
   }
