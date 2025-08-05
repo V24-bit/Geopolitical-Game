@@ -1,114 +1,61 @@
-// Inizializza Firebase
-const firebaseConfig = {
-  apiKey: "AIzaSyC-nxzpcf5I_NHkKbWbLXRFRRzQLv9ilWU",
-  authDomain: "geopolitical-game-5f135.firebaseapp.com",
-  projectId: "geopolitical-game-5f135",
-  storageBucket: "geopolitical-game-5f135.firebasestorage.app",
-  messagingSenderId: "537294174901",
-  appId: "1:537294174901:web:0c0eebedfd927cc8e65cfc"
-};
-firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();
+// Funzione principale per disegnare la mappa
+function drawTileMapOnCanvas(canvas) {
+  const ctx = canvas.getContext("2d");
+  const width = canvas.width = 1200;
+  const height = canvas.height = 800;
 
-// Riferimenti UI
-const createGameBtn    = document.getElementById("create-game-btn");
-const joinGameBtn      = document.getElementById("join-game-btn");
-const joinForm         = document.getElementById("join-form");
-const joinSubmitBtn    = document.getElementById("join-submit-btn");
-const gameCodeInput    = document.getElementById("game-code-input");
-const gameCodePanel    = document.getElementById("game-code-panel");
-const gameCodeValue    = document.getElementById("game-code-value");
-const playerListPanel  = document.getElementById("player-list-panel");
-const startGameBtn     = document.getElementById("start-game-btn");
-const nationInput      = document.getElementById("nation-name");
-const uiContainer      = document.getElementById("ui-container");
+  console.log("=== INIZIANDO GENERAZIONE MAPPA AVANZATA ===");
+  const startTime = performance.now();
 
-let currentCode = null;
-let hostName    = null;
+  // Crea il nuovo generatore avanzato
+  const generator = new AdvancedMapGenerator(480, 480, Math.random());
+  const tileMap = generator.generateMap();
 
-// Crea Partita
-createGameBtn.onclick = async () => {
-  joinForm.style.display    = "none";
-  joinGameBtn.style.display = "none";
+  const endTime = performance.now();
+  console.log(`=== MAPPA GENERATA IN ${(endTime - startTime).toFixed(2)}ms ===`);
 
-  const nazione = nationInput.value.trim();
-  if (!nazione) return alert("Inserisci il nome della nazione");
+  // Calcola statistiche
+  const stats = {};
+  for (let y = 0; y < generator.height; y++) {
+    for (let x = 0; x < generator.width; x++) {
+      const type = tileMap[y][x];
+      stats[type] = (stats[type] || 0) + 1;
+    }
+  }
 
-  const codice = Math.random().toString(36).substring(2, 6).toUpperCase();
-  hostName = nazione;
-  currentCode = codice;
+  console.log("Statistiche mappa:");
+  console.log(`Oceano: ${stats[TILE_TYPES.OCEAN] || 0} tiles (${((stats[TILE_TYPES.OCEAN] || 0) / (480*480) * 100).toFixed(1)}%)`);
+  console.log(`Costa: ${stats[TILE_TYPES.COAST] || 0} tiles (${((stats[TILE_TYPES.COAST] || 0) / (480*480) * 100).toFixed(1)}%)`);
+  console.log(`Pianure: ${stats[TILE_TYPES.PLAINS] || 0} tiles (${((stats[TILE_TYPES.PLAINS] || 0) / (480*480) * 100).toFixed(1)}%)`);
+  console.log(`Colline: ${stats[TILE_TYPES.HILLS] || 0} tiles (${((stats[TILE_TYPES.HILLS] || 0) / (480*480) * 100).toFixed(1)}%)`);
+  console.log(`Montagne: ${stats[TILE_TYPES.MOUNTAINS] || 0} tiles (${((stats[TILE_TYPES.MOUNTAINS] || 0) / (480*480) * 100).toFixed(1)}%)`);
+  console.log(`Foreste: ${stats[TILE_TYPES.FOREST] || 0} tiles (${((stats[TILE_TYPES.FOREST] || 0) / (480*480) * 100).toFixed(1)}%)`);
 
-  await db.collection("partite").doc(codice).set({
-    codice,
-    host: nazione,
-    giocatori: [nazione],
-    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-    started: false
-  });
+  const tileWidth = width / generator.width;
+  const tileHeight = height / generator.height;
 
-  showLobby();
-};
+  // Disegna ogni tile
+  for (let y = 0; y < generator.height; y++) {
+    for (let x = 0; x < generator.width; x++) {
+      const tileType = tileMap[y][x];
+      const color = TILE_COLORS[tileType];
 
-// Unisciti a Partita
-joinGameBtn.onclick = () => {
-  joinForm.style.display = "block";
-};
+      ctx.fillStyle = `rgb(${color.r}, ${color.g}, ${color.b})`;
+      ctx.fillRect(
+        x * tileWidth,
+        y * tileHeight,
+        tileWidth,
+        tileHeight
+      );
+    }
+  }
 
-joinSubmitBtn.onclick = async () => {
-  const codice = gameCodeInput.value.trim().toUpperCase();
-  const nazione = nationInput.value.trim();
-  if (!codice || !nazione) return alert("Inserisci tutti i campi");
-
-  const ref = db.collection("partite").doc(codice);
-  const doc = await ref.get();
-  if (!doc.exists) return alert("Partita non trovata");
-
-  const data = doc.data();
-  hostName = data.host;
-  currentCode = codice;
-
-  if (data.giocatori.includes(nazione))
-    return alert("Nome nazione già usato in questa partita");
-
-  await ref.update({
-    giocatori: [...data.giocatori, nazione]
-  });
-
-  showLobby();
-};
-
-// Mostra Lobby (codice + lista)
-function showLobby() {
-  // mostra codice e start button
-  gameCodePanel.style.display = "flex";
-  gameCodeValue.textContent   = currentCode;
-  startGameBtn.style.display  = (nationInput.value.trim() === hostName)
-    ? "inline-block" : "none";
-
-  // ogni volta che cambiano i dati in Firestore aggiorna lista
-  db.collection("partite").doc(currentCode)
-    .onSnapshot(snap => {
-      const { giocatori, host, started } = snap.data();
-      // aggiorna lista
-      playerListPanel.innerHTML = "";
-      giocatori.forEach(p => {
-        const li = document.createElement("li");
-        li.textContent = p + (p === host ? " (Host)" : "");
-        if (p === host) li.classList.add("host");
-        playerListPanel.appendChild(li);
-      });
-      // se l’host ha già avviato, mostra la mappa
-      if (started) {
-        uiContainer.style.display    = "none";
-        document.getElementById("game-map").style.display = "block";
-        window.generateAndShowMapOnStart();
-      }
-    });
+  console.log("=== MAPPA DISEGNATA CON SUCCESSO ===");
 }
 
-// Inizia Partita (solo host)
-startGameBtn.onclick = async () => {
-  await db.collection("partite")
-    .doc(currentCode)
-    .update({ started: true });
+// Espone la funzione al main.js
+window.generateAndShowMapOnStart = () => {
+  const canvas = document.getElementById("game-map");
+  canvas.style.display = "block";
+  drawTileMapOnCanvas(canvas);
 };
