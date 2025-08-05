@@ -2,28 +2,54 @@
 <html lang="it">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Geopolitical Game</title>
   <link rel="stylesheet" href="style.css">
+  <link rel="icon" href="data:," />
 </head>
 <body>
-  <div class="center-container">
+  <div id="ui-container" class="center-container">
     <div class="main-ui">
       <h1 id="title">Geopolitical Game</h1>
-      <form id="nation-form">
+
+      <form id="nation-form" autocomplete="off">
         <div class="form-group">
-          <label for="nation-name">Nome Nazione:</label>
-          <input type="text" id="nation-name" name="nation-name" placeholder="Es. Imperium Romanum">
-        </div>
-        <div class="actions">
-          <button class="action-btn potato-yellow" type="submit">Crea Nazione</button>
-          <button class="action-btn sky-blue" type="button" onclick="window.generateAndShowMapOnStart()">Genera Mappa</button>
+          <label for="nation-name">Nome della Nazione</label>
+          <input type="text" id="nation-name" placeholder="Inserisci il nome della nazione" required maxlength="20">
         </div>
       </form>
+
+      <div class="actions">
+        <button id="create-game-btn" class="action-btn potato-yellow">Crea partita</button>
+        <button id="join-game-btn" class="action-btn sky-blue">Unisciti a partita</button>
+      </div>
+
+      <div id="join-form" style="display:none;">
+        <input type="text" id="game-code-input" placeholder="Inserisci codice partita" maxlength="8">
+        <button id="join-submit-btn" class="action-btn sky-blue">Entra</button>
+      </div>
+
+      <div id="game-code-panel" style="display:none;">
+        <div id="game-code-label" class="game-code-label">Codice partita:</div>
+        <div id="game-code-value" class="game-code-value"></div>
+      </div>
+
+      <button id="start-game-btn" class="action-btn potato-yellow" style="display:none;">Inizia Partita</button>
+
+      <div id="output" class="output"></div>
     </div>
-    <canvas id="game-map"></canvas>
   </div>
+
+  <!-- Canvas mappa -->
+  <canvas id="game-map" style="display:none; position:fixed; top:0; left:0; z-index:0;"></canvas>
+
+  <!-- Ordine degli script -->
   <script src="map-generator.js"></script>
+
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
+  <!-- Logica principale -->
   <script src="main1.js"></script>
 </body>
 </html>
