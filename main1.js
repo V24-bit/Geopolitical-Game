@@ -11,39 +11,61 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
+// --- Funzione di pulizia delle partite vecchie ---
+async function cleanupOldGames() {
+  // data di cutoff: 7 giorni fa
+  const cutoffDate = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+  const cutoffTimestamp = firebase.firestore.Timestamp.fromDate(cutoffDate);
+
+  // query partite scadute
+  const oldGamesSnap = await db
+    .collection('partite')
+    .where('createdAt', '<=', cutoffTimestamp)
+    .get();
+
+  // batch delete
+  const batch = db.batch();
+  oldGamesSnap.forEach(doc => batch.delete(doc.ref));
+  await batch.commit();
+
+  console.log(`Pulite ${oldGamesSnap.size} partite vecchie.`);
+}
+
+// Pulizia automatica all’avvio
+cleanupOldGames().catch(console.error);
+
 // --- UI ---
 const createGameBtn = document.getElementById("create-game-btn");
-const joinGameBtn = document.getElementById("join-game-btn");
-const joinForm = document.getElementById("join-form");
+const joinGameBtn   = document.getElementById("join-game-btn");
+const joinForm      = document.getElementById("join-form");
 const joinSubmitBtn = document.getElementById("join-submit-btn");
 const gameCodeInput = document.getElementById("game-code-input");
-const startGameBtn = document.getElementById("start-game-btn");
+const startGameBtn  = document.getElementById("start-game-btn");
 const gameCodePanel = document.getElementById("game-code-panel");
 const gameCodeValue = document.getElementById("game-code-value");
-const nationInput = document.getElementById("nation-name");
-const uiContainer = document.getElementById("ui-container");
+const nationInput   = document.getElementById("nation-name");
+const uiContainer   = document.getElementById("ui-container");
 
 // --- Creazione Partita ---
 createGameBtn.onclick = async () => {
-  // Nascondi form di join se rimasto aperto
-  joinForm.style.display = "none";
-  // Nascondi il bottone Unisciti a partita
-  joinGameBtn.style.display = "none";
+  // nascondi form e bottone Unisciti
+  joinForm.style.display      = "none";
+  joinGameBtn.style.display   = "none";
 
-  const codice = Math.random().toString(36).substring(2, 6).toUpperCase();
+  const codice  = Math.random().toString(36).substring(2, 6).toUpperCase();
   const nazione = nationInput.value.trim();
-
   if (!nazione) return alert("Inserisci il nome della nazione");
 
   await db.collection("partite").doc(codice).set({
     codice,
     nazione,
-    giocatori: [nazione]
+    giocatori: [nazione],
+    createdAt: firebase.firestore.FieldValue.serverTimestamp()
   });
 
   gameCodePanel.style.display = "block";
-  gameCodeValue.textContent = codice;
-  startGameBtn.style.display = "inline-block";
+  gameCodeValue.textContent   = codice;
+  startGameBtn.style.display  = "inline-block";
 };
 
 // --- Unisciti a Partita ---
@@ -52,13 +74,12 @@ joinGameBtn.onclick = () => {
 };
 
 joinSubmitBtn.onclick = async () => {
-  const codice = gameCodeInput.value.trim().toUpperCase();
+  const codice  = gameCodeInput.value.trim().toUpperCase();
   const nazione = nationInput.value.trim();
-
   if (!codice || !nazione) return alert("Inserisci tutti i campi");
 
   const partitaRef = db.collection("partite").doc(codice);
-  const doc = await partitaRef.get();
+  const doc        = await partitaRef.get();
   if (!doc.exists) return alert("Partita non trovata");
 
   const data = doc.data();
@@ -71,15 +92,15 @@ joinSubmitBtn.onclick = async () => {
   });
 
   gameCodePanel.style.display = "block";
-  gameCodeValue.textContent = codice;
-  startGameBtn.style.display = "inline-block";
+  gameCodeValue.textContent   = codice;
+  startGameBtn.style.display  = "inline-block";
 };
 
 // --- Inizia Partita ---
 startGameBtn.onclick = () => {
   uiContainer.style.display = "none";
   const canvas = document.getElementById("game-map");
-  canvas.style.display = "block";
+  canvas.style.display      = "block";
 
   if (typeof window.generateAndShowMapOnStart === "function") {
     window.generateAndShowMapOnStart();
