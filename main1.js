@@ -1,11 +1,11 @@
 // Inizializza Firebase (usa i tuoi valori del progetto!)
 const firebaseConfig = {
-  apiKey: "API_KEY_TUA",
-  authDomain: "DOMINIO.firebaseapp.com",
+  apiKey: "AIzaSyC-nxzpcf5I_NHkKbWbLXRFRRzQLv9ilWU",
+  authDomain: "geopolitical-game-5f135.firebaseapp.com",
   projectId: "geopolitical-game-5f135",
-  storageBucket: "geopolitical-game-5f135.appspot.com",
-  messagingSenderId: "123456789",
-  appId: "APP_ID_TUA"
+  storageBucket: "geopolitical-game-5f135.firebasestorage.app",
+  messagingSenderId: "537294174901",
+  appId: "1:537294174901:web:0c0eebedfd927cc8e65cfc"
 };
 
 firebase.initializeApp(firebaseConfig);
