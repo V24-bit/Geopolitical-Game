@@ -27,6 +27,8 @@ const uiContainer = document.getElementById("ui-container");
 createGameBtn.onclick = async () => {
   // Nascondi form di join se rimasto aperto
   joinForm.style.display = "none";
+  // Nascondi il bottone Unisciti a partita
+  joinGameBtn.style.display = "none";
 
   const codice = Math.random().toString(36).substring(2, 6).toUpperCase();
   const nazione = nationInput.value.trim();
