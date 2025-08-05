@@ -23,8 +23,11 @@ const gameCodeValue = document.getElementById("game-code-value");
 const nationInput = document.getElementById("nation-name");
 const uiContainer = document.getElementById("ui-container");
 
-// --- Crea Partita ---
+// --- Creazione Partita ---
 createGameBtn.onclick = async () => {
+  // Nascondi form di join se rimasto aperto
+  joinForm.style.display = "none";
+
   const codice = Math.random().toString(36).substring(2, 6).toUpperCase();
   const nazione = nationInput.value.trim();
 
@@ -57,16 +60,20 @@ joinSubmitBtn.onclick = async () => {
   if (!doc.exists) return alert("Partita non trovata");
 
   const data = doc.data();
-  if (data.giocatori.includes(nazione)) return alert("Nome già usato");
+  if (data.giocatori.includes(nazione)) {
+    return alert("Nome nazione già usato in questa partita");
+  }
 
   await partitaRef.update({
     giocatori: [...data.giocatori, nazione]
   });
 
-  alert("Ti sei unito alla partita " + codice);
+  gameCodePanel.style.display = "block";
+  gameCodeValue.textContent = codice;
+  startGameBtn.style.display = "inline-block";
 };
 
-// --- Inizia partita ---
+// --- Inizia Partita ---
 startGameBtn.onclick = () => {
   uiContainer.style.display = "none";
   const canvas = document.getElementById("game-map");
