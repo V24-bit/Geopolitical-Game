@@ -31,6 +31,10 @@ let currentPlayerName = null;
 let isHost = false;
 let gameListener = null;
 
+// Esponi le variabili globali per il map-generator.js
+window.currentGameCode = null;
+window.currentPlayerName = null;
+window.db = db;
 // Funzione per aggiornare la lista giocatori
 function updatePlayersList(giocatori, hostName) {
   playersList.innerHTML = '';
@@ -69,6 +73,10 @@ createGameBtn.onclick = async () => {
     currentGameCode = codice;
     currentPlayerName = nazione;
     isHost = true;
+    
+    // Aggiorna variabili globali esposte
+    window.currentGameCode = codice;
+    window.currentPlayerName = nazione;
 
     // Mostra pannelli
     gameCodePanel.style.display = "block";
@@ -98,6 +106,16 @@ function listenToGameChanges(codice) {
     if (doc.exists) {
       const data = doc.data();
       updatePlayersList(data.giocatori, data.host);
+      
+      // Aggiorna le nazioni posizionate se esistono
+      if (data.nazioni && window.placedNations) {
+        window.placedNations = data.nazioni;
+        // Ridisegna la mappa se è visibile
+        const canvas = document.getElementById("game-map");
+        if (canvas.style.display === "block" && window.redrawMapWithNations) {
+          window.redrawMapWithNations();
+        }
+      }
       
       // Mostra il bottone start solo per l'host
       if (isHost) {
@@ -146,6 +164,10 @@ joinSubmitBtn.onclick = async () => {
     currentGameCode = codice;
     currentPlayerName = nazione;
     isHost = false;
+    
+    // Aggiorna variabili globali esposte
+    window.currentGameCode = codice;
+    window.currentPlayerName = nazione;
 
     // Nascondi form di join e mostra pannello giocatori
     joinForm.style.display = "none";
@@ -199,6 +221,11 @@ function startGameForAllPlayers(mapSeed) {
   // Genera la mappa con il seed condiviso
   if (typeof window.generateAndShowMapWithSeed === "function") {
     window.generateAndShowMapWithSeed(mapSeed);
+    
+    // Mostra istruzioni per il posizionamento
+    setTimeout(() => {
+      alert(`Ciao ${currentPlayerName}! Clicca su un punto della mappa (non sull'acqua) per posizionare la tua nazione.`);
+    }, 1000);
   } else {
     console.error("Funzione generateAndShowMapWithSeed non trovata");
   }

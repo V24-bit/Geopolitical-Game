@@ -528,6 +528,10 @@ function drawTileMapOnCanvas(canvas, seed = Math.random()) {
   const endTime = performance.now();
   console.log(`=== MAPPA GENERATA IN ${(endTime - startTime).toFixed(2)}ms ===`);
 
+  // Salva riferimenti globali per il sistema di posizionamento
+  currentTileMap = tileMap;
+  currentMapGenerator = generator;
+
   // Calcola statistiche
   const stats = {};
   for (let y = 0; y < generator.height; y++) {
@@ -579,4 +583,123 @@ window.generateAndShowMapWithSeed = (seed) => {
   const canvas = document.getElementById("game-map");
   canvas.style.display = "block";
   drawTileMapOnCanvas(canvas, seed);
+  
+  // Aggiungi event listener per il posizionamento delle nazioni
+  setupNationPlacement(canvas);
+};
+
+// Sistema di posizionamento nazioni
+let currentTileMap = null;
+let currentMapGenerator = null;
+let placedNations = {}; // Oggetto per tracciare le nazioni posizionate
+
+function setupNationPlacement(canvas) {
+  // Rimuovi listener precedenti se esistono
+  canvas.removeEventListener('click', handleCanvasClick);
+  
+  // Aggiungi nuovo listener
+  canvas.addEventListener('click', handleCanvasClick);
+  
+  console.log("Sistema di posizionamento nazioni attivato");
+}
+
+function handleCanvasClick(event) {
+  const canvas = event.target;
+  const rect = canvas.getBoundingClientRect();
+  
+  // Calcola le coordinate del click relative al canvas
+  const x = event.clientX - rect.left;
+  const y = event.clientY - rect.top;
+  
+  // Converti le coordinate del canvas in coordinate della mappa
+  const tileX = Math.floor(x / (canvas.width / currentMapGenerator.width));
+  const tileY = Math.floor(y / (canvas.height / currentMapGenerator.height));
+  
+  // Verifica che le coordinate siano valide
+  if (tileX >= 0 && tileX < currentMapGenerator.width && 
+      tileY >= 0 && tileY < currentMapGenerator.height) {
+    
+    const tileType = currentTileMap[tileY][tileX];
+    
+    // Controlla se il tile non è acqua (oceano)
+    if (tileType !== TILE_TYPES.OCEAN) {
+      // Ottieni il nome della nazione dal main.js
+      if (window.currentPlayerName) {
+        placeNation(tileX, tileY, window.currentPlayerName);
+      } else {
+        console.warn("Nome giocatore non disponibile");
+      }
+    } else {
+      console.log("Non puoi posizionare la nazione sull'acqua!");
+    }
+  }
+}
+
+function placeNation(tileX, tileY, nationName) {
+  console.log(`Posizionando nazione "${nationName}" in (${tileX}, ${tileY})`);
+  
+  // Salva la posizione localmente
+  placedNations[nationName] = { x: tileX, y: tileY };
+  
+  // Sincronizza con Firebase se disponibile
+  if (window.currentGameCode && window.db) {
+    window.db.collection("partite").doc(window.currentGameCode).update({
+      [`nazioni.${nationName}`]: {
+        x: tileX,
+        y: tileY,
+        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+      }
+    }).then(() => {
+      console.log("Posizione nazione sincronizzata con Firebase");
+    }).catch((error) => {
+      console.error("Errore nella sincronizzazione:", error);
+    });
+  }
+  
+  // Ridisegna la mappa con le nazioni
+  redrawMapWithNations();
+}
+
+function redrawMapWithNations() {
+  const canvas = document.getElementById("game-map");
+  const ctx = canvas.getContext("2d");
+  
+  // Ridisegna la mappa base
+  drawTileMapOnCanvas(canvas, currentMapGenerator.seed);
+  
+  // Disegna le nazioni posizionate
+  const tileWidth = canvas.width / currentMapGenerator.width;
+  const tileHeight = canvas.height / currentMapGenerator.height;
+  
+  Object.entries(placedNations).forEach(([nationName, position]) => {
+    drawNationOnMap(ctx, position.x, position.y, nationName, tileWidth, tileHeight);
+  });
+}
+
+function drawNationOnMap(ctx, tileX, tileY, nationName, tileWidth, tileHeight) {
+  const centerX = (tileX + 0.5) * tileWidth;
+  const centerY = (tileY + 0.5) * tileHeight;
+  
+  // Disegna un cerchio per la capitale
+  ctx.fillStyle = '#ff4444';
+  ctx.strokeStyle = '#ffffff';
+  ctx.lineWidth = 2;
+  
+  ctx.beginPath();
+  ctx.arc(centerX, centerY, 8, 0, 2 * Math.PI);
+  ctx.fill();
+  ctx.stroke();
+  
+  // Disegna il nome della nazione
+  ctx.fillStyle = '#ffffff';
+  ctx.strokeStyle = '#000000';
+  ctx.lineWidth = 3;
+  ctx.font = 'bold 14px Arial';
+  ctx.textAlign = 'center';
+  
+  // Ombra del testo
+  ctx.strokeText(nationName, centerX, centerY - 15);
+  // Testo principale
+  ctx.fillText(nationName, centerX, centerY - 15);
+}
 };
