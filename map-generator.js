@@ -596,10 +596,6 @@ window.generateAndShowMapWithSeed = (seed) => {
     throw error;
   }
 };
-  
-  // Aggiungi event listener per il posizionamento delle nazioni
-  setupNationPlacement(canvas);
-};
 
 // Sistema di posizionamento nazioni
 let currentTileMap = null;
@@ -765,61 +761,3 @@ function drawNationOnMap(ctx, tileX, tileY, nationName, tileWidth, tileHeight) {
 
 // Espone la funzione per il ridisegno globale
 window.redrawMapWithNations = redrawMapWithNations;
-      [`nazioni.${nationName}`]: {
-        x: tileX,
-        y: tileY,
-        timestamp: firebase.firestore.FieldValue.serverTimestamp()
-      }
-    }).then(() => {
-      console.log("Posizione nazione sincronizzata con Firebase");
-    }).catch((error) => {
-      console.error("Errore nella sincronizzazione:", error);
-    });
-  }
-  
-  // Ridisegna la mappa con le nazioni
-  redrawMapWithNations();
-}
-
-function redrawMapWithNations() {
-  const canvas = document.getElementById("game-map");
-  const ctx = canvas.getContext("2d");
-  
-  // Ridisegna la mappa base
-  drawTileMapOnCanvas(canvas, currentMapGenerator.seed);
-  
-  // Disegna le nazioni posizionate
-  const tileWidth = canvas.width / currentMapGenerator.width;
-  const tileHeight = canvas.height / currentMapGenerator.height;
-  
-  Object.entries(placedNations).forEach(([nationName, position]) => {
-    drawNationOnMap(ctx, position.x, position.y, nationName, tileWidth, tileHeight);
-  });
-}
-
-function drawNationOnMap(ctx, tileX, tileY, nationName, tileWidth, tileHeight) {
-  const centerX = (tileX + 0.5) * tileWidth;
-  const centerY = (tileY + 0.5) * tileHeight;
-  
-  // Disegna un cerchio per la capitale
-  ctx.fillStyle = '#ff4444';
-  ctx.strokeStyle = '#ffffff';
-  ctx.lineWidth = 2;
-  
-  ctx.beginPath();
-  ctx.arc(centerX, centerY, 8, 0, 2 * Math.PI);
-  ctx.fill();
-  ctx.stroke();
-  
-  // Disegna il nome della nazione
-  ctx.fillStyle = '#ffffff';
-  ctx.strokeStyle = '#000000';
-  ctx.lineWidth = 3;
-  ctx.font = 'bold 14px Arial';
-  ctx.textAlign = 'center';
-  
-  // Ombra del testo
-  ctx.strokeText(nationName, centerX, centerY - 15);
-  // Testo principale
-  ctx.fillText(nationName, centerX, centerY - 15);
-}
