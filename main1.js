@@ -29,6 +29,7 @@ const playersList = document.getElementById("players-list");
 let currentGameCode = null;
 let currentPlayerName = null;
 let isHost = false;
+let gameListener = null;
 
 // Funzione per aggiornare la lista giocatori
 function updatePlayersList(giocatori, hostName) {
@@ -88,7 +89,12 @@ createGameBtn.onclick = async () => {
 
 // Funzione per ascoltare i cambiamenti nella partita
 function listenToGameChanges(codice) {
-  db.collection("partite").doc(codice).onSnapshot((doc) => {
+  // Rimuovi listener precedente se esiste
+  if (gameListener) {
+    gameListener();
+  }
+  
+  gameListener = db.collection("partite").doc(codice).onSnapshot((doc) => {
     if (doc.exists) {
       const data = doc.data();
       updatePlayersList(data.giocatori, data.host);
@@ -98,6 +104,11 @@ function listenToGameChanges(codice) {
         startGameBtn.style.display = "inline-block";
       } else {
         startGameBtn.style.display = "none";
+      }
+      
+      // Se la partita è iniziata, mostra la mappa per tutti
+      if (data.gameStarted && data.mapSeed) {
+        startGameForAllPlayers(data.mapSeed);
       }
     }
   });
@@ -160,16 +171,38 @@ startGameBtn.onclick = () => {
     return;
   }
   
+  // Genera un seed condiviso per la mappa
+  const mapSeed = Math.random();
+  
+  // Aggiorna il documento della partita con lo stato "iniziata" e il seed
+  db.collection("partite").doc(currentGameCode).update({
+    gameStarted: true,
+    mapSeed: mapSeed,
+    startedAt: firebase.firestore.FieldValue.serverTimestamp()
+  }).then(() => {
+    console.log("Partita iniziata con seed:", mapSeed);
+  }).catch((error) => {
+    console.error("Errore nell'iniziare la partita:", error);
+    alert("Errore nell'iniziare la partita");
+  });
+};
+
+// Funzione per iniziare il gioco per tutti i giocatori
+function startGameForAllPlayers(mapSeed) {
+  console.log("Iniziando gioco per tutti i giocatori con seed:", mapSeed);
+  
+  // Nascondi UI e mostra mappa
   uiContainer.style.display = "none";
   const canvas = document.getElementById("game-map");
   canvas.style.display = "block";
-
-  if (typeof window.generateAndShowMapOnStart === "function") {
-    window.generateAndShowMapOnStart();
+  
+  // Genera la mappa con il seed condiviso
+  if (typeof window.generateAndShowMapWithSeed === "function") {
+    window.generateAndShowMapWithSeed(mapSeed);
   } else {
-    console.error("Funzione generateAndShowMapOnStart non trovata");
+    console.error("Funzione generateAndShowMapWithSeed non trovata");
   }
-};
+}
 
 // Funzione per lasciare la partita (opzionale)
 function leaveGame() {

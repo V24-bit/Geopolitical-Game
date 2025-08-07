@@ -512,16 +512,17 @@ class AdvancedMapGenerator {
 }
 
 // Funzione principale per disegnare la mappa
-function drawTileMapOnCanvas(canvas) {
+function drawTileMapOnCanvas(canvas, seed = Math.random()) {
   const ctx = canvas.getContext("2d");
   const width = canvas.width = 1200;
   const height = canvas.height = 800;
 
   console.log("=== INIZIANDO GENERAZIONE MAPPA AVANZATA ===");
+  console.log("Usando seed:", seed);
   const startTime = performance.now();
 
   // Crea il nuovo generatore avanzato
-  const generator = new AdvancedMapGenerator(480, 480, Math.random());
+  const generator = new AdvancedMapGenerator(480, 480, seed);
   const tileMap = generator.generateMap();
 
   const endTime = performance.now();
@@ -571,4 +572,11 @@ window.generateAndShowMapOnStart = () => {
   const canvas = document.getElementById("game-map");
   canvas.style.display = "block";
   drawTileMapOnCanvas(canvas);
+};
+
+// Nuova funzione che accetta un seed specifico
+window.generateAndShowMapWithSeed = (seed) => {
+  const canvas = document.getElementById("game-map");
+  canvas.style.display = "block";
+  drawTileMapOnCanvas(canvas, seed);
 };
