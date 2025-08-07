@@ -47,14 +47,14 @@
   <!-- Canvas mappa -->
   <canvas id="game-map" style="display:none; position:fixed; top:0; left:0; z-index:0;"></canvas>
 
-  <!-- Ordine degli script -->
+  <!-- Ordine degli script - CRITICO: map-generator.js DEVE essere caricato per primo -->
   <script src="map-generator.js"></script>
 
   <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
-  <!-- Logica principale -->
+  <!-- Logica principale - DEVE essere caricato dopo map-generator.js -->
   <script src="main1.js"></script>
 </body>
 </html>

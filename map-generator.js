@@ -580,16 +580,23 @@ window.generateAndShowMapOnStart = () => {
   drawTileMapOnCanvas(canvas);
 };
 
-// Nuova funzione che accetta un seed specifico
-window.generateAndShowMapWithSeed = (seed) => {
+// Funzione che accetta un seed specifico - DEVE essere definita
+window.generateAndShowMapWithSeed = function(seed) {
+  console.log("=== CHIAMATA generateAndShowMapWithSeed con seed:", seed, "===");
+  
   try {
     const canvas = document.getElementById("game-map");
     if (!canvas) {
+      console.error("Canvas #game-map non trovato nel DOM");
       throw new Error("Canvas non trovato");
     }
     
+    console.log("Canvas trovato, generando mappa...");
+    
     // Genera la mappa prima di mostrarla
     drawTileMapOnCanvas(canvas, seed);
+    
+    console.log("Mappa generata, mostrando canvas...");
     
     // Mostra la mappa solo dopo che è stata generata completamente
     setTimeout(() => {
@@ -603,6 +610,7 @@ window.generateAndShowMapWithSeed = (seed) => {
     
   } catch (error) {
     console.error("Errore in generateAndShowMapWithSeed:", error);
+    alert("Errore nel caricamento della mappa: " + error.message);
     throw error;
   }
 };

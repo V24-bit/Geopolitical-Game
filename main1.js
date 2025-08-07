@@ -217,20 +217,26 @@ startGameBtn.onclick = () => {
 function startGameForAllPlayers(mapSeed) {
   console.log("Iniziando gioco per tutti i giocatori con seed:", mapSeed);
   
+  // Verifica che la funzione esista
+  if (typeof window.generateAndShowMapWithSeed !== "function") {
+    console.error("Funzione generateAndShowMapWithSeed non trovata!");
+    console.log("Funzioni window disponibili:", Object.keys(window).filter(k => k.includes('generate')));
+    alert("Errore: Generatore di mappe non caricato correttamente. Ricarica la pagina.");
+    return;
+  }
+  
   // Nascondi UI
   uiContainer.style.display = "none";
   
   // Genera la mappa con il seed condiviso
-  if (typeof window.generateAndShowMapWithSeed === "function") {
-    try {
-      window.generateAndShowMapWithSeed(mapSeed);
-    } catch (error) {
-      console.error("Errore nella generazione della mappa:", error);
-      alert("Errore nella generazione della mappa. Ricarica la pagina.");
-    }
-  } else {
-    console.error("Funzione generateAndShowMapWithSeed non trovata");
-    alert("Errore nel caricamento del generatore di mappe.");
+  try {
+    console.log("Chiamando generateAndShowMapWithSeed con seed:", mapSeed);
+    window.generateAndShowMapWithSeed(mapSeed);
+  } catch (error) {
+    console.error("Errore nella generazione della mappa:", error);
+    alert("Errore nella generazione della mappa: " + error.message + ". Ricarica la pagina.");
+    // Mostra di nuovo l'UI in caso di errore
+    uiContainer.style.display = "flex";
   }
 }
 
