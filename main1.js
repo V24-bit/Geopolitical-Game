@@ -25,6 +25,9 @@ const uiContainer = document.getElementById("ui-container");
 
 // --- Crea Partita ---
 createGameBtn.onclick = async () => {
+  // Nascondi il form di join se era visibile
+  joinForm.style.display = "none";
+  
   const codice = Math.random().toString(36).substring(2, 6).toUpperCase();
   const nazione = nationInput.value.trim();
 
@@ -43,6 +46,10 @@ createGameBtn.onclick = async () => {
 
 // --- Unisciti a Partita ---
 joinGameBtn.onclick = () => {
+  // Nascondi il pannello del codice partita e il bottone start se erano visibili
+  gameCodePanel.style.display = "none";
+  startGameBtn.style.display = "none";
+  
   joinForm.style.display = "block";
 };
 
