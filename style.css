@@ -158,6 +158,7 @@ html, body {
   gap: 0.7rem;
   margin-top: 0.95rem;
   animation: fade-in-ui 1.5s 0.35s both;
+  text-align: center;
 }
 
 #game-code-input {
@@ -190,6 +191,56 @@ html, body {
   width: 100%;
   text-align: center;
   text-shadow: 0 2px 8px #181c22;
+}
+
+/* Pannello giocatori */
+#players-panel {
+  width: 100%;
+  margin-top: 1rem;
+  padding: 1rem;
+  background: rgba(255,255,255,0.08);
+  border-radius: 8px;
+  border: 1px solid #18ffff44;
+  animation: fade-in-ui 1.2s both;
+}
+
+.players-title {
+  color: var(--neon-blue);
+  font-size: 1.1em;
+  font-weight: bold;
+  margin-bottom: 0.8rem;
+  text-align: center;
+  text-shadow: 0 2px 8px #18ffff66;
+}
+
+.player-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.player-item {
+  padding: 0.4rem 0.8rem;
+  border-radius: 6px;
+  background: rgba(255,255,255,0.06);
+  color: #fff;
+  text-align: center;
+  font-size: 0.95em;
+  border: 1px solid transparent;
+  transition: all 0.2s;
+}
+
+.player-item.host {
+  background: linear-gradient(90deg, #ffe45e22, #ffe45e11);
+  border: 1px solid var(--potato-yellow);
+  color: var(--potato-yellow);
+  font-weight: bold;
+  box-shadow: 0 2px 8px #ffe45e33;
+}
+
+.player-item.host::before {
+  content: "👑 ";
+  margin-right: 0.3rem;
 }
 
 /* Canvas mappa */
