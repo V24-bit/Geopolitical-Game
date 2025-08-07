@@ -203,7 +203,7 @@ function setupNationPlacement() {
     const tileY = Math.floor(y / tileSize);
     
     if (tileY < mapData.length && tileX < mapData[tileY].length) {
-      const tileType = mapData[tileY][x];
+      const tileType = mapData[tileY][tileX];
       
       if (tileType === 'water') {
         console.log("❌ Clic su acqua - posizionamento non valido");
@@ -212,6 +212,9 @@ function setupNationPlacement() {
       
       // Posiziona la nazione
       placeNation(x, y);
+      
+      // Rimuovi il listener per impedire ulteriori posizionamenti
+      canvas.removeEventListener('click', clickHandler);
     }
   };
   
@@ -241,6 +244,10 @@ function placeNation(x, y) {
     window.db.collection("partite").doc(window.currentGameCode).update(updateData)
       .then(() => {
         console.log("✅ Nazione salvata su Firebase");
+        // Ridisegna per sicurezza
+        setTimeout(() => {
+          drawAllNations();
+        }, 100);
       })
       .catch((error) => {
         console.error("❌ Errore salvataggio Firebase:", error);
