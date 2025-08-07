@@ -101,7 +101,7 @@ function listenToGameChanges(codice) {
       }
     }
   });
-};
+}
 
 // --- Unisciti a Partita ---
 joinGameBtn.onclick = () => {
@@ -178,13 +178,3 @@ function leaveGame() {
     // e resettare l'interfaccia
   }
 }
-  uiContainer.style.display = "none";
-  const canvas = document.getElementById("game-map");
-  canvas.style.display = "block";
-
-  if (typeof window.generateAndShowMapOnStart === "function") {
-    window.generateAndShowMapOnStart();
-  } else {
-    console.error("Funzione generateAndShowMapOnStart non trovata");
-  }
-};
