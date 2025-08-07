@@ -1,0 +1,29 @@
+{
+  "name": "geopolitical-game",
+  "version": "1.0.0",
+  "description": "A multiplayer geopolitical strategy game",
+  "main": "index.html",
+  "scripts": {
+    "start": "npx serve .",
+    "dev": "npx serve .",
+    "build": "echo 'No build process needed for static files'",
+    "preview": "npx serve ."
+  },
+  "keywords": [
+    "game",
+    "geopolitical",
+    "multiplayer",
+    "strategy",
+    "firebase"
+  ],
+  "author": "V24-bit",
+  "license": "All rights reserved",
+  "devDependencies": {
+    "serve": "^14.2.1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/V24-bit/Geopolitical-Game.git"
+  },
+  "homepage": "https://v24-bit.github.io/Geopolitical-Game/"
+}
