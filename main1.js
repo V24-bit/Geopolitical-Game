@@ -109,7 +109,8 @@ function listenToGameChanges(codice) {
       
       // Aggiorna le nazioni posizionate se esistono
       if (data.nazioni && window.placedNations) {
-        window.placedNations = data.nazioni;
+        // Aggiorna le nazioni globali mantenendo quelle esistenti
+        Object.assign(window.placedNations, data.nazioni);
         // Ridisegna la mappa se è visibile
         const canvas = document.getElementById("game-map");
         if (canvas.style.display === "block" && window.redrawMapWithNations) {

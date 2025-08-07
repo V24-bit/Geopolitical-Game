@@ -610,7 +610,7 @@ window.generateAndShowMapWithSeed = (seed) => {
 // Sistema di posizionamento nazioni
 let currentTileMap = null;
 let currentMapGenerator = null;
-let placedNations = {}; // Oggetto per tracciare le nazioni posizionate
+let placedNations = {}; // Oggetto GLOBALE per tracciare le nazioni posizionate
 let hasPlayerPlacedNation = false; // Traccia se il giocatore corrente ha già posizionato
 let instructionsShown = false; // Traccia se le istruzioni sono già state mostrate
 
@@ -678,6 +678,9 @@ function placeNation(tileX, tileY, nationName) {
   // Salva la posizione localmente
   placedNations[nationName] = { x: tileX, y: tileY };
   
+  // FORZA il ridisegno immediato per rendere permanente il puntino
+  redrawMapWithNations();
+  
   // Sincronizza con Firebase se disponibile
   if (window.currentGameCode && window.db) {
     const updateData = {};
@@ -689,6 +692,8 @@ function placeNation(tileX, tileY, nationName) {
     
     window.db.collection("partite").doc(window.currentGameCode).update(updateData).then(() => {
       console.log("Posizione nazione sincronizzata con Firebase");
+      // Ridisegna di nuovo dopo la sincronizzazione per sicurezza
+      redrawMapWithNations();
     }).catch((error) => {
       console.error("Errore nella sincronizzazione:", error);
       // In caso di errore, permetti di riprovare
@@ -696,14 +701,7 @@ function placeNation(tileX, tileY, nationName) {
     });
   }
   
-  // Ridisegna la mappa con le nazioni
-  try {
-    redrawMapWithNations();
-    console.log(`Nazione "${nationName}" posizionata con successo!`);
-  } catch (error) {
-    console.error("Errore nel ridisegnare la mappa:", error);
-    hasPlayerPlacedNation = false;
-  }
+  console.log(`Nazione "${nationName}" posizionata con successo!`);
 }
 
 function redrawMapWithNations() {
@@ -712,6 +710,8 @@ function redrawMapWithNations() {
     console.warn("Canvas o dati mappa non disponibili per il ridisegno");
     return;
   }
+  
+  console.log("Ridisegnando mappa con nazioni:", Object.keys(placedNations));
   
   const ctx = canvas.getContext("2d");
   
@@ -740,11 +740,14 @@ function redrawMapWithNations() {
   // Disegna le nazioni posizionate
   Object.entries(placedNations).forEach(([nationName, position]) => {
     try {
+      console.log(`Disegnando nazione ${nationName} in posizione:`, position);
       drawNationOnMap(ctx, position.x, position.y, nationName, tileWidth, tileHeight);
     } catch (error) {
       console.error(`Errore nel disegnare la nazione ${nationName}:`, error);
     }
   });
+  
+  console.log("Ridisegno completato con", Object.keys(placedNations).length, "nazioni");
 }
 
 function drawNationOnMap(ctx, tileX, tileY, nationName, tileWidth, tileHeight) {
@@ -792,3 +795,6 @@ function drawNationOnMap(ctx, tileX, tileY, nationName, tileWidth, tileHeight) {
 
 // Espone la funzione per il ridisegno globale
 window.redrawMapWithNations = redrawMapWithNations;
+
+// Espone l'oggetto placedNations globalmente
+window.placedNations = placedNations;
