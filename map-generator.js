@@ -1,3 +1,4 @@
+
 // Mini Simplex Noise - versione compatta
 function SimplexNoise(seed = Math.random()) {
   const grad3 = [
@@ -527,10 +528,6 @@ function drawTileMapOnCanvas(canvas, seed = Math.random()) {
   const endTime = performance.now();
   console.log(`=== MAPPA GENERATA IN ${(endTime - startTime).toFixed(2)}ms ===`);
 
-  // Salva riferimenti globali per il sistema di posizionamento
-  currentTileMap = tileMap;
-  currentMapGenerator = generator;
-
   // Calcola statistiche
   const stats = {};
   for (let y = 0; y < generator.height; y++) {
@@ -701,7 +698,3 @@ function drawNationOnMap(ctx, tileX, tileY, nationName, tileWidth, tileHeight) {
   // Testo principale
   ctx.fillText(nationName, centerX, centerY - 15);
 }
-
-// Esponi funzioni globalmente per la sincronizzazione
-window.placedNations = placedNations;
-window.redrawMapWithNations = redrawMapWithNations;
