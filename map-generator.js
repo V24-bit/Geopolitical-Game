@@ -569,6 +569,8 @@ function drawTileMapOnCanvas(canvas, seed = Math.random()) {
   }
 
   console.log("=== MAPPA DISEGNATA CON SUCCESSO ===");
+  
+  // NON ridisegnare le nazioni qui - vengono gestite separatamente
 }
 
 // Espone la funzione al main.js
@@ -713,13 +715,29 @@ function redrawMapWithNations() {
   
   const ctx = canvas.getContext("2d");
   
-  // Ridisegna la mappa base
-  drawTileMapOnCanvas(canvas, currentMapGenerator.seed);
+  // Ridisegna solo i tile della mappa senza rigenerare tutto
+  const width = canvas.width;
+  const height = canvas.height;
+  const tileWidth = width / currentMapGenerator.width;
+  const tileHeight = height / currentMapGenerator.height;
+
+  // Disegna ogni tile
+  for (let y = 0; y < currentMapGenerator.height; y++) {
+    for (let x = 0; x < currentMapGenerator.width; x++) {
+      const tileType = currentTileMap[y][x];
+      const color = TILE_COLORS[tileType];
+
+      ctx.fillStyle = `rgb(${color.r}, ${color.g}, ${color.b})`;
+      ctx.fillRect(
+        x * tileWidth, 
+        y * tileHeight, 
+        tileWidth, 
+        tileHeight
+      );
+    }
+  }
   
   // Disegna le nazioni posizionate
-  const tileWidth = canvas.width / currentMapGenerator.width;
-  const tileHeight = canvas.height / currentMapGenerator.height;
-  
   Object.entries(placedNations).forEach(([nationName, position]) => {
     try {
       drawNationOnMap(ctx, position.x, position.y, nationName, tileWidth, tileHeight);
@@ -737,27 +755,33 @@ function drawNationOnMap(ctx, tileX, tileY, nationName, tileWidth, tileHeight) {
     // Salva il contesto per ripristinarlo dopo
     ctx.save();
     
-    // Disegna un cerchio per la capitale
-    ctx.fillStyle = '#ff4444';
+    // Disegna un cerchio semi-trasparente per la capitale
+    ctx.fillStyle = 'rgba(255, 68, 68, 0.7)'; // Rosso semi-trasparente
     ctx.strokeStyle = '#ffffff';
-    ctx.lineWidth = 2;
+    ctx.lineWidth = 3;
     
     ctx.beginPath();
-    ctx.arc(centerX, centerY, 8, 0, 2 * Math.PI);
+    ctx.arc(centerX, centerY, 12, 0, 2 * Math.PI);
     ctx.fill();
     ctx.stroke();
+    
+    // Cerchio interno più scuro per definizione
+    ctx.fillStyle = 'rgba(200, 0, 0, 0.8)';
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, 6, 0, 2 * Math.PI);
+    ctx.fill();
     
     // Disegna il nome della nazione
     ctx.fillStyle = '#ffffff';
     ctx.strokeStyle = '#000000';
-    ctx.lineWidth = 3;
+    ctx.lineWidth = 4;
     ctx.font = 'bold 14px Arial';
     ctx.textAlign = 'center';
     
     // Ombra del testo
-    ctx.strokeText(nationName, centerX, centerY - 15);
+    ctx.strokeText(nationName, centerX, centerY - 20);
     // Testo principale
-    ctx.fillText(nationName, centerX, centerY - 15);
+    ctx.fillText(nationName, centerX, centerY - 20);
     
     // Ripristina il contesto
     ctx.restore();

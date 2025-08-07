@@ -113,7 +113,10 @@ function listenToGameChanges(codice) {
         // Ridisegna la mappa se è visibile
         const canvas = document.getElementById("game-map");
         if (canvas.style.display === "block" && window.redrawMapWithNations) {
-          window.redrawMapWithNations();
+          // Usa setTimeout per evitare conflitti di rendering
+          setTimeout(() => {
+            window.redrawMapWithNations();
+          }, 50);
         }
       }
       
