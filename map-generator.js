@@ -580,9 +580,22 @@ window.generateAndShowMapOnStart = () => {
 
 // Nuova funzione che accetta un seed specifico
 window.generateAndShowMapWithSeed = (seed) => {
-  const canvas = document.getElementById("game-map");
-  canvas.style.display = "block";
-  drawTileMapOnCanvas(canvas, seed);
+  try {
+    const canvas = document.getElementById("game-map");
+    if (!canvas) {
+      throw new Error("Canvas non trovato");
+    }
+    
+    canvas.style.display = "block";
+    drawTileMapOnCanvas(canvas, seed);
+    
+    // Aggiungi event listener per il posizionamento delle nazioni
+    setupNationPlacement(canvas);
+  } catch (error) {
+    console.error("Errore in generateAndShowMapWithSeed:", error);
+    throw error;
+  }
+};
   
   // Aggiungi event listener per il posizionamento delle nazioni
   setupNationPlacement(canvas);
@@ -592,6 +605,8 @@ window.generateAndShowMapWithSeed = (seed) => {
 let currentTileMap = null;
 let currentMapGenerator = null;
 let placedNations = {}; // Oggetto per tracciare le nazioni posizionate
+let hasPlayerPlacedNation = false; // Traccia se il giocatore corrente ha già posizionato
+let instructionsShown = false; // Traccia se le istruzioni sono già state mostrate
 
 function setupNationPlacement(canvas) {
   // Rimuovi listener precedenti se esistono
@@ -600,20 +615,39 @@ function setupNationPlacement(canvas) {
   // Aggiungi nuovo listener
   canvas.addEventListener('click', handleCanvasClick);
   
+  // Reset flag quando si configura nuovo posizionamento
+  hasPlayerPlacedNation = false;
+  instructionsShown = false;
+  
   console.log("Sistema di posizionamento nazioni attivato");
 }
 
 function handleCanvasClick(event) {
+  // Previeni posizionamento multiplo
+  if (hasPlayerPlacedNation) {
+    console.log("Nazione già posizionata per questo giocatore");
+    return;
+  }
+  
+  // Verifica che abbiamo i dati necessari
+  if (!currentTileMap || !currentMapGenerator || !window.currentPlayerName) {
+    console.warn("Dati mappa o giocatore non disponibili");
+    return;
+  }
+  
   const canvas = event.target;
   const rect = canvas.getBoundingClientRect();
   
-  // Calcola le coordinate del click relative al canvas
-  const x = event.clientX - rect.left;
-  const y = event.clientY - rect.top;
+  // Calcola le coordinate del click relative al canvas con maggiore precisione
+  const scaleX = canvas.width / rect.width;
+  const scaleY = canvas.height / rect.height;
+  
+  const canvasX = (event.clientX - rect.left) * scaleX;
+  const canvasY = (event.clientY - rect.top) * scaleY;
   
   // Converti le coordinate del canvas in coordinate della mappa
-  const tileX = Math.floor(x / (canvas.width / currentMapGenerator.width));
-  const tileY = Math.floor(y / (canvas.height / currentMapGenerator.height));
+  const tileX = Math.floor(canvasX / (canvas.width / currentMapGenerator.width));
+  const tileY = Math.floor(canvasY / (canvas.height / currentMapGenerator.height));
   
   // Verifica che le coordinate siano valide
   if (tileX >= 0 && tileX < currentMapGenerator.width && 
@@ -623,14 +657,9 @@ function handleCanvasClick(event) {
     
     // Controlla se il tile non è acqua (oceano)
     if (tileType !== TILE_TYPES.OCEAN) {
-      // Ottieni il nome della nazione dal main.js
-      if (window.currentPlayerName) {
-        placeNation(tileX, tileY, window.currentPlayerName);
-      } else {
-        console.warn("Nome giocatore non disponibile");
-      }
+      placeNation(tileX, tileY, window.currentPlayerName);
     } else {
-      console.log("Non puoi posizionare la nazione sull'acqua!");
+      alert("Non puoi posizionare la nazione sull'acqua! Scegli un punto sulla terraferma.");
     }
   }
 }
@@ -638,12 +667,104 @@ function handleCanvasClick(event) {
 function placeNation(tileX, tileY, nationName) {
   console.log(`Posizionando nazione "${nationName}" in (${tileX}, ${tileY})`);
   
+  // Marca che questo giocatore ha posizionato la sua nazione
+  hasPlayerPlacedNation = true;
+  
   // Salva la posizione localmente
   placedNations[nationName] = { x: tileX, y: tileY };
   
   // Sincronizza con Firebase se disponibile
   if (window.currentGameCode && window.db) {
-    window.db.collection("partite").doc(window.currentGameCode).update({
+    const updateData = {};
+    updateData[`nazioni.${nationName}`] = {
+      x: tileX,
+      y: tileY,
+      timestamp: firebase.firestore.FieldValue.serverTimestamp()
+    };
+    
+    window.db.collection("partite").doc(window.currentGameCode).update(updateData).then(() => {
+      console.log("Posizione nazione sincronizzata con Firebase");
+    }).catch((error) => {
+      console.error("Errore nella sincronizzazione:", error);
+      // In caso di errore, permetti di riprovare
+      hasPlayerPlacedNation = false;
+    });
+  }
+  
+  // Ridisegna la mappa con le nazioni
+  try {
+    redrawMapWithNations();
+    alert(`Nazione "${nationName}" posizionata con successo!`);
+  } catch (error) {
+    console.error("Errore nel ridisegnare la mappa:", error);
+    hasPlayerPlacedNation = false;
+  }
+}
+
+function redrawMapWithNations() {
+  const canvas = document.getElementById("game-map");
+  if (!canvas || !currentTileMap || !currentMapGenerator) {
+    console.warn("Canvas o dati mappa non disponibili per il ridisegno");
+    return;
+  }
+  
+  const ctx = canvas.getContext("2d");
+  
+  // Ridisegna la mappa base
+  drawTileMapOnCanvas(canvas, currentMapGenerator.seed);
+  
+  // Disegna le nazioni posizionate
+  const tileWidth = canvas.width / currentMapGenerator.width;
+  const tileHeight = canvas.height / currentMapGenerator.height;
+  
+  Object.entries(placedNations).forEach(([nationName, position]) => {
+    try {
+      drawNationOnMap(ctx, position.x, position.y, nationName, tileWidth, tileHeight);
+    } catch (error) {
+      console.error(`Errore nel disegnare la nazione ${nationName}:`, error);
+    }
+  });
+}
+
+function drawNationOnMap(ctx, tileX, tileY, nationName, tileWidth, tileHeight) {
+  try {
+    const centerX = (tileX + 0.5) * tileWidth;
+    const centerY = (tileY + 0.5) * tileHeight;
+    
+    // Salva il contesto per ripristinarlo dopo
+    ctx.save();
+    
+    // Disegna un cerchio per la capitale
+    ctx.fillStyle = '#ff4444';
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = 2;
+    
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, 8, 0, 2 * Math.PI);
+    ctx.fill();
+    ctx.stroke();
+    
+    // Disegna il nome della nazione
+    ctx.fillStyle = '#ffffff';
+    ctx.strokeStyle = '#000000';
+    ctx.lineWidth = 3;
+    ctx.font = 'bold 14px Arial';
+    ctx.textAlign = 'center';
+    
+    // Ombra del testo
+    ctx.strokeText(nationName, centerX, centerY - 15);
+    // Testo principale
+    ctx.fillText(nationName, centerX, centerY - 15);
+    
+    // Ripristina il contesto
+    ctx.restore();
+  } catch (error) {
+    console.error("Errore nel disegnare la nazione:", error);
+  }
+}
+
+// Espone la funzione per il ridisegno globale
+window.redrawMapWithNations = redrawMapWithNations;
       [`nazioni.${nationName}`]: {
         x: tileX,
         y: tileY,
