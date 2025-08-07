@@ -586,11 +586,19 @@ window.generateAndShowMapWithSeed = (seed) => {
       throw new Error("Canvas non trovato");
     }
     
-    canvas.style.display = "block";
+    // Genera la mappa prima di mostrarla
     drawTileMapOnCanvas(canvas, seed);
     
-    // Aggiungi event listener per il posizionamento delle nazioni
-    setupNationPlacement(canvas);
+    // Mostra la mappa solo dopo che è stata generata completamente
+    setTimeout(() => {
+      canvas.style.display = "block";
+      
+      // Aggiungi event listener per il posizionamento delle nazioni
+      setupNationPlacement(canvas);
+      
+      console.log("Mappa caricata e pronta per il posizionamento");
+    }, 100);
+    
   } catch (error) {
     console.error("Errore in generateAndShowMapWithSeed:", error);
     throw error;
@@ -613,7 +621,6 @@ function setupNationPlacement(canvas) {
   
   // Reset flag quando si configura nuovo posizionamento
   hasPlayerPlacedNation = false;
-  instructionsShown = false;
   
   console.log("Sistema di posizionamento nazioni attivato");
 }
@@ -621,7 +628,7 @@ function setupNationPlacement(canvas) {
 function handleCanvasClick(event) {
   // Previeni posizionamento multiplo
   if (hasPlayerPlacedNation) {
-    console.log("Nazione già posizionata per questo giocatore");
+    console.log("Hai già posizionato la tua nazione");
     return;
   }
   
@@ -655,7 +662,7 @@ function handleCanvasClick(event) {
     if (tileType !== TILE_TYPES.OCEAN) {
       placeNation(tileX, tileY, window.currentPlayerName);
     } else {
-      alert("Non puoi posizionare la nazione sull'acqua! Scegli un punto sulla terraferma.");
+      console.log("Non puoi posizionare la nazione sull'acqua! Scegli un punto sulla terraferma.");
     }
   }
 }
@@ -690,7 +697,7 @@ function placeNation(tileX, tileY, nationName) {
   // Ridisegna la mappa con le nazioni
   try {
     redrawMapWithNations();
-    alert(`Nazione "${nationName}" posizionata con successo!`);
+    console.log(`Nazione "${nationName}" posizionata con successo!`);
   } catch (error) {
     console.error("Errore nel ridisegnare la mappa:", error);
     hasPlayerPlacedNation = false;

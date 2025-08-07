@@ -213,32 +213,17 @@ startGameBtn.onclick = () => {
 function startGameForAllPlayers(mapSeed) {
   console.log("Iniziando gioco per tutti i giocatori con seed:", mapSeed);
   
-  // Nascondi UI e mostra mappa
+  // Nascondi UI
   uiContainer.style.display = "none";
-  const canvas = document.getElementById("game-map");
-  canvas.style.display = "block";
   
   // Genera la mappa con il seed condiviso
   if (typeof window.generateAndShowMapWithSeed === "function") {
     try {
       window.generateAndShowMapWithSeed(mapSeed);
-      
-      // Mostra istruzioni solo una volta e solo se il giocatore non ha ancora posizionato
-      setTimeout(() => {
-        if (!window.instructionsShown && window.currentPlayerName) {
-          alert(`Ciao ${currentPlayerName}! Clicca su un punto della mappa (non sull'acqua) per posizionare la tua nazione.`);
-          window.instructionsShown = true;
-        }
-      }, 1000);
     } catch (error) {
       console.error("Errore nella generazione della mappa:", error);
       alert("Errore nella generazione della mappa. Ricarica la pagina.");
     }
-    
-    // Mostra istruzioni per il posizionamento
-    setTimeout(() => {
-      alert(`Ciao ${currentPlayerName}! Clicca su un punto della mappa (non sull'acqua) per posizionare la tua nazione.`);
-    }, 1000);
   } else {
     console.error("Funzione generateAndShowMapWithSeed non trovata");
     alert("Errore nel caricamento del generatore di mappe.");
