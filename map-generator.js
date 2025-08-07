@@ -618,8 +618,14 @@ function setupNationPlacement(canvas) {
   // Rimuovi listener precedenti se esistono
   canvas.removeEventListener('click', handleCanvasClick);
   
-  // Aggiungi nuovo listener
-  canvas.addEventListener('click', handleCanvasClick);
+  // Aggiungi nuovo listener solo se il giocatore non ha già posizionato
+  if (!hasPlayerPlacedNation) {
+    canvas.addEventListener('click', handleCanvasClick);
+    console.log("Sistema di posizionamento nazioni attivato");
+  } else {
+    console.log("Posizionamento già effettuato - listener non aggiunto");
+  }
+}
   
   // Reset flag quando si configura nuovo posizionamento
   hasPlayerPlacedNation = false;
@@ -630,7 +636,7 @@ function setupNationPlacement(canvas) {
 function handleCanvasClick(event) {
   // Previeni posizionamento multiplo
   if (hasPlayerPlacedNation) {
-    console.log("Hai già posizionato la tua nazione");
+    console.log("Hai già posizionato la tua nazione - non puoi più spostarla");
     return;
   }
   
@@ -675,6 +681,13 @@ function placeNation(tileX, tileY, nationName) {
   // Marca che questo giocatore ha posizionato la sua nazione
   hasPlayerPlacedNation = true;
   
+  // Rimuovi il listener per impedire ulteriori click
+  const canvas = document.getElementById("game-map");
+  if (canvas) {
+    canvas.removeEventListener('click', handleCanvasClick);
+    console.log("Posizionamento bloccato - non puoi più spostare la nazione");
+  }
+  
   // Salva la posizione localmente
   placedNations[nationName] = { x: tileX, y: tileY };
   
@@ -696,8 +709,8 @@ function placeNation(tileX, tileY, nationName) {
       redrawMapWithNations();
     }).catch((error) => {
       console.error("Errore nella sincronizzazione:", error);
-      // In caso di errore, permetti di riprovare
-      hasPlayerPlacedNation = false;
+      // In caso di errore, mantieni comunque il blocco per evitare duplicati
+      console.log("Errore Firebase ma posizionamento mantenuto localmente");
     });
   }
   
@@ -758,20 +771,26 @@ function drawNationOnMap(ctx, tileX, tileY, nationName, tileWidth, tileHeight) {
     // Salva il contesto per ripristinarlo dopo
     ctx.save();
     
-    // Disegna un cerchio semi-trasparente per la capitale
-    ctx.fillStyle = 'rgba(255, 68, 68, 0.7)'; // Rosso semi-trasparente
-    ctx.strokeStyle = '#ffffff';
-    ctx.lineWidth = 3;
+    // Disegna un confine circolare translucido per la capitale
+    ctx.strokeStyle = 'rgba(255, 68, 68, 0.8)'; // Rosso translucido per il bordo
+    ctx.lineWidth = 4;
     
+    // Cerchio esterno principale
     ctx.beginPath();
-    ctx.arc(centerX, centerY, 12, 0, 2 * Math.PI);
-    ctx.fill();
+    ctx.arc(centerX, centerY, 15, 0, 2 * Math.PI);
     ctx.stroke();
     
-    // Cerchio interno più scuro per definizione
-    ctx.fillStyle = 'rgba(200, 0, 0, 0.8)';
+    // Cerchio interno più sottile per definizione
+    ctx.strokeStyle = 'rgba(255, 68, 68, 0.6)';
+    ctx.lineWidth = 2;
     ctx.beginPath();
-    ctx.arc(centerX, centerY, 6, 0, 2 * Math.PI);
+    ctx.arc(centerX, centerY, 10, 0, 2 * Math.PI);
+    ctx.stroke();
+    
+    // Punto centrale piccolo per indicare la capitale
+    ctx.fillStyle = 'rgba(255, 68, 68, 0.9)';
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, 3, 0, 2 * Math.PI);
     ctx.fill();
     
     // Disegna il nome della nazione
@@ -782,9 +801,9 @@ function drawNationOnMap(ctx, tileX, tileY, nationName, tileWidth, tileHeight) {
     ctx.textAlign = 'center';
     
     // Ombra del testo
-    ctx.strokeText(nationName, centerX, centerY - 20);
+    ctx.strokeText(nationName, centerX, centerY - 25);
     // Testo principale
-    ctx.fillText(nationName, centerX, centerY - 20);
+    ctx.fillText(nationName, centerX, centerY - 25);
     
     // Ripristina il contesto
     ctx.restore();
