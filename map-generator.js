@@ -1,4 +1,3 @@
-
 // Mini Simplex Noise - versione compatta
 function SimplexNoise(seed = Math.random()) {
   const grad3 = [
@@ -702,4 +701,7 @@ function drawNationOnMap(ctx, tileX, tileY, nationName, tileWidth, tileHeight) {
   // Testo principale
   ctx.fillText(nationName, centerX, centerY - 15);
 }
-};
+
+// Esponi funzioni globalmente per la sincronizzazione
+window.placedNations = placedNations;
+window.redrawMapWithNations = redrawMapWithNations;
