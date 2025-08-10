@@ -802,7 +802,7 @@ class AdvancedMapGenerator {
         // Terre basse
         else {
           // Foreste se umido e caldo
-          if (humidity > 0.5 && temperature > 0.4) {
+          if (humidity > 0.6 && temperature > 0.5) {
             this.finalMap[y][x] = TILE_TYPES.FOREST;
           }
           // Altrimenti pianure
@@ -840,8 +840,8 @@ class AdvancedMapGenerator {
           
           // Regole per foreste: si espandono in pianure umide
           if (currentType === TILE_TYPES.PLAINS && 
-              (neighbors[TILE_TYPES.FOREST] || 0) >= 3 &&
-              this.humidityMap[y][x] > 0.5) {
+              (neighbors[TILE_TYPES.FOREST] || 0) >= 4 &&
+              this.humidityMap[y][x] > 0.6) {
             newMap[y][x] = TILE_TYPES.FOREST;
           }
           
