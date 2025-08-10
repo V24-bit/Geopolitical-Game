@@ -370,8 +370,6 @@ class HexagonalMap {
       this.renderTile(tile);
       tile.markClean();
     }
-    
-    this.dirtyTiles.clear();
   }
 
   // Rendering di un singolo tile
