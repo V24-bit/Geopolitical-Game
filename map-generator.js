@@ -94,6 +94,385 @@ const TILE_COLORS = {
   [TILE_TYPES.FOREST]: { r: 34, g: 139, b: 34 }      // Verde scuro foreste
 };
 
+// === SISTEMA COORDINATE ESAGONALI ===
+class HexCoordinates {
+  constructor(q, r, s = null) {
+    this.q = q; // Colonna
+    this.r = r; // Riga
+    this.s = s !== null ? s : -q - r; // Terza coordinata (cube coordinate)
+    
+    // Verifica che q + r + s = 0 (proprietà delle coordinate cube)
+    if (Math.abs(this.q + this.r + this.s) > 0.001) {
+      throw new Error(`Coordinate esagonali non valide: q=${q}, r=${r}, s=${this.s}`);
+    }
+  }
+
+  // Converte coordinate axial (q,r) in pixel
+  toPixel(hexSize) {
+    const x = hexSize * (3/2 * this.q);
+    const y = hexSize * (Math.sqrt(3)/2 * this.q + Math.sqrt(3) * this.r);
+    return { x, y };
+  }
+
+  // Converte pixel in coordinate axial
+  static fromPixel(x, y, hexSize) {
+    const q = (2/3 * x) / hexSize;
+    const r = (-1/3 * x + Math.sqrt(3)/3 * y) / hexSize;
+    return HexCoordinates.round(q, r);
+  }
+
+  // Arrotonda coordinate frazionarie alle coordinate esagonali più vicine
+  static round(q, r) {
+    const s = -q - r;
+    let rq = Math.round(q);
+    let rr = Math.round(r);
+    let rs = Math.round(s);
+
+    const q_diff = Math.abs(rq - q);
+    const r_diff = Math.abs(rr - r);
+    const s_diff = Math.abs(rs - s);
+
+    if (q_diff > r_diff && q_diff > s_diff) {
+      rq = -rr - rs;
+    } else if (r_diff > s_diff) {
+      rr = -rq - rs;
+    } else {
+      rs = -rq - rr;
+    }
+
+    return new HexCoordinates(rq, rr, rs);
+  }
+
+  // Distanza tra due esagoni
+  distance(other) {
+    return (Math.abs(this.q - other.q) + Math.abs(this.q + this.r - other.q - other.r) + Math.abs(this.r - other.r)) / 2;
+  }
+
+  // Ottieni i 6 vicini di un esagono
+  getNeighbors() {
+    const directions = [
+      [1, 0], [1, -1], [0, -1],
+      [-1, 0], [-1, 1], [0, 1]
+    ];
+    
+    return directions.map(([dq, dr]) => 
+      new HexCoordinates(this.q + dq, this.r + dr)
+    );
+  }
+
+  // Chiave unica per l'esagono (per Map/Set)
+  toString() {
+    return `${this.q},${this.r}`;
+  }
+
+  equals(other) {
+    return this.q === other.q && this.r === other.r;
+  }
+}
+
+// === TILE ESAGONALE ===
+class HexTile {
+  constructor(coordinates, type = TILE_TYPES.OCEAN) {
+    this.coordinates = coordinates;
+    this.type = type;
+    this.isDirty = true; // Flag per sapere se deve essere ridisegnato
+    this.nation = null; // Nazione che controlla questo tile
+    this.units = []; // Unità presenti su questo tile
+    this.improvements = []; // Miglioramenti costruiti
+    
+    // Cache per il rendering
+    this._cachedPath = null;
+    this._cachedPixelPos = null;
+  }
+
+  // Segna il tile come "sporco" (da ridisegnare)
+  markDirty() {
+    this.isDirty = true;
+  }
+
+  // Pulisce il flag dirty dopo il rendering
+  markClean() {
+    this.isDirty = false;
+  }
+
+  // Ottieni la posizione in pixel (con cache)
+  getPixelPosition(hexSize) {
+    if (!this._cachedPixelPos) {
+      this._cachedPixelPos = this.coordinates.toPixel(hexSize);
+    }
+    return this._cachedPixelPos;
+  }
+
+  // Ottieni il path dell'esagono (con cache)
+  getHexPath(ctx, hexSize, centerX, centerY) {
+    if (!this._cachedPath) {
+      const pos = this.getPixelPosition(hexSize);
+      const x = pos.x + centerX;
+      const y = pos.y + centerY;
+      
+      this._cachedPath = new Path2D();
+      for (let i = 0; i < 6; i++) {
+        const angle = (Math.PI / 3) * i;
+        const px = x + hexSize * Math.cos(angle);
+        const py = y + hexSize * Math.sin(angle);
+        
+        if (i === 0) {
+          this._cachedPath.moveTo(px, py);
+        } else {
+          this._cachedPath.lineTo(px, py);
+        }
+      }
+      this._cachedPath.closePath();
+    }
+    return this._cachedPath;
+  }
+
+  // Invalida la cache (chiamare quando cambia la dimensione)
+  invalidateCache() {
+    this._cachedPath = null;
+    this._cachedPixelPos = null;
+  }
+
+  // Cambia il tipo di tile
+  setType(newType) {
+    if (this.type !== newType) {
+      this.type = newType;
+      this.markDirty();
+    }
+  }
+
+  // Assegna una nazione
+  setNation(nation) {
+    if (this.nation !== nation) {
+      this.nation = nation;
+      this.markDirty();
+    }
+  }
+}
+
+// === MAPPA ESAGONALE CON RETAINED MODE ===
+class HexagonalMap {
+  constructor(radius = 40, hexSize = 12) {
+    this.radius = radius; // Raggio della mappa in esagoni
+    this.hexSize = hexSize; // Dimensione di ogni esagono in pixel
+    this.tiles = new Map(); // Map<string, HexTile>
+    this.dirtyTiles = new Set(); // Set di tile da ridisegnare
+    
+    // Canvas e contesto
+    this.canvas = null;
+    this.ctx = null;
+    
+    // Viewport e camera
+    this.cameraX = 0;
+    this.cameraY = 0;
+    this.zoom = 1;
+    
+    // Inizializza la mappa
+    this.initializeMap();
+  }
+
+  // Inizializza tutti i tile della mappa
+  initializeMap() {
+    console.log(`Inizializzando mappa esagonale con raggio ${this.radius}`);
+    
+    for (let q = -this.radius; q <= this.radius; q++) {
+      const r1 = Math.max(-this.radius, -q - this.radius);
+      const r2 = Math.min(this.radius, -q + this.radius);
+      
+      for (let r = r1; r <= r2; r++) {
+        const coordinates = new HexCoordinates(q, r);
+        const tile = new HexTile(coordinates);
+        this.tiles.set(coordinates.toString(), tile);
+      }
+    }
+    
+    console.log(`Creati ${this.tiles.size} tile esagonali`);
+  }
+
+  // Ottieni un tile dalle coordinate
+  getTile(coordinates) {
+    return this.tiles.get(coordinates.toString());
+  }
+
+  // Ottieni un tile dalle coordinate q,r
+  getTileAt(q, r) {
+    const coordinates = new HexCoordinates(q, r);
+    return this.getTile(coordinates);
+  }
+
+  // Segna un tile come sporco
+  markTileDirty(coordinates) {
+    const tile = this.getTile(coordinates);
+    if (tile) {
+      tile.markDirty();
+      this.dirtyTiles.add(coordinates.toString());
+    }
+  }
+
+  // Segna tutti i tile come sporchi
+  markAllDirty() {
+    this.dirtyTiles.clear();
+    for (const [key, tile] of this.tiles) {
+      tile.markDirty();
+      this.dirtyTiles.add(key);
+    }
+  }
+
+  // Imposta il canvas
+  setCanvas(canvas) {
+    this.canvas = canvas;
+    this.ctx = canvas.getContext('2d');
+    
+    // Centra la camera
+    this.cameraX = canvas.width / 2;
+    this.cameraY = canvas.height / 2;
+    
+    // Segna tutti i tile come sporchi per il primo rendering
+    this.markAllDirty();
+  }
+
+  // Rendering ottimizzato - ridisegna solo i tile sporchi
+  render() {
+    if (!this.ctx) return;
+
+    // Se ci sono tile sporchi, ridisegnali
+    if (this.dirtyTiles.size > 0) {
+      console.log(`Ridisegnando ${this.dirtyTiles.size} tile sporchi`);
+      
+      for (const tileKey of this.dirtyTiles) {
+        const tile = this.tiles.get(tileKey);
+        if (tile && tile.isDirty) {
+          this.renderTile(tile);
+          tile.markClean();
+        }
+      }
+      
+      this.dirtyTiles.clear();
+    }
+  }
+
+  // Rendering completo (per debug o reset)
+  renderAll() {
+    if (!this.ctx) return;
+    
+    console.log("Rendering completo della mappa");
+    
+    // Pulisci il canvas
+    this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+    
+    // Disegna tutti i tile
+    for (const [key, tile] of this.tiles) {
+      this.renderTile(tile);
+      tile.markClean();
+    }
+    
+    this.dirtyTiles.clear();
+  }
+
+  // Rendering di un singolo tile
+  renderTile(tile) {
+    if (!this.ctx) return;
+
+    const color = TILE_COLORS[tile.type];
+    const path = tile.getHexPath(this.ctx, this.hexSize * this.zoom, this.cameraX, this.cameraY);
+    
+    // Disegna il tile
+    this.ctx.fillStyle = `rgb(${color.r}, ${color.g}, ${color.b})`;
+    this.ctx.fill(path);
+    
+    // Disegna il bordo
+    this.ctx.strokeStyle = 'rgba(0, 0, 0, 0.2)';
+    this.ctx.lineWidth = 0.5;
+    this.ctx.stroke(path);
+    
+    // Se il tile ha una nazione, disegna un indicatore
+    if (tile.nation) {
+      const pos = tile.getPixelPosition(this.hexSize * this.zoom);
+      const x = pos.x + this.cameraX;
+      const y = pos.y + this.cameraY;
+      
+      // Disegna un cerchio per la nazione
+      this.ctx.fillStyle = tile.nation.color || '#ff0000';
+      this.ctx.beginPath();
+      this.ctx.arc(x, y, this.hexSize * this.zoom * 0.3, 0, Math.PI * 2);
+      this.ctx.fill();
+      
+      // Disegna il nome della nazione (se lo zoom è abbastanza alto)
+      if (this.zoom > 0.5) {
+        this.ctx.fillStyle = '#ffffff';
+        this.ctx.font = `${Math.floor(this.hexSize * this.zoom * 0.4)}px Arial`;
+        this.ctx.textAlign = 'center';
+        this.ctx.fillText(tile.nation.name, x, y + 4);
+      }
+    }
+  }
+
+  // Converte coordinate pixel in coordinate esagonali
+  pixelToHex(pixelX, pixelY) {
+    const localX = (pixelX - this.cameraX) / this.zoom;
+    const localY = (pixelY - this.cameraY) / this.zoom;
+    return HexCoordinates.fromPixel(localX, localY, this.hexSize);
+  }
+
+  // Ottieni il tile sotto il mouse
+  getTileAtPixel(pixelX, pixelY) {
+    const hexCoords = this.pixelToHex(pixelX, pixelY);
+    return this.getTile(hexCoords);
+  }
+
+  // Muovi la camera
+  moveCamera(deltaX, deltaY) {
+    this.cameraX += deltaX;
+    this.cameraY += deltaY;
+    this.markAllDirty(); // Tutti i tile devono essere ridisegnati
+  }
+
+  // Cambia lo zoom
+  setZoom(newZoom) {
+    if (newZoom !== this.zoom) {
+      this.zoom = Math.max(0.1, Math.min(3, newZoom));
+      
+      // Invalida la cache di tutti i tile
+      for (const tile of this.tiles.values()) {
+        tile.invalidateCache();
+      }
+      
+      this.markAllDirty();
+    }
+  }
+
+  // Applica il generatore di mappe esistente
+  applyMapGenerator(generator) {
+    console.log("Applicando generatore di mappe ai tile esagonali");
+    
+    const mapWidth = generator.width;
+    const mapHeight = generator.height;
+    const finalMap = generator.finalMap;
+    
+    // Mappa i tile quadrati ai tile esagonali
+    for (const [key, tile] of this.tiles) {
+      // Converti coordinate esagonali in coordinate della griglia quadrata
+      const pos = tile.getPixelPosition(this.hexSize);
+      
+      // Normalizza le coordinate per mappare sulla griglia del generatore
+      const gridX = Math.floor(((pos.x + mapWidth * this.hexSize / 2) / this.hexSize) * (mapWidth / (this.radius * 2)));
+      const gridY = Math.floor(((pos.y + mapHeight * this.hexSize / 2) / this.hexSize) * (mapHeight / (this.radius * 2)));
+      
+      // Assicurati che le coordinate siano valide
+      const clampedX = Math.max(0, Math.min(mapWidth - 1, gridX));
+      const clampedY = Math.max(0, Math.min(mapHeight - 1, gridY));
+      
+      // Applica il tipo di tile
+      if (finalMap[clampedY] && finalMap[clampedY][clampedX] !== undefined) {
+        tile.setType(finalMap[clampedY][clampedX]);
+      }
+    }
+    
+    console.log("Mappa applicata ai tile esagonali");
+  }
+}
+
+// === GENERATORE MAPPA AVANZATO (invariato) ===
 class AdvancedMapGenerator {
   constructor(width = 480, height = 480, seed = Math.random()) {
     this.width = width;
@@ -510,140 +889,192 @@ class AdvancedMapGenerator {
   }
 }
 
-// Funzione principale per disegnare la mappa
-function drawTileMapOnCanvas(canvas) {
-  const ctx = canvas.getContext("2d");
-  const width = canvas.width = 1200;
-  const height = canvas.height = 800;
+// === VARIABILI GLOBALI ===
+let globalHexMap = null;
 
-  console.log("=== INIZIANDO GENERAZIONE MAPPA AVANZATA ===");
-  const startTime = performance.now();
+// === FUNZIONI ESPOSTE ===
 
-  // Crea il nuovo generatore avanzato
-  const generator = new AdvancedMapGenerator(480, 480, Math.random());
-  const tileMap = generator.generateMap();
-
-  const endTime = performance.now();
-  console.log(`=== MAPPA GENERATA IN ${(endTime - startTime).toFixed(2)}ms ===`);
-
-  // Calcola statistiche
-  const stats = {};
-  for (let y = 0; y < generator.height; y++) {
-    for (let x = 0; x < generator.width; x++) {
-      const type = tileMap[y][x];
-      stats[type] = (stats[type] || 0) + 1;
-    }
-  }
-  
-  console.log("Statistiche mappa:");
-  console.log(`Oceano: ${stats[TILE_TYPES.OCEAN] || 0} tiles (${((stats[TILE_TYPES.OCEAN] || 0) / (480*480) * 100).toFixed(1)}%)`);
-  console.log(`Costa: ${stats[TILE_TYPES.COAST] || 0} tiles (${((stats[TILE_TYPES.COAST] || 0) / (480*480) * 100).toFixed(1)}%)`);
-  console.log(`Pianure: ${stats[TILE_TYPES.PLAINS] || 0} tiles (${((stats[TILE_TYPES.PLAINS] || 0) / (480*480) * 100).toFixed(1)}%)`);
-  console.log(`Colline: ${stats[TILE_TYPES.HILLS] || 0} tiles (${((stats[TILE_TYPES.HILLS] || 0) / (480*480) * 100).toFixed(1)}%)`);
-  console.log(`Montagne: ${stats[TILE_TYPES.MOUNTAINS] || 0} tiles (${((stats[TILE_TYPES.MOUNTAINS] || 0) / (480*480) * 100).toFixed(1)}%)`);
-  console.log(`Foreste: ${stats[TILE_TYPES.FOREST] || 0} tiles (${((stats[TILE_TYPES.FOREST] || 0) / (480*480) * 100).toFixed(1)}%)`);
-
-  const tileWidth = width / generator.width;
-  const tileHeight = height / generator.height;
-
-  // Disegna ogni tile
-  for (let y = 0; y < generator.height; y++) {
-    for (let x = 0; x < generator.width; x++) {
-      const tileType = tileMap[y][x];
-      const color = TILE_COLORS[tileType];
-
-      ctx.fillStyle = `rgb(${color.r}, ${color.g}, ${color.b})`;
-      ctx.fillRect(
-        x * tileWidth, 
-        y * tileHeight, 
-        tileWidth, 
-        tileHeight
-      );
-    }
-  }
-
-  console.log("=== MAPPA DISEGNATA CON SUCCESSO ===");
-}
-
-// Espone la funzione al main.js
-window.generateAndShowMapOnStart = () => {
-  const canvas = document.getElementById("game-map");
-  canvas.style.display = "block";
-  drawTileMapOnCanvas(canvas);
-};
-// Funzione per generare la mappa con un seed specifico (per multiplayer)
+// Funzione principale per generare e mostrare la mappa esagonale
 window.generateAndShowMapWithSeed = (seed) => {
-  console.log("Generando mappa con seed:", seed);
+  console.log("=== INIZIANDO GENERAZIONE MAPPA ESAGONALE ===");
+  console.log("Seed:", seed);
+  
   const canvas = document.getElementById("game-map");
+  if (!canvas) {
+    console.error("Canvas non trovato!");
+    return;
+  }
+  
+  // Mostra il canvas
   canvas.style.display = "block";
-  drawTileMapOnCanvasWithSeed(canvas, seed);
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+  
+  // Crea la mappa esagonale
+  globalHexMap = new HexagonalMap(40, 15); // Raggio 40, dimensione esagono 15px
+  globalHexMap.setCanvas(canvas);
+  
+  // Genera la mappa con il generatore esistente
+  const generator = new AdvancedMapGenerator(480, 480, seed);
+  generator.generateMap();
+  
+  // Applica la mappa generata ai tile esagonali
+  globalHexMap.applyMapGenerator(generator);
+  
+  // Rendering iniziale
+  globalHexMap.renderAll();
+  
+  // Aggiungi controlli mouse/touch
+  addMapControls(canvas);
+  
+  console.log("=== MAPPA ESAGONALE GENERATA CON SUCCESSO ===");
 };
 
-// Funzione per disegnare la mappa con seed specifico
-function drawTileMapOnCanvasWithSeed(canvas, seed) {
-  const ctx = canvas.getContext("2d");
-  const width = canvas.width = 1200;
-  const height = canvas.height = 800;
-
-  console.log("=== INIZIANDO GENERAZIONE MAPPA AVANZATA CON SEED ===");
-  const startTime = performance.now();
-
-  // Crea il nuovo generatore avanzato con il seed fornito
-  const generator = new AdvancedMapGenerator(480, 480, seed);
-  const tileMap = generator.generateMap();
-
-  const endTime = performance.now();
-  console.log(`=== MAPPA GENERATA IN ${(endTime - startTime).toFixed(2)}ms ===`);
-
-  // Calcola statistiche
-  const stats = {};
-  for (let y = 0; y < generator.height; y++) {
-    for (let x = 0; x < generator.width; x++) {
-      const type = tileMap[y][x];
-      stats[type] = (stats[type] || 0) + 1;
-    }
+// Funzione per ridisegnare la mappa (per aggiornamenti)
+window.redrawMapWithNations = () => {
+  if (globalHexMap) {
+    console.log("Ridisegnando mappa con nazioni aggiornate");
+    globalHexMap.render(); // Rendering ottimizzato - solo tile sporchi
   }
+};
+
+// Aggiungi controlli per la mappa
+function addMapControls(canvas) {
+  let isDragging = false;
+  let lastMouseX = 0;
+  let lastMouseY = 0;
   
-  console.log("Statistiche mappa:");
-  console.log(`Oceano: ${stats[TILE_TYPES.OCEAN] || 0} tiles (${((stats[TILE_TYPES.OCEAN] || 0) / (480*480) * 100).toFixed(1)}%)`);
-  console.log(`Costa: ${stats[TILE_TYPES.COAST] || 0} tiles (${((stats[TILE_TYPES.COAST] || 0) / (480*480) * 100).toFixed(1)}%)`);
-  console.log(`Pianure: ${stats[TILE_TYPES.PLAINS] || 0} tiles (${((stats[TILE_TYPES.PLAINS] || 0) / (480*480) * 100).toFixed(1)}%)`);
-  console.log(`Colline: ${stats[TILE_TYPES.HILLS] || 0} tiles (${((stats[TILE_TYPES.HILLS] || 0) / (480*480) * 100).toFixed(1)}%)`);
-  console.log(`Montagne: ${stats[TILE_TYPES.MOUNTAINS] || 0} tiles (${((stats[TILE_TYPES.MOUNTAINS] || 0) / (480*480) * 100).toFixed(1)}%)`);
-  console.log(`Foreste: ${stats[TILE_TYPES.FOREST] || 0} tiles (${((stats[TILE_TYPES.FOREST] || 0) / (480*480) * 100).toFixed(1)}%)`);
-
-  const tileWidth = width / generator.width;
-  const tileHeight = height / generator.height;
-
-  // Disegna ogni tile
-  for (let y = 0; y < generator.height; y++) {
-    for (let x = 0; x < generator.width; x++) {
-      const tileType = tileMap[y][x];
-      const color = TILE_COLORS[tileType];
-
-      ctx.fillStyle = `rgb(${color.r}, ${color.g}, ${color.b})`;
-      ctx.fillRect(
-        x * tileWidth, 
-        y * tileHeight, 
-        tileWidth, 
-        tileHeight
+  // Mouse events
+  canvas.addEventListener('mousedown', (e) => {
+    isDragging = true;
+    lastMouseX = e.clientX;
+    lastMouseY = e.clientY;
+    canvas.style.cursor = 'grabbing';
+  });
+  
+  canvas.addEventListener('mousemove', (e) => {
+    if (isDragging && globalHexMap) {
+      const deltaX = e.clientX - lastMouseX;
+      const deltaY = e.clientY - lastMouseY;
+      
+      globalHexMap.moveCamera(deltaX, deltaY);
+      globalHexMap.render();
+      
+      lastMouseX = e.clientX;
+      lastMouseY = e.clientY;
+    }
+  });
+  
+  canvas.addEventListener('mouseup', () => {
+    isDragging = false;
+    canvas.style.cursor = 'grab';
+  });
+  
+  canvas.addEventListener('mouseleave', () => {
+    isDragging = false;
+    canvas.style.cursor = 'grab';
+  });
+  
+  // Zoom con rotella del mouse
+  canvas.addEventListener('wheel', (e) => {
+    e.preventDefault();
+    if (globalHexMap) {
+      const zoomFactor = e.deltaY > 0 ? 0.9 : 1.1;
+      const newZoom = globalHexMap.zoom * zoomFactor;
+      globalHexMap.setZoom(newZoom);
+      globalHexMap.render();
+    }
+  });
+  
+  // Touch events per mobile
+  let lastTouchDistance = 0;
+  
+  canvas.addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    if (e.touches.length === 1) {
+      isDragging = true;
+      lastMouseX = e.touches[0].clientX;
+      lastMouseY = e.touches[0].clientY;
+    } else if (e.touches.length === 2) {
+      isDragging = false;
+      const touch1 = e.touches[0];
+      const touch2 = e.touches[1];
+      lastTouchDistance = Math.sqrt(
+        Math.pow(touch2.clientX - touch1.clientX, 2) +
+        Math.pow(touch2.clientY - touch1.clientY, 2)
       );
     }
-  }
-
-  console.log("=== MAPPA DISEGNATA CON SUCCESSO ===");
+  });
   
-  // Inizializza le variabili globali per le nazioni se non esistono
-  if (!window.placedNations) {
-    window.placedNations = {};
-  }
+  canvas.addEventListener('touchmove', (e) => {
+    e.preventDefault();
+    if (e.touches.length === 1 && isDragging && globalHexMap) {
+      const deltaX = e.touches[0].clientX - lastMouseX;
+      const deltaY = e.touches[0].clientY - lastMouseY;
+      
+      globalHexMap.moveCamera(deltaX, deltaY);
+      globalHexMap.render();
+      
+      lastMouseX = e.touches[0].clientX;
+      lastMouseY = e.touches[0].clientY;
+    } else if (e.touches.length === 2 && globalHexMap) {
+      const touch1 = e.touches[0];
+      const touch2 = e.touches[1];
+      const currentDistance = Math.sqrt(
+        Math.pow(touch2.clientX - touch1.clientX, 2) +
+        Math.pow(touch2.clientY - touch1.clientY, 2)
+      );
+      
+      if (lastTouchDistance > 0) {
+        const zoomFactor = currentDistance / lastTouchDistance;
+        const newZoom = globalHexMap.zoom * zoomFactor;
+        globalHexMap.setZoom(newZoom);
+        globalHexMap.render();
+      }
+      
+      lastTouchDistance = currentDistance;
+    }
+  });
   
-  // Esponi la funzione di ridisegno
-  window.redrawMapWithNations = () => {
-    drawTileMapOnCanvasWithSeed(canvas, seed);
-    // Qui potresti aggiungere il codice per ridisegnare le nazioni posizionate
-  };
+  canvas.addEventListener('touchend', (e) => {
+    e.preventDefault();
+    isDragging = false;
+    lastTouchDistance = 0;
+  });
+  
+  // Imposta il cursore iniziale
+  canvas.style.cursor = 'grab';
 }
+
+// Funzione per ottenere il tile sotto il mouse (utile per future interazioni)
+window.getTileAtMouse = (mouseX, mouseY) => {
+  if (globalHexMap) {
+    return globalHexMap.getTileAtPixel(mouseX, mouseY);
+  }
+  return null;
+};
+
+// Funzione per aggiornare un tile specifico (per future funzionalità)
+window.updateTile = (q, r, newType, nation = null) => {
+  if (globalHexMap) {
+    const tile = globalHexMap.getTileAt(q, r);
+    if (tile) {
+      tile.setType(newType);
+      if (nation) {
+        tile.setNation(nation);
+      }
+      globalHexMap.markTileDirty(tile.coordinates);
+      globalHexMap.render();
+    }
+  }
+};
 
 // Inizializza le variabili globali necessarie
 window.placedNations = window.placedNations || {};
+
+// Funzione di compatibilità per il vecchio sistema
+window.generateAndShowMapOnStart = () => {
+  window.generateAndShowMapWithSeed(Math.random());
+};
+
+console.log("=== SISTEMA MAPPA ESAGONALE CARICATO ===");
