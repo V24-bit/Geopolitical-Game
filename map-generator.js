@@ -180,6 +180,11 @@ class HexTile {
     this.units = []; // Unità presenti su questo tile
     this.improvements = []; // Miglioramenti costruiti
     
+    // Animazione click
+    this.isAnimating = false;
+    this.animationStartTime = 0;
+    this.animationDuration = 2000; // 2 secondi
+    
     // Cache per il rendering
     this._cachedPath = null;
     this._cachedPixelPos = null;
@@ -247,6 +252,39 @@ class HexTile {
       this.nation = nation;
       this.markDirty();
     }
+  }
+
+  // Inizia animazione click
+  startClickAnimation() {
+    this.isAnimating = true;
+    this.animationStartTime = Date.now();
+    this.markDirty();
+  }
+
+  // Aggiorna animazione
+  updateAnimation() {
+    if (this.isAnimating) {
+      const elapsed = Date.now() - this.animationStartTime;
+      if (elapsed >= this.animationDuration) {
+        this.isAnimating = false;
+        this.markDirty(); // Ridisegna per rimuovere l'animazione
+        return false; // Animazione finita
+      }
+      this.markDirty(); // Continua a ridisegnare
+      return true; // Animazione in corso
+    }
+    return false;
+  }
+
+  // Ottieni intensità animazione (0-1)
+  getAnimationIntensity() {
+    if (!this.isAnimating) return 0;
+    
+    const elapsed = Date.now() - this.animationStartTime;
+    const progress = elapsed / this.animationDuration;
+    
+    // Effetto fade in-out: forte all'inizio, poi svanisce
+    return Math.max(0, 1 - progress);
   }
 }
 
@@ -334,10 +372,23 @@ class HexagonalMap {
   render() {
     if (!this.ctx) return;
 
+    // Aggiorna animazioni
+    let hasActiveAnimations = false;
+    for (const [key, tile] of this.tiles) {
+      if (tile.updateAnimation()) {
+        hasActiveAnimations = true;
+      }
+    }
+
     // Se tutti i tile sono sporchi, ridisegna tutto
     if (this.allTilesDirty) {
       this.renderAll();
       this.allTilesDirty = false;
+      
+      // Se ci sono animazioni attive, continua a renderizzare
+      if (hasActiveAnimations) {
+        requestAnimationFrame(() => this.render());
+      }
       return;
     }
 
@@ -353,6 +404,11 @@ class HexagonalMap {
     
     if (dirtyCount > 0) {
       console.log(`Ridisegnati ${dirtyCount} tile sporchi`);
+    }
+    
+    // Se ci sono animazioni attive, continua a renderizzare
+    if (hasActiveAnimations) {
+      requestAnimationFrame(() => this.render());
     }
   }
 
@@ -383,10 +439,28 @@ class HexagonalMap {
     this.ctx.fillStyle = `rgb(${color.r}, ${color.g}, ${color.b})`;
     this.ctx.fill(path);
     
-    // Disegna il bordo
-    this.ctx.strokeStyle = 'rgba(0, 0, 0, 0.2)';
-    this.ctx.lineWidth = 0.5;
-    this.ctx.stroke(path);
+    // Disegna il bordo (normale o animato)
+    const animationIntensity = tile.getAnimationIntensity();
+    if (animationIntensity > 0) {
+      // Bordo animato bianco neon
+      const alpha = animationIntensity * 0.9; // Massimo 90% opacità
+      const lineWidth = 2 + (animationIntensity * 3); // Da 2 a 5 pixel
+      
+      this.ctx.strokeStyle = `rgba(255, 255, 255, ${alpha})`;
+      this.ctx.lineWidth = lineWidth;
+      this.ctx.shadowColor = 'rgba(255, 255, 255, 0.8)';
+      this.ctx.shadowBlur = 8 * animationIntensity;
+      this.ctx.stroke(path);
+      
+      // Reset shadow
+      this.ctx.shadowColor = 'transparent';
+      this.ctx.shadowBlur = 0;
+    } else {
+      // Bordo normale
+      this.ctx.strokeStyle = 'rgba(0, 0, 0, 0.2)';
+      this.ctx.lineWidth = 0.5;
+      this.ctx.stroke(path);
+    }
     
     // Se il tile ha una nazione, disegna un indicatore
     if (tile.nation) {
@@ -983,7 +1057,22 @@ function addMapControls(canvas) {
     }
   });
   
-  canvas.addEventListener('mouseup', () => {
+  canvas.addEventListener('mouseup', (e) => {
+    // Se non è stato un drag significativo, considera come click
+    if (totalDragDistance < dragThreshold && globalHexMap) {
+      const rect = canvas.getBoundingClientRect();
+      const mouseX = e.clientX - rect.left;
+      const mouseY = e.clientY - rect.top;
+      
+      // Trova il tile sotto il mouse
+      const clickedTile = globalHexMap.getTileAtPixel(mouseX, mouseY);
+      if (clickedTile) {
+        console.log(`Clicked tile at ${clickedTile.coordinates.q}, ${clickedTile.coordinates.r}`);
+        clickedTile.startClickAnimation();
+        globalHexMap.render(); // Inizia il ciclo di rendering per l'animazione
+      }
+    }
+    
     isDragging = false;
     canvas.style.cursor = 'grab';
   });
