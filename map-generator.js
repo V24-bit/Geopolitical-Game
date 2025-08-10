@@ -261,6 +261,14 @@ class HexTile {
     this.markDirty();
   }
 
+  // Ferma animazione
+  stopAnimation() {
+    if (this.isAnimating) {
+      this.isAnimating = false;
+      this.markDirty();
+    }
+  }
+
   // Aggiorna animazione
   updateAnimation() {
     if (this.isAnimating) {
@@ -284,7 +292,7 @@ class HexTile {
     const progress = elapsed / this.animationDuration;
     
     // Effetto fade out graduale ridotto del 70%
-    const intensity = Math.max(0, 1 - progress);
+    const intensity = Math.max(0, (1 - progress));
     return intensity * 0.3; // Ridotto del 70% (30% dell'originale)
   }
 }
@@ -296,6 +304,7 @@ class HexagonalMap {
     this.hexSize = hexSize; // Dimensione di ogni esagono in pixel
     this.tiles = new Map(); // Map<string, HexTile>
     this.allTilesDirty = true; // Flag per ridisegnare tutto
+    this.currentAnimatingTile = null; // Tile attualmente in animazione
     
     // Canvas e contesto
     this.canvas = null;
@@ -482,6 +491,11 @@ class HexagonalMap {
         this.ctx.textAlign = 'center';
         this.ctx.fillText(tile.nation.name, x, y + 4);
       }
+    }
+    
+    // Pulisci il riferimento se l'animazione è finita
+    if (this.currentAnimatingTile === tile && !tile.isAnimating) {
+      this.currentAnimatingTile = null;
     }
   }
 
@@ -1069,6 +1083,14 @@ function addMapControls(canvas) {
       const clickedTile = globalHexMap.getTileAtPixel(mouseX, mouseY);
       if (clickedTile) {
         console.log(`Clicked tile at ${clickedTile.coordinates.q}, ${clickedTile.coordinates.r}`);
+        
+        // Ferma l'animazione del tile precedente se esiste
+        if (globalHexMap.currentAnimatingTile && globalHexMap.currentAnimatingTile !== clickedTile) {
+          globalHexMap.currentAnimatingTile.stopAnimation();
+        }
+        
+        // Avvia la nuova animazione
+        globalHexMap.currentAnimatingTile = clickedTile;
         clickedTile.startClickAnimation();
         globalHexMap.render(); // Inizia il ciclo di rendering per l'animazione
       }
