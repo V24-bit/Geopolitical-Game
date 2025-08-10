@@ -505,8 +505,8 @@ class AdvancedMapGenerator {
     
     // Parametri continentali
     this.continentCenters = [];
-    this.oceanDepthThreshold = -0.15;
-    this.seaLevelThreshold = 0.0;
+    this.oceanDepthThreshold = -0.05;
+    this.seaLevelThreshold = 0.15;
     this.hillThreshold = 0.3;
     this.mountainThreshold = 0.6;
   }
@@ -558,15 +558,15 @@ class AdvancedMapGenerator {
 
   // Step 1: Struttura continentale usando Voronoi
   generateContinentalStructure() {
-    const numContinents = 3 + Math.floor(this.random() * 3); // 3-5 continenti
+    const numContinents = 2 + Math.floor(this.random() * 2); // 2-3 continenti
     
     // Genera centri continentali
     for (let i = 0; i < numContinents; i++) {
       this.continentCenters.push({
-        x: Math.floor(this.random() * this.width),
-        y: Math.floor(this.random() * this.height),
+        x: Math.floor(this.width * 0.2 + this.random() * this.width * 0.6),
+        y: Math.floor(this.height * 0.2 + this.random() * this.height * 0.6),
         strength: 0.5 + this.random() * 0.5,
-        radius: Math.floor(80 + this.random() * 120)
+        radius: Math.floor(60 + this.random() * 80)
       });
     }
     
@@ -611,7 +611,7 @@ class AdvancedMapGenerator {
         
         // Effetto bordo (più oceano ai bordi)
         const edgeDistance = Math.min(x, this.width - x, y, this.height - y);
-        const edgeFactor = Math.min(1, edgeDistance / 50);
+       const edgeFactor = Math.min(1, edgeDistance / 80);
         elevation *= edgeFactor;
         
         this.elevationMap[y][x] = elevation;
