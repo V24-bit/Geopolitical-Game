@@ -252,7 +252,7 @@ class HexTile {
 
 // === MAPPA ESAGONALE CON RETAINED MODE ===
 class HexagonalMap {
-  constructor(radius = 40, hexSize = 12) {
+  constructor(radius = 25, hexSize = 15) {
     this.radius = radius; // Raggio della mappa in esagoni
     this.hexSize = hexSize; // Dimensione di ogni esagono in pixel
     this.tiles = new Map(); // Map<string, HexTile>
@@ -445,26 +445,40 @@ class HexagonalMap {
   applyMapGenerator(generator) {
     console.log("Applicando generatore di mappe ai tile esagonali");
     
-    const mapWidth = generator.width;
-    const mapHeight = generator.height;
-    const finalMap = generator.finalMap;
+    // Calcola il bounding box degli esagoni
+    let minX = Infinity, maxX = -Infinity;
+    let minY = Infinity, maxY = -Infinity;
     
-    // Mappa i tile quadrati ai tile esagonali
     for (const [key, tile] of this.tiles) {
-      // Converti coordinate esagonali in coordinate della griglia quadrata
+      const pos = tile.getPixelPosition(this.hexSize);
+      minX = Math.min(minX, pos.x);
+      maxX = Math.max(maxX, pos.x);
+      minY = Math.min(minY, pos.y);
+      maxY = Math.max(maxY, pos.y);
+    }
+    
+    const hexWidth = maxX - minX;
+    const hexHeight = maxY - minY;
+    
+    // Mappa ogni tile esagonale alla griglia del generatore
+    for (const [key, tile] of this.tiles) {
       const pos = tile.getPixelPosition(this.hexSize);
       
-      // Normalizza le coordinate per mappare sulla griglia del generatore
-      const gridX = Math.floor(((pos.x + mapWidth * this.hexSize / 2) / this.hexSize) * (mapWidth / (this.radius * 2)));
-      const gridY = Math.floor(((pos.y + mapHeight * this.hexSize / 2) / this.hexSize) * (mapHeight / (this.radius * 2)));
+      // Normalizza la posizione dell'esagono (0-1)
+      const normalizedX = (pos.x - minX) / hexWidth;
+      const normalizedY = (pos.y - minY) / hexHeight;
+      
+      // Mappa alla griglia del generatore
+      const gridX = Math.floor(normalizedX * (generator.width - 1));
+      const gridY = Math.floor(normalizedY * (generator.height - 1));
       
       // Assicurati che le coordinate siano valide
-      const clampedX = Math.max(0, Math.min(mapWidth - 1, gridX));
-      const clampedY = Math.max(0, Math.min(mapHeight - 1, gridY));
+      const clampedX = Math.max(0, Math.min(generator.width - 1, gridX));
+      const clampedY = Math.max(0, Math.min(generator.height - 1, gridY));
       
-      // Applica il tipo di tile
-      if (finalMap[clampedY] && finalMap[clampedY][clampedX] !== undefined) {
-        tile.setType(finalMap[clampedY][clampedX]);
+      // Applica il tipo di tile dalla mappa generata
+      if (generator.finalMap[clampedY] && generator.finalMap[clampedY][clampedX] !== undefined) {
+        tile.setType(generator.finalMap[clampedY][clampedX]);
       }
     }
     
@@ -910,12 +924,12 @@ window.generateAndShowMapWithSeed = (seed) => {
   canvas.width = window.innerWidth;
   canvas.height = window.innerHeight;
   
-  // Crea la mappa esagonale
-  globalHexMap = new HexagonalMap(40, 15); // Raggio 40, dimensione esagono 15px
+  // Crea la mappa esagonale (circa 2000 tiles per raggio 25)
+  globalHexMap = new HexagonalMap(25, 18); // Raggio 25, dimensione esagono 18px
   globalHexMap.setCanvas(canvas);
   
-  // Genera la mappa con il generatore esistente
-  const generator = new AdvancedMapGenerator(480, 480, seed);
+  // Genera la mappa con il generatore esistente (dimensioni ridotte per performance)
+  const generator = new AdvancedMapGenerator(200, 200, seed);
   generator.generateMap();
   
   // Applica la mappa generata ai tile esagonali
@@ -927,6 +941,7 @@ window.generateAndShowMapWithSeed = (seed) => {
   // Aggiungi controlli mouse/touch
   addMapControls(canvas);
   
+  console.log(`Mappa generata con ${globalHexMap.tiles.size} tile esagonali`);
   console.log("=== MAPPA ESAGONALE GENERATA CON SUCCESSO ===");
 };
 
