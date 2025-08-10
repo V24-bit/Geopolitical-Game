@@ -283,8 +283,9 @@ class HexTile {
     const elapsed = Date.now() - this.animationStartTime;
     const progress = elapsed / this.animationDuration;
     
-    // Effetto fade in-out: forte all'inizio, poi svanisce
-    return Math.max(0, 1 - progress);
+    // Effetto fade out graduale ridotto del 70%
+    const intensity = Math.max(0, 1 - progress);
+    return intensity * 0.3; // Ridotto del 70% (30% dell'originale)
   }
 }
 
@@ -443,13 +444,13 @@ class HexagonalMap {
     const animationIntensity = tile.getAnimationIntensity();
     if (animationIntensity > 0) {
       // Bordo animato bianco neon
-      const alpha = animationIntensity * 0.9; // Massimo 90% opacità
-      const lineWidth = 2 + (animationIntensity * 3); // Da 2 a 5 pixel
+      const alpha = animationIntensity; // Opacità già ridotta del 70%
+      const lineWidth = 1 + (animationIntensity * 2); // Da 1 a 3 pixel (ridotto)
       
       this.ctx.strokeStyle = `rgba(255, 255, 255, ${alpha})`;
       this.ctx.lineWidth = lineWidth;
       this.ctx.shadowColor = 'rgba(255, 255, 255, 0.8)';
-      this.ctx.shadowBlur = 8 * animationIntensity;
+      this.ctx.shadowBlur = 3 * animationIntensity; // Glow ridotto
       this.ctx.stroke(path);
       
       // Reset shadow
