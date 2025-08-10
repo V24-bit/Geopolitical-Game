@@ -507,8 +507,11 @@ class AdvancedMapGenerator {
     this.continentCenters = [];
     this.oceanDepthThreshold = -0.05;
     this.seaLevelThreshold = 0.15;
-    this.hillThreshold = 0.3;
+    this.hillThreshold = 0.25;
     this.mountainThreshold = 0.6;
+    
+    // Parametri per catene montuose
+    this.mountainRanges = [];
   }
 
   // Generatore di numeri casuali con seed
@@ -539,6 +542,9 @@ class AdvancedMapGenerator {
     
     // Step 4: Genera temperatura basata su latitudine e elevazione
     this.generateTemperatureMap();
+    
+    // Step 4.5: Genera catene montuose realistiche
+    this.generateMountainRanges();
     
     // Step 5: Genera umidità basata su oceani e venti
     this.generateHumidityMap();
@@ -703,6 +709,95 @@ class AdvancedMapGenerator {
     }
     
     console.log(`Generati ${numArchipelagos} arcipelaghi`);
+  }
+
+  // Step 4.5: Genera catene montuose realistiche
+  generateMountainRanges() {
+    console.log("Generando catene montuose...");
+    
+    const numRanges = 2 + Math.floor(this.random() * 2); // 2-3 catene montuose
+    
+    for (let rangeIndex = 0; rangeIndex < numRanges; rangeIndex++) {
+      // Trova una posizione di partenza su terraferma
+      let startX, startY;
+      let attempts = 0;
+      
+      do {
+        startX = Math.floor(50 + this.random() * (this.width - 100));
+        startY = Math.floor(50 + this.random() * (this.height - 100));
+        attempts++;
+      } while (attempts < 50 && this.elevationMap[startY][startX] <= this.seaLevelThreshold);
+      
+      if (attempts >= 50) continue; // Salta se non trova terraferma
+      
+      // Parametri della catena montuosa
+      const rangeLength = 80 + Math.floor(this.random() * 120); // 80-200 segmenti
+      const baseDirection = this.random() * Math.PI * 2; // Direzione iniziale
+      const curviness = 0.3 + this.random() * 0.4; // Quanto è curva la catena
+      
+      // Genera la spina dorsale della catena
+      const spine = [];
+      let currentX = startX;
+      let currentY = startY;
+      let currentDirection = baseDirection;
+      
+      for (let i = 0; i < rangeLength; i++) {
+        // Aggiungi punto alla spina dorsale
+        spine.push({ x: Math.floor(currentX), y: Math.floor(currentY) });
+        
+        // Calcola prossima posizione
+        const stepSize = 1.5 + this.random() * 1; // Dimensione del passo
+        currentX += Math.cos(currentDirection) * stepSize;
+        currentY += Math.sin(currentDirection) * stepSize;
+        
+        // Cambia direzione gradualmente (curvatura)
+        currentDirection += (this.random() - 0.5) * curviness;
+        
+        // Mantieni entro i confini
+        if (currentX < 20 || currentX > this.width - 20 || 
+            currentY < 20 || currentY > this.height - 20) {
+          break;
+        }
+      }
+      
+      // Applica la catena montuosa alla mappa
+      this.applyMountainRange(spine);
+    }
+    
+    console.log(`Generate ${numRanges} catene montuose`);
+  }
+  
+  // Applica una catena montuosa alla mappa di elevazione
+  applyMountainRange(spine) {
+    for (const point of spine) {
+      // Centro della montagna (2-3 tiles di larghezza)
+      const mountainWidth = 1 + Math.floor(this.random() * 2); // 1-2 tiles dal centro
+      
+      for (let dy = -mountainWidth - 2; dy <= mountainWidth + 2; dy++) {
+        for (let dx = -mountainWidth - 2; dx <= mountainWidth + 2; dx++) {
+          const x = point.x + dx;
+          const y = point.y + dy;
+          
+          if (x >= 0 && x < this.width && y >= 0 && y < this.height) {
+            const distance = Math.sqrt(dx * dx + dy * dy);
+            
+            // Solo su terraferma
+            if (this.elevationMap[y][x] > this.seaLevelThreshold) {
+              if (distance <= mountainWidth) {
+                // Nucleo montuoso (2-3 tiles di larghezza)
+                const mountainHeight = 0.7 + this.random() * 0.25;
+                this.elevationMap[y][x] = Math.max(this.elevationMap[y][x], mountainHeight);
+              } else if (distance <= mountainWidth + 2) {
+                // Colline circostanti (1-2 tiles attorno)
+                const falloff = 1 - ((distance - mountainWidth) / 2);
+                const hillHeight = 0.35 + falloff * 0.25;
+                this.elevationMap[y][x] = Math.max(this.elevationMap[y][x], hillHeight);
+              }
+            }
+          }
+        }
+      }
+    }
   }
 
   // Step 4: Mappa temperatura
