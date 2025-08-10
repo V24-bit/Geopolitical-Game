@@ -505,8 +505,8 @@ class AdvancedMapGenerator {
     
     // Parametri continentali
     this.continentCenters = [];
-    this.oceanDepthThreshold = -0.1;
-    this.seaLevelThreshold = -0.05;
+    this.oceanDepthThreshold = -0.05;
+    this.seaLevelThreshold = 0.05;
     this.hillThreshold = 0.25;
     this.mountainThreshold = 0.6;
   }
@@ -558,15 +558,15 @@ class AdvancedMapGenerator {
 
   // Step 1: Struttura continentale usando Voronoi
   generateContinentalStructure() {
-    const numContinents = 3 + Math.floor(this.random() * 3); // 3-5 continenti
+    const numContinents = 2 + Math.floor(this.random() * 2); // 2-3 continenti
     
     // Genera centri continentali
     for (let i = 0; i < numContinents; i++) {
       this.continentCenters.push({
-        x: Math.floor(this.width * 0.1 + this.random() * this.width * 0.8),
-        y: Math.floor(this.height * 0.1 + this.random() * this.height * 0.8),
+        x: Math.floor(this.width * 0.15 + this.random() * this.width * 0.7),
+        y: Math.floor(this.height * 0.15 + this.random() * this.height * 0.7),
         strength: 0.5 + this.random() * 0.5,
-        radius: Math.floor(80 + this.random() * 120)
+        radius: Math.floor(90 + this.random() * 50)
       });
     }
     
