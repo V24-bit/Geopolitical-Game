@@ -289,11 +289,14 @@ class HexTile {
     if (!this.isAnimating) return 0;
     
     const elapsed = Date.now() - this.animationStartTime;
+    if (elapsed >= this.animationDuration) {
+      this.isAnimating = false;
+      return 0;
+    }
     const progress = elapsed / this.animationDuration;
     
-    // Effetto fade out graduale ridotto del 70%
-    const intensity = Math.max(0, (1 - progress));
-    return intensity * 0.3; // Ridotto del 70% (30% dell'originale)
+    // Fade out completo da 0.3 a 0
+    return Math.max(0, 0.3 * (1 - progress));
   }
 }
 
@@ -305,6 +308,8 @@ class HexagonalMap {
     this.tiles = new Map(); // Map<string, HexTile>
     this.allTilesDirty = true; // Flag per ridisegnare tutto
     this.currentAnimatingTile = null; // Tile attualmente in animazione
+    this.lastRenderTime = 0; // Per throttling rendering
+    this.visibleTiles = new Set(); // Cache dei tile visibili
     
     // Canvas e contesto
     this.canvas = null;
@@ -382,6 +387,13 @@ class HexagonalMap {
   render() {
     if (!this.ctx) return;
 
+    // Throttling per performance - max 60 FPS
+    const now = Date.now();
+    if (this.lastRenderTime && (now - this.lastRenderTime) < 16) {
+      return;
+    }
+    this.lastRenderTime = now;
+
     // Aggiorna animazioni
     let hasActiveAnimations = false;
     for (const [key, tile] of this.tiles) {
@@ -412,10 +424,6 @@ class HexagonalMap {
       }
     }
     
-    if (dirtyCount > 0) {
-      console.log(`Ridisegnati ${dirtyCount} tile sporchi`);
-    }
-    
     // Se ci sono animazioni attive, continua a renderizzare
     if (hasActiveAnimations) {
       requestAnimationFrame(() => this.render());
@@ -426,13 +434,43 @@ class HexagonalMap {
   renderAll() {
     if (!this.ctx) return;
     
-    console.log("Rendering completo della mappa");
+    // Calcola i tile visibili per ottimizzazione
+    this.updateVisibleTiles();
     
     // Pulisci il canvas
     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
     
-    // Disegna tutti i tile
+    // Disegna solo i tile visibili
+    for (const tileKey of this.visibleTiles) {
+      const tile = this.tiles.get(tileKey);
+      if (tile) {
+        this.renderTile(tile);
+        tile.markClean();
+      }
+    }
+  }
+
+  // Calcola quali tile sono visibili nel viewport
+  updateVisibleTiles() {
+    this.visibleTiles.clear();
+    
+    const margin = this.hexSize * 2; // Margine per tile parzialmente visibili
+    const left = -this.cameraX - margin;
+    const right = -this.cameraX + this.canvas.width + margin;
+    const top = -this.cameraY - margin;
+    const bottom = -this.cameraY + this.canvas.height + margin;
+    
     for (const [key, tile] of this.tiles) {
+      const pos = tile.getPixelPosition(this.hexSize * this.zoom);
+      const x = pos.x + this.cameraX;
+      const y = pos.y + this.cameraY;
+      
+      // Controlla se il tile è nel viewport
+      if (x >= left && x <= right && y >= top && y <= bottom) {
+        this.visibleTiles.add(key);
+      }
+    }
+  }
       this.renderTile(tile);
       tile.markClean();
     }
@@ -453,18 +491,20 @@ class HexagonalMap {
     const animationIntensity = tile.getAnimationIntensity();
     if (animationIntensity > 0) {
       // Bordo animato bianco neon
-      const alpha = animationIntensity; // Opacità già ridotta del 70%
-      const lineWidth = 1 + (animationIntensity * 2); // Da 1 a 3 pixel (ridotto)
+      const alpha = animationIntensity;
+      const lineWidth = 1 + (animationIntensity * 6.67); // Da 1 a 3 pixel
       
       this.ctx.strokeStyle = `rgba(255, 255, 255, ${alpha})`;
       this.ctx.lineWidth = lineWidth;
-      this.ctx.shadowColor = 'rgba(255, 255, 255, 0.8)';
-      this.ctx.shadowBlur = 3 * animationIntensity; // Glow ridotto
+      this.ctx.shadowColor = `rgba(255, 255, 255, ${alpha * 0.8})`;
+      this.ctx.shadowBlur = 3 * animationIntensity;
       this.ctx.stroke(path);
       
       // Reset shadow
       this.ctx.shadowColor = 'transparent';
       this.ctx.shadowBlur = 0;
+      this.ctx.shadowOffsetX = 0;
+      this.ctx.shadowOffsetY = 0;
     } else {
       // Bordo normale
       this.ctx.strokeStyle = 'rgba(0, 0, 0, 0.2)';
@@ -493,10 +533,6 @@ class HexagonalMap {
       }
     }
     
-    // Pulisci il riferimento se l'animazione è finita
-    if (this.currentAnimatingTile === tile && !tile.isAnimating) {
-      this.currentAnimatingTile = null;
-    }
   }
 
   // Converte coordinate pixel in coordinate esagonali
@@ -522,6 +558,8 @@ class HexagonalMap {
     
     // Solo se la camera si è effettivamente mossa
     if (oldCameraX !== this.cameraX || oldCameraY !== this.cameraY) {
+      // Aggiorna i tile visibili
+      this.updateVisibleTiles();
       this.markAllDirty();
     }
   }
@@ -532,6 +570,8 @@ class HexagonalMap {
     
     if (Math.abs(clampedZoom - this.zoom) > 0.01) { // Soglia per evitare micro-cambiamenti
       this.zoom = clampedZoom;
+      // Aggiorna i tile visibili
+      this.updateVisibleTiles();
       this.markAllDirty();
     }
   }
@@ -1064,7 +1104,7 @@ function addMapControls(canvas) {
       // Solo se il movimento è significativo
       if (dragDistance > 1) {
         globalHexMap.moveCamera(deltaX, deltaY);
-        globalHexMap.render();
+        // Il rendering è gestito automaticamente da moveCamera
       }
       
       lastMouseX = e.clientX;
@@ -1082,11 +1122,11 @@ function addMapControls(canvas) {
       // Trova il tile sotto il mouse
       const clickedTile = globalHexMap.getTileAtPixel(mouseX, mouseY);
       if (clickedTile) {
-        console.log(`Clicked tile at ${clickedTile.coordinates.q}, ${clickedTile.coordinates.r}`);
         
         // Ferma l'animazione del tile precedente se esiste
         if (globalHexMap.currentAnimatingTile && globalHexMap.currentAnimatingTile !== clickedTile) {
           globalHexMap.currentAnimatingTile.stopAnimation();
+          globalHexMap.currentAnimatingTile.markDirty();
         }
         
         // Avvia la nuova animazione
@@ -1109,10 +1149,10 @@ function addMapControls(canvas) {
   canvas.addEventListener('wheel', (e) => {
     e.preventDefault();
     if (globalHexMap) {
-      const zoomFactor = e.deltaY > 0 ? 0.95 : 1.05; // Zoom più graduale
+      const zoomFactor = e.deltaY > 0 ? 0.9 : 1.1; // Zoom più responsivo
       const newZoom = globalHexMap.zoom * zoomFactor;
       globalHexMap.setZoom(newZoom);
-      globalHexMap.render();
+      // Il rendering è gestito automaticamente da setZoom
     }
   });
   
@@ -1146,7 +1186,7 @@ function addMapControls(canvas) {
       // Solo se il movimento è significativo
       if (dragDistance > 2) {
         globalHexMap.moveCamera(deltaX, deltaY);
-        globalHexMap.render();
+        // Il rendering è gestito automaticamente da moveCamera
       }
       
       lastMouseX = e.touches[0].clientX;
@@ -1163,7 +1203,7 @@ function addMapControls(canvas) {
         const zoomFactor = Math.max(0.5, Math.min(2, currentDistance / lastTouchDistance));
         const newZoom = globalHexMap.zoom * zoomFactor;
         globalHexMap.setZoom(newZoom);
-        globalHexMap.render();
+        // Il rendering è gestito automaticamente da setZoom
       }
       
       lastTouchDistance = currentDistance;
