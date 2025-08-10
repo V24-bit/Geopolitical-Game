@@ -472,7 +472,7 @@ class HexagonalMap {
   }
 }
 
-// === GENERATORE MAPPA AVANZATO (invariato) ===
+// === GENERATORE MAPPA AVANZATO (ORIGINALE RIPRISTINATO) ===
 class AdvancedMapGenerator {
   constructor(width = 480, height = 480, seed = Math.random()) {
     this.width = width;
