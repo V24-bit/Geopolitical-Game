@@ -469,13 +469,6 @@ class HexagonalMap {
       if (x >= left && x <= right && y >= top && y <= bottom) {
         this.visibleTiles.add(key);
       }
-    }
-  }
-      this.renderTile(tile);
-      tile.markClean();
-    }
-  }
-
   // Rendering di un singolo tile
   renderTile(tile) {
     if (!this.ctx) return;
