@@ -1027,7 +1027,7 @@ let globalHexMap = null;
 // === FUNZIONI ESPOSTE ===
 
 // Funzione principale per generare e mostrare la mappa esagonale
-window.generateAndShowMapWithSeed = (seed) => {
+window.generateAndShowMapWithSeed = function(seed) {
   console.log("=== INIZIANDO GENERAZIONE MAPPA ESAGONALE ===");
   console.log("Seed:", seed);
   
@@ -1064,7 +1064,7 @@ window.generateAndShowMapWithSeed = (seed) => {
 };
 
 // Funzione per ridisegnare la mappa (per aggiornamenti)
-window.redrawMapWithNations = () => {
+window.redrawMapWithNations = function() {
   if (globalHexMap) {
     console.log("Ridisegnando mappa con nazioni aggiornate");
     globalHexMap.render(); // Rendering ottimizzato - solo tile sporchi
@@ -1216,7 +1216,7 @@ function addMapControls(canvas) {
 }
 
 // Funzione per ottenere il tile sotto il mouse (utile per future interazioni)
-window.getTileAtMouse = (mouseX, mouseY) => {
+window.getTileAtMouse = function(mouseX, mouseY) {
   if (globalHexMap) {
     return globalHexMap.getTileAtPixel(mouseX, mouseY);
   }
@@ -1224,7 +1224,8 @@ window.getTileAtMouse = (mouseX, mouseY) => {
 };
 
 // Funzione per aggiornare un tile specifico (per future funzionalità)
-window.updateTile = (q, r, newType, nation = null) => {
+window.updateTile = function(q, r, newType, nation) {
+  if (typeof nation === 'undefined') nation = null;
   if (globalHexMap) {
     const tile = globalHexMap.getTileAt(q, r);
     if (tile) {
@@ -1242,8 +1243,16 @@ window.updateTile = (q, r, newType, nation = null) => {
 window.placedNations = window.placedNations || {};
 
 // Funzione di compatibilità per il vecchio sistema
-window.generateAndShowMapOnStart = () => {
+window.generateAndShowMapOnStart = function() {
   window.generateAndShowMapWithSeed(Math.random());
 };
+
+// Debug: Verifica che le funzioni siano caricate
+console.log("=== VERIFICA FUNZIONI CARICATE ===");
+console.log("generateAndShowMapWithSeed:", typeof window.generateAndShowMapWithSeed);
+console.log("redrawMapWithNations:", typeof window.redrawMapWithNations);
+console.log("getTileAtMouse:", typeof window.getTileAtMouse);
+console.log("updateTile:", typeof window.updateTile);
+console.log("generateAndShowMapOnStart:", typeof window.generateAndShowMapOnStart);
 
 console.log("=== SISTEMA MAPPA ESAGONALE CARICATO ===");
