@@ -1022,54 +1022,6 @@ class AdvancedMapGenerator {
 // === VARIABILI GLOBALI ===
 let globalHexMap = null;
 
-// === FUNZIONI ESPOSTE ===
-
-// Funzione principale per generare e mostrare la mappa esagonale
-window.generateAndShowMapWithSeed = function(seed) {
-  console.log("=== INIZIANDO GENERAZIONE MAPPA ESAGONALE ===");
-  console.log("Seed:", seed);
-  
-  const canvas = document.getElementById("game-map");
-  if (!canvas) {
-    console.error("Canvas non trovato!");
-    return;
-  }
-  
-  // Mostra il canvas
-  canvas.style.display = "block";
-  canvas.width = window.innerWidth;
-  canvas.height = window.innerHeight;
-  
-  // Crea la mappa esagonale (circa 8000 tiles per raggio 50)
-  globalHexMap = new HexagonalMap(50, 12); // Raggio 50, dimensione esagono 12px
-  globalHexMap.setCanvas(canvas);
-  
-  // Genera la mappa con il generatore esistente
-  const generator = new AdvancedMapGenerator(300, 300, seed);
-  generator.generateMap();
-  
-  // Applica la mappa generata ai tile esagonali
-  globalHexMap.applyMapGenerator(generator);
-  
-  // Rendering iniziale
-  globalHexMap.renderAll();
-  
-  // Aggiungi controlli mouse/touch
-  addMapControls(canvas);
-  
-  console.log(`Mappa generata con ${globalHexMap.tiles.size} tile esagonali`);
-  console.log("=== MAPPA ESAGONALE GENERATA CON SUCCESSO ===");
-}
-
-// Funzione per ridisegnare la mappa (per aggiornamenti)
-window.redrawMapWithNations = function() {
-  if (globalHexMap) {
-    console.log("Ridisegnando mappa con nazioni aggiornate");
-    globalHexMap.render(); // Rendering ottimizzato - solo tile sporchi
-  }
-}
-
-// Aggiungi controlli per la mappa
 function addMapControls(canvas) {
   let isDragging = false;
   let lastMouseX = 0;
@@ -1213,44 +1165,95 @@ function addMapControls(canvas) {
   canvas.style.cursor = 'grab';
 }
 
-// Funzione per ottenere il tile sotto il mouse (utile per future interazioni)
-window.getTileAtMouse = function(mouseX, mouseY) {
-  if (globalHexMap) {
-    return globalHexMap.getTileAtPixel(mouseX, mouseY);
-  }
-  return null;
-}
 
-// Funzione per aggiornare un tile specifico (per future funzionalità)
-window.updateTile = function(q, r, newType, nation) {
-  if (typeof nation === 'undefined') nation = null;
-  if (globalHexMap) {
-    const tile = globalHexMap.getTileAt(q, r);
-    if (tile) {
-      tile.setType(newType);
-      if (nation) {
-        tile.setNation(nation);
-      }
-      globalHexMap.markTileDirty(tile.coordinates);
-      globalHexMap.render();
+// ESPOSIZIONE IMMEDIATA DELLE FUNZIONI GLOBALI
+// Assicura che le funzioni siano disponibili immediatamente
+if (typeof window !== 'undefined') {
+  // Funzione principale per generare e mostrare la mappa esagonale
+  window.generateAndShowMapWithSeed = function(seed) {
+    console.log("=== INIZIANDO GENERAZIONE MAPPA ESAGONALE ===");
+    console.log("Seed:", seed);
+    
+    const canvas = document.getElementById("game-map");
+    if (!canvas) {
+      console.error("Canvas non trovato!");
+      return;
     }
-  }
+    
+    // Mostra il canvas
+    canvas.style.display = "block";
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    
+    // Crea la mappa esagonale (circa 8000 tiles per raggio 50)
+    globalHexMap = new HexagonalMap(50, 12); // Raggio 50, dimensione esagono 12px
+    globalHexMap.setCanvas(canvas);
+    
+    // Genera la mappa con il generatore esistente
+    const generator = new AdvancedMapGenerator(300, 300, seed);
+    generator.generateMap();
+    
+    // Applica la mappa generata ai tile esagonali
+    globalHexMap.applyMapGenerator(generator);
+    
+    // Rendering iniziale
+    globalHexMap.renderAll();
+    
+    // Aggiungi controlli mouse/touch
+    addMapControls(canvas);
+    
+    console.log(`Mappa generata con ${globalHexMap.tiles.size} tile esagonali`);
+    console.log("=== MAPPA ESAGONALE GENERATA CON SUCCESSO ===");
+  };
+
+  // Funzione per ridisegnare la mappa (per aggiornamenti)
+  window.redrawMapWithNations = function() {
+    if (globalHexMap) {
+      console.log("Ridisegnando mappa con nazioni aggiornate");
+      globalHexMap.render(); // Rendering ottimizzato - solo tile sporchi
+    }
+  };
+
+  // Funzione per ottenere il tile sotto il mouse (utile per future interazioni)
+  window.getTileAtMouse = function(mouseX, mouseY) {
+    if (globalHexMap) {
+      return globalHexMap.getTileAtPixel(mouseX, mouseY);
+    }
+    return null;
+  };
+
+  // Funzione per aggiornare un tile specifico (per future funzionalità)
+  window.updateTile = function(q, r, newType, nation) {
+    if (typeof nation === 'undefined') nation = null;
+    if (globalHexMap) {
+      const tile = globalHexMap.getTileAt(q, r);
+      if (tile) {
+        tile.setType(newType);
+        if (nation) {
+          tile.setNation(nation);
+        }
+        globalHexMap.markTileDirty(tile.coordinates);
+        globalHexMap.render();
+      }
+    }
+  };
+
+  // Funzione di compatibilità per il vecchio sistema
+  window.generateAndShowMapOnStart = function() {
+    window.generateAndShowMapWithSeed(Math.random());
+  };
+
+  // Inizializza le variabili globali necessarie
+  window.placedNations = window.placedNations || {};
+  window.currentGameCode = null;
+  window.currentPlayerName = null;
+  window.db = null;
+
+  // Debug immediato
+  console.log("=== FUNZIONI ESPOSTE IMMEDIATAMENTE ===");
+  console.log("generateAndShowMapWithSeed:", typeof window.generateAndShowMapWithSeed);
+  console.log("redrawMapWithNations:", typeof window.redrawMapWithNations);
+  console.log("getTileAtMouse:", typeof window.getTileAtMouse);
+  console.log("updateTile:", typeof window.updateTile);
+  console.log("generateAndShowMapOnStart:", typeof window.generateAndShowMapOnStart);
 }
-
-// Inizializza le variabili globali necessarie
-window.placedNations = window.placedNations || {};
-
-// Funzione di compatibilità per il vecchio sistema
-window.generateAndShowMapOnStart = function() {
-  window.generateAndShowMapWithSeed(Math.random());
-}
-
-// Debug: Verifica che le funzioni siano caricate
-console.log("=== VERIFICA FUNZIONI CARICATE ===");
-console.log("generateAndShowMapWithSeed:", typeof window.generateAndShowMapWithSeed);
-console.log("redrawMapWithNations:", typeof window.redrawMapWithNations);
-console.log("getTileAtMouse:", typeof window.getTileAtMouse);
-console.log("updateTile:", typeof window.updateTile);
-console.log("generateAndShowMapOnStart:", typeof window.generateAndShowMapOnStart);
-
-console.log("=== SISTEMA MAPPA ESAGONALE CARICATO ===");
