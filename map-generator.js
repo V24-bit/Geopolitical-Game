@@ -109,14 +109,14 @@ class HexCoordinates {
 
   // Converte coordinate axial (q,r) in pixel
   toPixel(hexSize) {
-    const x = hexSize * (3/2 * this.q);
-    const y = hexSize * (Math.sqrt(3)/2 * this.q + Math.sqrt(3) * this.r);
+    const x = hexSize * (3/2) * this.q;
+    const y = hexSize * (Math.sqrt(3)/2) * (this.q + 2 * this.r);
     return { x, y };
   }
 
   // Converte pixel in coordinate axial
   static fromPixel(x, y, hexSize) {
-    const q = (2/3 * x) / hexSize;
+    const q = (2/3) * x / hexSize;
     const r = (-1/3 * x + Math.sqrt(3)/3 * y) / hexSize;
     return HexCoordinates.round(q, r);
   }
@@ -210,31 +210,28 @@ class HexTile {
 
   // Ottieni il path dell'esagono (con cache)
   getHexPath(ctx, hexSize, centerX, centerY) {
-    if (!this._cachedPath) {
-      const pos = this.getPixelPosition(hexSize);
-      const x = pos.x + centerX;
-      const y = pos.y + centerY;
+    const pos = this.getPixelPosition(hexSize);
+    const x = pos.x + centerX;
+    const y = pos.y + centerY;
+    
+    const path = new Path2D();
+    for (let i = 0; i < 6; i++) {
+      const angle = (Math.PI / 3) * i + Math.PI / 6; // Rotazione per flat-top hexagon
+      const px = x + hexSize * Math.cos(angle);
+      const py = y + hexSize * Math.sin(angle);
       
-      this._cachedPath = new Path2D();
-      for (let i = 0; i < 6; i++) {
-        const angle = (Math.PI / 3) * i;
-        const px = x + hexSize * Math.cos(angle);
-        const py = y + hexSize * Math.sin(angle);
-        
-        if (i === 0) {
-          this._cachedPath.moveTo(px, py);
-        } else {
-          this._cachedPath.lineTo(px, py);
-        }
+      if (i === 0) {
+        path.moveTo(px, py);
+      } else {
+        path.lineTo(px, py);
       }
-      this._cachedPath.closePath();
     }
-    return this._cachedPath;
+    path.closePath();
+    return path;
   }
 
   // Invalida la cache (chiamare quando cambia la dimensione)
   invalidateCache() {
-    this._cachedPath = null;
     this._cachedPixelPos = null;
   }
 
@@ -304,7 +301,7 @@ class HexTile {
 class HexagonalMap {
   constructor(radius = 50, hexSize = 12) {
     this.radius = radius; // Raggio della mappa in esagoni
-    this.hexSize = hexSize; // Dimensione di ogni esagono in pixel
+    this.hexSize = hexSize; // Dimensione di ogni esagono in pixel  
     this.tiles = new Map(); // Map<string, HexTile>
     this.allTilesDirty = true; // Flag per ridisegnare tutto
     this.currentAnimatingTile = null; // Tile attualmente in animazione
@@ -316,8 +313,8 @@ class HexagonalMap {
     this.ctx = null;
     
     // Viewport e camera
-    this.cameraX = 0;
-    this.cameraY = 0;
+    this.cameraX = 0; // Sarà impostato in setCanvas
+    this.cameraY = 0; // Sarà impostato in setCanvas
     this.zoom = 1;
     
     // Inizializza la mappa
@@ -379,6 +376,8 @@ class HexagonalMap {
     this.cameraX = canvas.width / 2;
     this.cameraY = canvas.height / 2;
     
+    console.log(`Camera centrata a: ${this.cameraX}, ${this.cameraY}`);
+    
     // Segna tutti i tile come sporchi per il primo rendering
     this.markAllDirty();
   }
@@ -387,12 +386,6 @@ class HexagonalMap {
   render() {
     if (!this.ctx) return;
 
-    // Throttling per performance - max 60 FPS
-    const now = Date.now();
-    if (this.lastRenderTime && (now - this.lastRenderTime) < 16) {
-      return;
-    }
-    this.lastRenderTime = now;
 
     // Aggiorna animazioni
     let hasActiveAnimations = false;
@@ -406,11 +399,6 @@ class HexagonalMap {
     if (this.allTilesDirty) {
       this.renderAll();
       this.allTilesDirty = false;
-      
-      // Se ci sono animazioni attive, continua a renderizzare
-      if (hasActiveAnimations) {
-        requestAnimationFrame(() => this.render());
-      }
       return;
     }
 
@@ -424,7 +412,7 @@ class HexagonalMap {
       }
     }
     
-    // Se ci sono animazioni attive, continua a renderizzare
+    // Se ci sono animazioni attive, continua a renderizzare  
     if (hasActiveAnimations) {
       requestAnimationFrame(() => this.render());
     }
@@ -434,20 +422,16 @@ class HexagonalMap {
   renderAll() {
     if (!this.ctx) return;
     
-    // Calcola i tile visibili per ottimizzazione
-    this.updateVisibleTiles();
-    
     // Pulisci il canvas
     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
     
-    // Disegna solo i tile visibili
-    for (const tileKey of this.visibleTiles) {
-      const tile = this.tiles.get(tileKey);
-      if (tile) {
-        this.renderTile(tile);
-        tile.markClean();
-      }
+    // Disegna tutti i tile (per ora, ottimizzeremo dopo)
+    for (const [key, tile] of this.tiles) {
+      this.renderTile(tile);
+      tile.markClean();
     }
+    
+    console.log(`Renderizzati ${this.tiles.size} tile`);
   }
 
   // Calcola quali tile sono visibili nel viewport
@@ -545,46 +529,47 @@ class HexagonalMap {
 
   // Muovi la camera
   moveCamera(deltaX, deltaY) {
-    const oldCameraX = this.cameraX;
-    const oldCameraY = this.cameraY;
-    
     this.cameraX += deltaX;
     this.cameraY += deltaY;
     
-    // Solo se la camera si è effettivamente mossa
-    if (oldCameraX !== this.cameraX || oldCameraY !== this.cameraY) {
-      // Aggiorna i tile visibili
-      this.updateVisibleTiles();
-      this.markAllDirty();
-    }
+    console.log(`Camera spostata a: ${this.cameraX}, ${this.cameraY}`);
+    this.markAllDirty();
+    this.render();
   }
 
   // Cambia lo zoom
   setZoom(newZoom) {
     const clampedZoom = Math.max(0.2, Math.min(2.5, newZoom));
     
-    if (Math.abs(clampedZoom - this.zoom) > 0.01) { // Soglia per evitare micro-cambiamenti
-      this.zoom = clampedZoom;
-      // Aggiorna i tile visibili
-      this.updateVisibleTiles();
-      this.markAllDirty();
-    }
+    this.zoom = clampedZoom;
+    console.log(`Zoom cambiato a: ${this.zoom}`);
+    this.markAllDirty();
+    this.render();
   }
 
   // Applica il generatore di mappe esistente
   applyMapGenerator(generator) {
     console.log("Applicando generatore di mappe ai tile esagonali");
     
-    // Usa direttamente il raggio per il mapping
-    const mapRadius = this.radius * this.hexSize * 1.5; // Raggio approssimativo in pixel
+    // Calcola il range delle coordinate esagonali
+    let minX = Infinity, maxX = -Infinity;
+    let minY = Infinity, maxY = -Infinity;
+    
+    for (const [key, tile] of this.tiles) {
+      const pos = tile.getPixelPosition(this.hexSize);
+      minX = Math.min(minX, pos.x);
+      maxX = Math.max(maxX, pos.x);
+      minY = Math.min(minY, pos.y);
+      maxY = Math.max(maxY, pos.y);
+    }
     
     // Mappa ogni tile esagonale alla griglia del generatore
     for (const [key, tile] of this.tiles) {
       const pos = tile.getPixelPosition(this.hexSize);
       
-      // Normalizza la posizione dell'esagono (-1 a 1, poi 0 a 1)
-      const normalizedX = (pos.x / mapRadius + 1) * 0.5;
-      const normalizedY = (pos.y / mapRadius + 1) * 0.5;
+      // Normalizza la posizione dell'esagono (0 a 1)
+      const normalizedX = (pos.x - minX) / (maxX - minX);
+      const normalizedY = (pos.y - minY) / (maxY - minY);
       
       // Mappa alla griglia del generatore
       const gridX = Math.floor(normalizedX * (generator.width - 1));
@@ -1081,6 +1066,7 @@ function addMapControls(canvas) {
   
   // Mouse events
   canvas.addEventListener('mousedown', (e) => {
+    e.preventDefault();
     isDragging = true;
     lastMouseX = e.clientX;
     lastMouseY = e.clientY;
@@ -1089,6 +1075,7 @@ function addMapControls(canvas) {
   });
   
   canvas.addEventListener('mousemove', (e) => {
+    e.preventDefault();
     if (isDragging && globalHexMap) {
       const deltaX = e.clientX - lastMouseX;
       const deltaY = e.clientY - lastMouseY;
@@ -1097,9 +1084,8 @@ function addMapControls(canvas) {
       totalDragDistance += dragDistance;
       
       // Solo se il movimento è significativo
-      if (dragDistance > 1) {
+      if (dragDistance > 0.5) {
         globalHexMap.moveCamera(deltaX, deltaY);
-        // Il rendering è gestito automaticamente da moveCamera
       }
       
       lastMouseX = e.clientX;
@@ -1108,6 +1094,7 @@ function addMapControls(canvas) {
   });
   
   canvas.addEventListener('mouseup', (e) => {
+    e.preventDefault();
     // Se non è stato un drag significativo, considera come click
     if (totalDragDistance < dragThreshold && globalHexMap) {
       const rect = canvas.getBoundingClientRect();
@@ -1144,10 +1131,9 @@ function addMapControls(canvas) {
   canvas.addEventListener('wheel', (e) => {
     e.preventDefault();
     if (globalHexMap) {
-      const zoomFactor = e.deltaY > 0 ? 0.9 : 1.1; // Zoom più responsivo
+      const zoomFactor = e.deltaY > 0 ? 0.9 : 1.1;
       const newZoom = globalHexMap.zoom * zoomFactor;
       globalHexMap.setZoom(newZoom);
-      // Il rendering è gestito automaticamente da setZoom
     }
   });
   
@@ -1179,9 +1165,8 @@ function addMapControls(canvas) {
       const dragDistance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
       
       // Solo se il movimento è significativo
-      if (dragDistance > 2) {
+      if (dragDistance > 1) {
         globalHexMap.moveCamera(deltaX, deltaY);
-        // Il rendering è gestito automaticamente da moveCamera
       }
       
       lastMouseX = e.touches[0].clientX;
@@ -1198,7 +1183,6 @@ function addMapControls(canvas) {
         const zoomFactor = Math.max(0.5, Math.min(2, currentDistance / lastTouchDistance));
         const newZoom = globalHexMap.zoom * zoomFactor;
         globalHexMap.setZoom(newZoom);
-        // Il rendering è gestito automaticamente da setZoom
       }
       
       lastTouchDistance = currentDistance;
