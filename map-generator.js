@@ -109,15 +109,15 @@ class HexCoordinates {
 
   // Converte coordinate axial (q,r) in pixel
   toPixel(hexSize) {
-    const x = hexSize * (3/2) * this.q;
-    const y = hexSize * (Math.sqrt(3)/2) * (this.q + 2 * this.r);
+    const x = hexSize * Math.sqrt(3) * (this.q + 0.5 * this.r);
+const y = hexSize * (3/2) * this.r;
     return { x, y };
   }
 
   // Converte pixel in coordinate axial
   static fromPixel(x, y, hexSize) {
-    const q = (2/3) * x / hexSize;
-    const r = (-1/3 * x + Math.sqrt(3)/3 * y) / hexSize;
+    const q = (Math.sqrt(3)/3 * x - (1/3) * y) / hexSize;
+const r = (2/3) * y / hexSize;
     return HexCoordinates.round(q, r);
   }
 
