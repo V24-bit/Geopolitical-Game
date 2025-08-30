@@ -110,14 +110,14 @@ class HexCoordinates {
   // Converte coordinate axial (q,r) in pixel
   toPixel(hexSize) {
     const x = hexSize * Math.sqrt(3) * (this.q + 0.5 * this.r);
-const y = hexSize * (3/2) * this.r;
+    const y = hexSize * (3/2) * this.r;
     return { x, y };
   }
 
   // Converte pixel in coordinate axial
   static fromPixel(x, y, hexSize) {
     const q = (Math.sqrt(3)/3 * x - (1/3) * y) / hexSize;
-const r = (2/3) * y / hexSize;
+    const r = (2/3) * y / hexSize;
     return HexCoordinates.round(q, r);
   }
 
@@ -170,34 +170,21 @@ const r = (2/3) * y / hexSize;
   }
 }
 
-// === TILE ESAGONALE ===
+// === TILE ESAGONALE OTTIMIZZATO ===
 class HexTile {
   constructor(coordinates, type = TILE_TYPES.OCEAN) {
     this.coordinates = coordinates;
     this.type = type;
-    this.isDirty = true; // Flag per sapere se deve essere ridisegnato
-    this.nation = null; // Nazione che controlla questo tile
-    this.units = []; // Unità presenti su questo tile
-    this.improvements = []; // Miglioramenti costruiti
-    
-    // Animazione click
-    this.isAnimating = false;
-    this.animationStartTime = 0;
-    this.animationDuration = 2000; // 2 secondi
+    this.nation = null;
+    this.units = [];
+    this.improvements = [];
     
     // Cache per il rendering
     this._cachedPath = null;
     this._cachedPixelPos = null;
-  }
-
-  // Segna il tile come "sporco" (da ridisegnare)
-  markDirty() {
-    this.isDirty = true;
-  }
-
-  // Pulisce il flag dirty dopo il rendering
-  markClean() {
-    this.isDirty = false;
+    this._lastRenderedZoom = 0;
+    this._lastRenderedCameraX = 0;
+    this._lastRenderedCameraY = 0;
   }
 
   // Ottieni la posizione in pixel (con cache)
@@ -208,38 +195,54 @@ class HexTile {
     return this._cachedPixelPos;
   }
 
-  // Ottieni il path dell'esagono (con cache)
-  getHexPath(ctx, hexSize, centerX, centerY) {
-    const pos = this.getPixelPosition(hexSize);
-    const x = pos.x + centerX;
-    const y = pos.y + centerY;
-    
-    const path = new Path2D();
-    for (let i = 0; i < 6; i++) {
-      const angle = (Math.PI / 3) * i + Math.PI / 6; // Rotazione per flat-top hexagon
-      const px = x + hexSize * Math.cos(angle);
-      const py = y + hexSize * Math.sin(angle);
-      
-      if (i === 0) {
-        path.moveTo(px, py);
-      } else {
-        path.lineTo(px, py);
-      }
+  // Ottieni il path dell'esagono (con cache avanzata)
+  getHexPath(ctx, hexSize, centerX, centerY, zoom) {
+    // Invalida cache se i parametri sono cambiati
+    if (this._lastRenderedZoom !== zoom || 
+        this._lastRenderedCameraX !== centerX || 
+        this._lastRenderedCameraY !== centerY) {
+      this._cachedPath = null;
     }
-    path.closePath();
-    return path;
+    
+    if (!this._cachedPath) {
+      const pos = this.getPixelPosition(hexSize);
+      const x = pos.x + centerX;
+      const y = pos.y + centerY;
+      
+      const path = new Path2D();
+      for (let i = 0; i < 6; i++) {
+        const angle = (Math.PI / 3) * i + Math.PI / 6;
+        const px = x + hexSize * Math.cos(angle);
+        const py = y + hexSize * Math.sin(angle);
+        
+        if (i === 0) {
+          path.moveTo(px, py);
+        } else {
+          path.lineTo(px, py);
+        }
+      }
+      path.closePath();
+      
+      this._cachedPath = path;
+      this._lastRenderedZoom = zoom;
+      this._lastRenderedCameraX = centerX;
+      this._lastRenderedCameraY = centerY;
+    }
+    
+    return this._cachedPath;
   }
 
-  // Invalida la cache (chiamare quando cambia la dimensione)
+  // Invalida la cache
   invalidateCache() {
     this._cachedPixelPos = null;
+    this._cachedPath = null;
   }
 
   // Cambia il tipo di tile
   setType(newType) {
     if (this.type !== newType) {
       this.type = newType;
-      this.markDirty();
+      this.invalidateCache();
     }
   }
 
@@ -247,75 +250,176 @@ class HexTile {
   setNation(nation) {
     if (this.nation !== nation) {
       this.nation = nation;
-      this.markDirty();
     }
   }
 
-  // Inizia animazione click
-  startClickAnimation() {
-    this.isAnimating = true;
-    this.animationStartTime = Date.now();
-    this.markDirty();
-  }
-
-  // Ferma animazione
-  stopAnimation() {
-    if (this.isAnimating) {
-      this.isAnimating = false;
-      this.markDirty();
-    }
-  }
-
-  // Aggiorna animazione
-  updateAnimation() {
-    if (this.isAnimating) {
-      const elapsed = Date.now() - this.animationStartTime;
-      if (elapsed >= this.animationDuration) {
-        this.isAnimating = false;
-        this.markDirty(); // Ridisegna per rimuovere l'animazione
-        return false; // Animazione finita
-      }
-      this.markDirty(); // Continua a ridisegnare
-      return true; // Animazione in corso
-    }
-    return false;
-  }
-
-  // Ottieni intensità animazione (0-1)
-  getAnimationIntensity() {
-    if (!this.isAnimating) return 0;
+  // Controlla se il tile è visibile nel viewport
+  isVisible(cameraX, cameraY, canvasWidth, canvasHeight, hexSize, zoom) {
+    const pos = this.getPixelPosition(hexSize * zoom);
+    const x = pos.x + cameraX;
+    const y = pos.y + cameraY;
     
-    const elapsed = Date.now() - this.animationStartTime;
-    if (elapsed >= this.animationDuration) {
-      this.isAnimating = false;
-      return 0;
-    }
-    const progress = elapsed / this.animationDuration;
-    
-    // Fade out completo da 0.3 a 0
-    return Math.max(0, 0.3 * (1 - progress));
+    const margin = hexSize * zoom * 1.5; // Margine per tile parzialmente visibili
+    return x >= -margin && x <= canvasWidth + margin && 
+           y >= -margin && y <= canvasHeight + margin;
   }
 }
 
-// === MAPPA ESAGONALE CON RETAINED MODE ===
+// === SISTEMA ANIMAZIONE SEPARATO ===
+class TileAnimationSystem {
+  constructor() {
+    this.animatingTile = null;
+    this.animationStartTime = 0;
+    this.animationDuration = 2000; // 2 secondi
+    this.animationCanvas = null;
+    this.animationCtx = null;
+    this.isAnimating = false;
+    this.animationFrameId = null;
+  }
+
+  // Inizializza il canvas per le animazioni
+  initCanvas(mainCanvas) {
+    // Crea un canvas separato per le animazioni
+    this.animationCanvas = document.createElement('canvas');
+    this.animationCanvas.width = mainCanvas.width;
+    this.animationCanvas.height = mainCanvas.height;
+    this.animationCanvas.style.position = 'absolute';
+    this.animationCanvas.style.top = '0';
+    this.animationCanvas.style.left = '0';
+    this.animationCanvas.style.pointerEvents = 'none'; // Non interferisce con i click
+    this.animationCanvas.style.zIndex = '1'; // Sopra la mappa principale
+    this.animationCtx = this.animationCanvas.getContext('2d');
+    
+    // Inserisci il canvas nel DOM
+    mainCanvas.parentNode.insertBefore(this.animationCanvas, mainCanvas.nextSibling);
+  }
+
+  // Avvia animazione per un tile
+  startAnimation(tile, hexMap) {
+    // Ferma animazione precedente
+    this.stopAnimation();
+    
+    this.animatingTile = tile;
+    this.animationStartTime = Date.now();
+    this.isAnimating = true;
+    this.hexMap = hexMap;
+    
+    // Avvia il loop di animazione
+    this.animateLoop();
+  }
+
+  // Loop di animazione separato
+  animateLoop() {
+    if (!this.isAnimating || !this.animatingTile) return;
+    
+    const elapsed = Date.now() - this.animationStartTime;
+    if (elapsed >= this.animationDuration) {
+      this.stopAnimation();
+      return;
+    }
+    
+    // Pulisci solo il canvas delle animazioni
+    this.animationCtx.clearRect(0, 0, this.animationCanvas.width, this.animationCanvas.height);
+    
+    // Disegna l'animazione del tile
+    this.renderTileAnimation();
+    
+    // Continua l'animazione
+    this.animationFrameId = requestAnimationFrame(() => this.animateLoop());
+  }
+
+  // Renderizza l'animazione del tile
+  renderTileAnimation() {
+    if (!this.animatingTile || !this.hexMap) return;
+    
+    const elapsed = Date.now() - this.animationStartTime;
+    const progress = elapsed / this.animationDuration;
+    
+    // Calcola intensità animazione (fade out da 0.8 a 0)
+    const intensity = Math.max(0, 0.8 * (1 - progress));
+    
+    if (intensity <= 0) return;
+    
+    // Ottieni il path del tile
+    const hexSize = this.hexMap.hexSize * this.hexMap.zoom;
+    const path = this.animatingTile.getHexPath(
+      this.animationCtx, 
+      hexSize, 
+      this.hexMap.cameraX, 
+      this.hexMap.cameraY, 
+      this.hexMap.zoom
+    );
+    
+    // Disegna il bordo animato
+    const alpha = intensity;
+    const lineWidth = 2 + (intensity * 4); // Da 2 a 6 pixel
+    
+    this.animationCtx.strokeStyle = `rgba(255, 255, 255, ${alpha})`;
+    this.animationCtx.lineWidth = lineWidth;
+    this.animationCtx.shadowColor = `rgba(255, 255, 255, ${alpha * 0.8})`;
+    this.animationCtx.shadowBlur = 8 * intensity;
+    this.animationCtx.stroke(path);
+    
+    // Reset shadow
+    this.animationCtx.shadowColor = 'transparent';
+    this.animationCtx.shadowBlur = 0;
+  }
+
+  // Ferma l'animazione
+  stopAnimation() {
+    this.isAnimating = false;
+    this.animatingTile = null;
+    
+    if (this.animationFrameId) {
+      cancelAnimationFrame(this.animationFrameId);
+      this.animationFrameId = null;
+    }
+    
+    // Pulisci il canvas delle animazioni
+    if (this.animationCtx) {
+      this.animationCtx.clearRect(0, 0, this.animationCanvas.width, this.animationCanvas.height);
+    }
+  }
+
+  // Aggiorna le dimensioni del canvas
+  resize(width, height) {
+    if (this.animationCanvas) {
+      this.animationCanvas.width = width;
+      this.animationCanvas.height = height;
+    }
+  }
+}
+
+// === MAPPA ESAGONALE OTTIMIZZATA ===
 class HexagonalMap {
   constructor(radius = 50, hexSize = 12) {
-    this.radius = radius; // Raggio della mappa in esagoni
-    this.hexSize = hexSize; // Dimensione di ogni esagono in pixel  
-    this.tiles = new Map(); // Map<string, HexTile>
-    this.allTilesDirty = true; // Flag per ridisegnare tutto
-    this.currentAnimatingTile = null; // Tile attualmente in animazione
-    this.lastRenderTime = 0; // Per throttling rendering
-    this.visibleTiles = new Set(); // Cache dei tile visibili
+    this.radius = radius;
+    this.hexSize = hexSize;
+    this.tiles = new Map();
     
     // Canvas e contesto
     this.canvas = null;
     this.ctx = null;
     
     // Viewport e camera
-    this.cameraX = 0; // Sarà impostato in setCanvas
-    this.cameraY = 0; // Sarà impostato in setCanvas
+    this.cameraX = 0;
+    this.cameraY = 0;
     this.zoom = 1;
+    
+    // Sistema di rendering ottimizzato
+    this.visibleTiles = new Set();
+    this.lastCameraX = 0;
+    this.lastCameraY = 0;
+    this.lastZoom = 1;
+    this.needsFullRedraw = true;
+    
+    // Throttling del rendering
+    this.lastRenderTime = 0;
+    this.renderThrottleMs = 16; // ~60 FPS
+    this.pendingRender = false;
+    
+    // Sistema animazioni separato
+    this.animationSystem = new TileAnimationSystem();
     
     // Inizializza la mappa
     this.initializeMap();
@@ -350,23 +454,6 @@ class HexagonalMap {
     return this.getTile(coordinates);
   }
 
-  // Segna un tile come sporco
-  markTileDirty(coordinates) {
-    const tile = this.getTile(coordinates);
-    if (tile) {
-      tile.markDirty();
-    }
-  }
-
-  // Segna tutti i tile come sporchi
-  markAllDirty() {
-    this.allTilesDirty = true;
-    for (const [key, tile] of this.tiles) {
-      tile.markDirty();
-      tile.invalidateCache(); // Invalida anche la cache
-    }
-  }
-
   // Imposta il canvas
   setCanvas(canvas) {
     this.canvas = canvas;
@@ -376,138 +463,149 @@ class HexagonalMap {
     this.cameraX = canvas.width / 2;
     this.cameraY = canvas.height / 2;
     
+    // Inizializza il sistema di animazioni
+    this.animationSystem.initCanvas(canvas);
+    
     console.log(`Camera centrata a: ${this.cameraX}, ${this.cameraY}`);
     
-    // Segna tutti i tile come sporchi per il primo rendering
-    this.markAllDirty();
+    // Forza il primo rendering completo
+    this.needsFullRedraw = true;
+    this.updateVisibleTiles();
+    this.render();
   }
 
-  // Rendering ottimizzato - ridisegna solo i tile sporchi
-  render() {
-    if (!this.ctx) return;
-
-
-    // Aggiorna animazioni
-    let hasActiveAnimations = false;
-    for (const [key, tile] of this.tiles) {
-      if (tile.updateAnimation()) {
-        hasActiveAnimations = true;
-      }
-    }
-
-    // Se tutti i tile sono sporchi, ridisegna tutto
-    if (this.allTilesDirty) {
-      this.renderAll();
-      this.allTilesDirty = false;
-      return;
-    }
-
-    // Altrimenti ridisegna solo i tile sporchi
-    let dirtyCount = 0;
-    for (const [key, tile] of this.tiles) {
-      if (tile.isDirty) {
-        this.renderTile(tile);
-        tile.markClean();
-        dirtyCount++;
-      }
-    }
-    
-    // Se ci sono animazioni attive, continua a renderizzare  
-    if (hasActiveAnimations) {
-      requestAnimationFrame(() => this.render());
-    }
-  }
-
-  // Rendering completo (per debug o reset)
-  renderAll() {
-    if (!this.ctx) return;
-    
-    // Pulisci il canvas
-    this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-    
-    // Disegna tutti i tile (per ora, ottimizzeremo dopo)
-    for (const [key, tile] of this.tiles) {
-      this.renderTile(tile);
-      tile.markClean();
-    }
-    
-    console.log(`Renderizzati ${this.tiles.size} tile`);
-  }
-
-  // Calcola quali tile sono visibili nel viewport
+  // Calcola i tile visibili nel viewport (ottimizzato)
   updateVisibleTiles() {
+    const oldVisibleCount = this.visibleTiles.size;
     this.visibleTiles.clear();
     
-    const margin = this.hexSize * 2; // Margine per tile parzialmente visibili
-    const left = -this.cameraX - margin;
-    const right = -this.cameraX + this.canvas.width + margin;
-    const top = -this.cameraY - margin;
-    const bottom = -this.cameraY + this.canvas.height + margin;
+    const hexSize = this.hexSize * this.zoom;
+    const margin = hexSize * 2;
     
-    for (const [key, tile] of this.tiles) {
-      const pos = tile.getPixelPosition(this.hexSize * this.zoom);
-      const x = pos.x + this.cameraX;
-      const y = pos.y + this.cameraY;
-      
-      // Controlla se il tile è nel viewport
-      if (x >= left && x <= right && y >= top && y <= bottom) {
-        this.visibleTiles.add(key);
+    // Calcola il range di coordinate esagonali visibili
+    const topLeft = HexCoordinates.fromPixel(-this.cameraX - margin, -this.cameraY - margin, this.hexSize);
+    const bottomRight = HexCoordinates.fromPixel(
+      -this.cameraX + this.canvas.width + margin, 
+      -this.cameraY + this.canvas.height + margin, 
+      this.hexSize
+    );
+    
+    // Espandi il range per essere sicuri
+    const minQ = Math.floor(topLeft.q) - 2;
+    const maxQ = Math.ceil(bottomRight.q) + 2;
+    const minR = Math.floor(topLeft.r) - 2;
+    const maxR = Math.ceil(bottomRight.r) + 2;
+    
+    // Aggiungi solo i tile che esistono e sono visibili
+    for (let q = minQ; q <= maxQ; q++) {
+      for (let r = minR; r <= maxR; r++) {
+        const coords = new HexCoordinates(q, r);
+        const tile = this.getTile(coords);
+        
+        if (tile && tile.isVisible(this.cameraX, this.cameraY, this.canvas.width, this.canvas.height, this.hexSize, this.zoom)) {
+          this.visibleTiles.add(coords.toString());
+        }
       }
+    }
+    
+    console.log(`Tile visibili: ${this.visibleTiles.size} (erano ${oldVisibleCount})`);
+  }
+
+  // Rendering ottimizzato con throttling
+  render() {
+    const now = Date.now();
+    
+    // Throttling: non renderizzare più spesso di 60 FPS
+    if (now - this.lastRenderTime < this.renderThrottleMs) {
+      if (!this.pendingRender) {
+        this.pendingRender = true;
+        setTimeout(() => {
+          this.pendingRender = false;
+          this.render();
+        }, this.renderThrottleMs - (now - this.lastRenderTime));
+      }
+      return;
+    }
+    
+    this.lastRenderTime = now;
+    
+    if (!this.ctx) return;
+
+    // Controlla se la camera o lo zoom sono cambiati
+    const cameraChanged = this.cameraX !== this.lastCameraX || 
+                         this.cameraY !== this.lastCameraY ||
+                         this.zoom !== this.lastZoom;
+    
+    if (cameraChanged) {
+      this.updateVisibleTiles();
+      this.needsFullRedraw = true;
+      
+      this.lastCameraX = this.cameraX;
+      this.lastCameraY = this.cameraY;
+      this.lastZoom = this.zoom;
+    }
+
+    // Rendering ottimizzato
+    if (this.needsFullRedraw) {
+      this.renderVisible();
+      this.needsFullRedraw = false;
     }
   }
 
-  // Rendering di un singolo tile
-  renderTile(tile) {
+  // Renderizza solo i tile visibili
+  renderVisible() {
+    if (!this.ctx) return;
+    
+    // Pulisci solo se necessario
+    this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+    
+    let renderedCount = 0;
+    const hexSize = this.hexSize * this.zoom;
+    
+    // Renderizza solo i tile visibili
+    for (const tileKey of this.visibleTiles) {
+      const tile = this.tiles.get(tileKey);
+      if (tile) {
+        this.renderTile(tile, hexSize);
+        renderedCount++;
+      }
+    }
+    
+    console.log(`Renderizzati ${renderedCount} tile visibili su ${this.tiles.size} totali`);
+  }
+
+  // Rendering di un singolo tile (ottimizzato)
+  renderTile(tile, hexSize) {
     if (!this.ctx) return;
 
     const color = TILE_COLORS[tile.type];
-    const path = tile.getHexPath(this.ctx, this.hexSize * this.zoom, this.cameraX, this.cameraY);
+    const path = tile.getHexPath(this.ctx, hexSize, this.cameraX, this.cameraY, this.zoom);
     
     // Disegna il tile
     this.ctx.fillStyle = `rgb(${color.r}, ${color.g}, ${color.b})`;
     this.ctx.fill(path);
     
-    // Disegna il bordo (normale o animato)
-    const animationIntensity = tile.getAnimationIntensity();
-    if (animationIntensity > 0) {
-      // Bordo animato bianco neon
-      const alpha = animationIntensity;
-      const lineWidth = 1 + (animationIntensity * 6.67); // Da 1 a 3 pixel
-      
-      this.ctx.strokeStyle = `rgba(255, 255, 255, ${alpha})`;
-      this.ctx.lineWidth = lineWidth;
-      this.ctx.shadowColor = `rgba(255, 255, 255, ${alpha * 0.8})`;
-      this.ctx.shadowBlur = 3 * animationIntensity;
-      this.ctx.stroke(path);
-      
-      // Reset shadow
-      this.ctx.shadowColor = 'transparent';
-      this.ctx.shadowBlur = 0;
-      this.ctx.shadowOffsetX = 0;
-      this.ctx.shadowOffsetY = 0;
-    } else {
-      // Bordo normale
-      this.ctx.strokeStyle = 'rgba(0, 0, 0, 0.2)';
-      this.ctx.lineWidth = 0.5;
-      this.ctx.stroke(path);
-    }
+    // Bordo normale (senza animazione - quella è gestita separatamente)
+    this.ctx.strokeStyle = 'rgba(0, 0, 0, 0.2)';
+    this.ctx.lineWidth = 0.5;
+    this.ctx.stroke(path);
     
     // Se il tile ha una nazione, disegna un indicatore
     if (tile.nation) {
-      const pos = tile.getPixelPosition(this.hexSize * this.zoom);
+      const pos = tile.getPixelPosition(hexSize);
       const x = pos.x + this.cameraX;
       const y = pos.y + this.cameraY;
       
       // Disegna un cerchio per la nazione
       this.ctx.fillStyle = tile.nation.color || '#ff0000';
       this.ctx.beginPath();
-      this.ctx.arc(x, y, this.hexSize * this.zoom * 0.3, 0, Math.PI * 2);
+      this.ctx.arc(x, y, hexSize * 0.3, 0, Math.PI * 2);
       this.ctx.fill();
       
       // Disegna il nome della nazione (se lo zoom è abbastanza alto)
       if (this.zoom > 0.5) {
         this.ctx.fillStyle = '#ffffff';
-        this.ctx.font = `${Math.floor(this.hexSize * this.zoom * 0.4)}px Arial`;
+        this.ctx.font = `${Math.floor(hexSize * 0.4)}px Arial`;
         this.ctx.textAlign = 'center';
         this.ctx.fillText(tile.nation.name, x, y + 4);
       }
@@ -527,24 +625,40 @@ class HexagonalMap {
     return this.getTile(hexCoords);
   }
 
-  // Muovi la camera
+  // Muovi la camera (ottimizzato)
   moveCamera(deltaX, deltaY) {
     this.cameraX += deltaX;
     this.cameraY += deltaY;
     
-    console.log(`Camera spostata a: ${this.cameraX}, ${this.cameraY}`);
-    this.markAllDirty();
+    // Non forzare il rendering immediato, sarà gestito dal throttling
     this.render();
   }
 
-  // Cambia lo zoom
+  // Cambia lo zoom (ottimizzato)
   setZoom(newZoom) {
     const clampedZoom = Math.max(0.2, Math.min(2.5, newZoom));
     
-    this.zoom = clampedZoom;
-    console.log(`Zoom cambiato a: ${this.zoom}`);
-    this.markAllDirty();
-    this.render();
+    if (this.zoom !== clampedZoom) {
+      this.zoom = clampedZoom;
+      
+      // Invalida la cache di tutti i tile
+      for (const [key, tile] of this.tiles) {
+        tile.invalidateCache();
+      }
+      
+      console.log(`Zoom cambiato a: ${this.zoom}`);
+      this.render();
+    }
+  }
+
+  // Gestisce il click su un tile
+  handleTileClick(tile) {
+    if (tile) {
+      console.log(`Tile cliccato: ${tile.coordinates.toString()}, tipo: ${tile.type}`);
+      
+      // Avvia l'animazione nel sistema separato
+      this.animationSystem.startAnimation(tile, this);
+    }
   }
 
   // Applica il generatore di mappe esistente
@@ -585,11 +699,30 @@ class HexagonalMap {
       }
     }
     
+    this.needsFullRedraw = true;
     console.log("Mappa applicata ai tile esagonali");
+  }
+
+  // Forza un rendering completo
+  renderAll() {
+    this.needsFullRedraw = true;
+    this.updateVisibleTiles();
+    this.render();
+  }
+
+  // Gestisce il resize del canvas
+  resize(width, height) {
+    if (this.canvas) {
+      this.canvas.width = width;
+      this.canvas.height = height;
+      this.needsFullRedraw = true;
+      this.animationSystem.resize(width, height);
+      this.render();
+    }
   }
 }
 
-// === GENERATORE MAPPA AVANZATO (ORIGINALE RIPRISTINATO) ===
+// === GENERATORE MAPPA AVANZATO (INVARIATO) ===
 class AdvancedMapGenerator {
   constructor(width = 480, height = 480, seed = Math.random()) {
     this.width = width;
@@ -1013,7 +1146,7 @@ let globalHexMap = null;
 
 // Funzione principale per generare e mostrare la mappa esagonale
 window.generateAndShowMapWithSeed = function(seed) {
-  console.log("=== INIZIANDO GENERAZIONE MAPPA ESAGONALE ===");
+  console.log("=== INIZIANDO GENERAZIONE MAPPA ESAGONALE OTTIMIZZATA ===");
   console.log("Seed:", seed);
   
   const canvas = document.getElementById("game-map");
@@ -1027,8 +1160,8 @@ window.generateAndShowMapWithSeed = function(seed) {
   canvas.width = window.innerWidth;
   canvas.height = window.innerHeight;
   
-  // Crea la mappa esagonale (circa 8000 tiles per raggio 50)
-  globalHexMap = new HexagonalMap(50, 12); // Raggio 50, dimensione esagono 12px
+  // Crea la mappa esagonale ottimizzata
+  globalHexMap = new HexagonalMap(50, 12);
   globalHexMap.setCanvas(canvas);
   
   // Genera la mappa con il generatore esistente
@@ -1041,30 +1174,41 @@ window.generateAndShowMapWithSeed = function(seed) {
   // Rendering iniziale
   globalHexMap.renderAll();
   
-  // Aggiungi controlli mouse/touch
-  addMapControls(canvas);
+  // Aggiungi controlli mouse/touch ottimizzati
+  addOptimizedMapControls(canvas);
   
-  console.log(`Mappa generata con ${globalHexMap.tiles.size} tile esagonali`);
-  console.log("=== MAPPA ESAGONALE GENERATA CON SUCCESSO ===");
+  // Gestisci il resize della finestra
+  window.addEventListener('resize', () => {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    globalHexMap.resize(window.innerWidth, window.innerHeight);
+  });
+  
+  console.log(`Mappa ottimizzata generata con ${globalHexMap.tiles.size} tile esagonali`);
+  console.log("=== MAPPA ESAGONALE OTTIMIZZATA GENERATA CON SUCCESSO ===");
 };
 
-// Funzione per ridisegnare la mappa (per aggiornamenti)
+// Funzione per ridisegnare la mappa (ottimizzata)
 window.redrawMapWithNations = function() {
   if (globalHexMap) {
     console.log("Ridisegnando mappa con nazioni aggiornate");
-    globalHexMap.render(); // Rendering ottimizzato - solo tile sporchi
+    globalHexMap.renderAll();
   }
 };
 
-// Aggiungi controlli per la mappa
-function addMapControls(canvas) {
+// Controlli ottimizzati per la mappa
+function addOptimizedMapControls(canvas) {
   let isDragging = false;
   let lastMouseX = 0;
   let lastMouseY = 0;
-  let dragThreshold = 3; // Pixel minimi per considerare un drag
+  let dragThreshold = 3;
   let totalDragDistance = 0;
   
-  // Mouse events
+  // Throttling per il movimento
+  let lastMoveTime = 0;
+  const moveThrottleMs = 16; // ~60 FPS
+  
+  // Mouse events ottimizzati
   canvas.addEventListener('mousedown', (e) => {
     e.preventDefault();
     isDragging = true;
@@ -1077,6 +1221,14 @@ function addMapControls(canvas) {
   canvas.addEventListener('mousemove', (e) => {
     e.preventDefault();
     if (isDragging && globalHexMap) {
+      const now = Date.now();
+      
+      // Throttling del movimento
+      if (now - lastMoveTime < moveThrottleMs) {
+        return;
+      }
+      lastMoveTime = now;
+      
       const deltaX = e.clientX - lastMouseX;
       const deltaY = e.clientY - lastMouseY;
       const dragDistance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
@@ -1084,7 +1236,7 @@ function addMapControls(canvas) {
       totalDragDistance += dragDistance;
       
       // Solo se il movimento è significativo
-      if (dragDistance > 0.5) {
+      if (dragDistance > 1) {
         globalHexMap.moveCamera(deltaX, deltaY);
       }
       
@@ -1095,6 +1247,7 @@ function addMapControls(canvas) {
   
   canvas.addEventListener('mouseup', (e) => {
     e.preventDefault();
+    
     // Se non è stato un drag significativo, considera come click
     if (totalDragDistance < dragThreshold && globalHexMap) {
       const rect = canvas.getBoundingClientRect();
@@ -1104,17 +1257,7 @@ function addMapControls(canvas) {
       // Trova il tile sotto il mouse
       const clickedTile = globalHexMap.getTileAtPixel(mouseX, mouseY);
       if (clickedTile) {
-        
-        // Ferma l'animazione del tile precedente se esiste
-        if (globalHexMap.currentAnimatingTile && globalHexMap.currentAnimatingTile !== clickedTile) {
-          globalHexMap.currentAnimatingTile.stopAnimation();
-          globalHexMap.currentAnimatingTile.markDirty();
-        }
-        
-        // Avvia la nuova animazione
-        globalHexMap.currentAnimatingTile = clickedTile;
-        clickedTile.startClickAnimation();
-        globalHexMap.render(); // Inizia il ciclo di rendering per l'animazione
+        globalHexMap.handleTileClick(clickedTile);
       }
     }
     
@@ -1127,9 +1270,19 @@ function addMapControls(canvas) {
     canvas.style.cursor = 'grab';
   });
   
-  // Zoom con rotella del mouse
+  // Zoom ottimizzato con throttling
+  let lastZoomTime = 0;
+  const zoomThrottleMs = 50; // Throttling più aggressivo per lo zoom
+  
   canvas.addEventListener('wheel', (e) => {
     e.preventDefault();
+    
+    const now = Date.now();
+    if (now - lastZoomTime < zoomThrottleMs) {
+      return;
+    }
+    lastZoomTime = now;
+    
     if (globalHexMap) {
       const zoomFactor = e.deltaY > 0 ? 0.9 : 1.1;
       const newZoom = globalHexMap.zoom * zoomFactor;
@@ -1137,8 +1290,9 @@ function addMapControls(canvas) {
     }
   });
   
-  // Touch events per mobile
+  // Touch events ottimizzati per mobile
   let lastTouchDistance = 0;
+  let lastTouchMoveTime = 0;
   
   canvas.addEventListener('touchstart', (e) => {
     e.preventDefault();
@@ -1146,6 +1300,7 @@ function addMapControls(canvas) {
       isDragging = true;
       lastMouseX = e.touches[0].clientX;
       lastMouseY = e.touches[0].clientY;
+      totalDragDistance = 0;
     } else if (e.touches.length === 2) {
       isDragging = false;
       const touch1 = e.touches[0];
@@ -1159,13 +1314,22 @@ function addMapControls(canvas) {
   
   canvas.addEventListener('touchmove', (e) => {
     e.preventDefault();
+    
+    const now = Date.now();
+    if (now - lastTouchMoveTime < moveThrottleMs) {
+      return;
+    }
+    lastTouchMoveTime = now;
+    
     if (e.touches.length === 1 && isDragging && globalHexMap) {
       const deltaX = e.touches[0].clientX - lastMouseX;
       const deltaY = e.touches[0].clientY - lastMouseY;
       const dragDistance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
       
+      totalDragDistance += dragDistance;
+      
       // Solo se il movimento è significativo
-      if (dragDistance > 1) {
+      if (dragDistance > 2) {
         globalHexMap.moveCamera(deltaX, deltaY);
       }
       
@@ -1191,6 +1355,20 @@ function addMapControls(canvas) {
   
   canvas.addEventListener('touchend', (e) => {
     e.preventDefault();
+    
+    // Gestisci il tap come click se non è stato un drag
+    if (e.changedTouches.length === 1 && totalDragDistance < dragThreshold && globalHexMap) {
+      const rect = canvas.getBoundingClientRect();
+      const touch = e.changedTouches[0];
+      const touchX = touch.clientX - rect.left;
+      const touchY = touch.clientY - rect.top;
+      
+      const clickedTile = globalHexMap.getTileAtPixel(touchX, touchY);
+      if (clickedTile) {
+        globalHexMap.handleTileClick(clickedTile);
+      }
+    }
+    
     isDragging = false;
     lastTouchDistance = 0;
   });
@@ -1199,7 +1377,7 @@ function addMapControls(canvas) {
   canvas.style.cursor = 'grab';
 }
 
-// Funzione per ottenere il tile sotto il mouse (utile per future interazioni)
+// Funzione per ottenere il tile sotto il mouse
 window.getTileAtMouse = function(mouseX, mouseY) {
   if (globalHexMap) {
     return globalHexMap.getTileAtPixel(mouseX, mouseY);
@@ -1207,7 +1385,7 @@ window.getTileAtMouse = function(mouseX, mouseY) {
   return null;
 };
 
-// Funzione per aggiornare un tile specifico (per future funzionalità)
+// Funzione per aggiornare un tile specifico
 window.updateTile = function(q, r, newType, nation) {
   if (typeof nation === 'undefined') nation = null;
   if (globalHexMap) {
@@ -1217,8 +1395,8 @@ window.updateTile = function(q, r, newType, nation) {
       if (nation) {
         tile.setNation(nation);
       }
-      globalHexMap.markTileDirty(tile.coordinates);
-      globalHexMap.render();
+      // Forza un rendering completo per aggiornamenti di nazioni
+      globalHexMap.renderAll();
     }
   }
 };
@@ -1232,11 +1410,11 @@ window.generateAndShowMapOnStart = function() {
 };
 
 // Debug: Verifica che le funzioni siano caricate
-console.log("=== VERIFICA FUNZIONI CARICATE ===");
+console.log("=== VERIFICA FUNZIONI OTTIMIZZATE CARICATE ===");
 console.log("generateAndShowMapWithSeed:", typeof window.generateAndShowMapWithSeed);
 console.log("redrawMapWithNations:", typeof window.redrawMapWithNations);
 console.log("getTileAtMouse:", typeof window.getTileAtMouse);
 console.log("updateTile:", typeof window.updateTile);
 console.log("generateAndShowMapOnStart:", typeof window.generateAndShowMapOnStart);
 
-console.log("=== SISTEMA MAPPA ESAGONALE CARICATO ===");
+console.log("=== SISTEMA MAPPA ESAGONALE OTTIMIZZATO CARICATO ===");
