@@ -206,8 +206,8 @@ class HexTile {
     
     if (!this._cachedPath) {
       const pos = this.getPixelPosition(hexSize);
-      const x = pos.x + centerX;
-      const y = pos.y + centerY;
+      const x = pos.x - centerX;
+      const y = pos.y - centerY;
       
       const path = new Path2D();
       for (let i = 0; i < 6; i++) {
