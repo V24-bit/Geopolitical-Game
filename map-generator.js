@@ -531,7 +531,27 @@ class HexagonalMap {
     
     if (!this.ctx) return;
 
+    // Rendering completo della mappa
+    this.renderAll();
+  }
 
+  // Renderizza tutti i tile della mappa
+  renderAll() {
+    if (!this.ctx) return;
+    
+    // Pulisci il canvas
+    this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+    
+    let renderedCount = 0;
+    const hexSize = this.hexSize * this.zoom;
+    
+    // Renderizza tutti i tile
+    for (const [tileKey, tile] of this.tiles) {
+      this.renderTile(tile, hexSize);
+      renderedCount++;
+    }
+    
+    console.log(`Renderizzati ${renderedCount} tile totali`);
     // Rendering completo della mappa
     this.renderAll();
   }
