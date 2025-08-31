@@ -531,14 +531,6 @@ class HexagonalMap {
     
     if (!this.ctx) return;
 
-    // Rendering completo della mappa
-    this.renderAll();
-  }
-
-  // Renderizza tutti i tile della mappa
-  renderAll() {
-    if (!this.ctx) return;
-    
     // Pulisci il canvas
     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
     
@@ -551,31 +543,6 @@ class HexagonalMap {
       renderedCount++;
     }
     
-    console.log(`Renderizzati ${renderedCount} tile totali`);
-    // Rendering completo della mappa
-    this.renderAll();
-  }
-
-  // Renderizza tutti i tile della mappa
-  renderAll() {
-    if (!this.ctx) return;
-    
-    // Pulisci il canvas
-    this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-    
-    let renderedCount = 0;
-    const hexSize = this.hexSize * this.zoom;
-    
-    // Renderizza tutti i tile
-    for (const [tileKey, tile] of this.tiles) {
-      // Controlla se il tile è almeno parzialmente visibile per ottimizzare
-      if (tile.isVisible(this.cameraX, this.cameraY, this.canvas.width, this.canvas.height, this.hexSize, this.zoom)) {
-        this.renderTile(tile, hexSize);
-        renderedCount++;
-      }
-    }
-    
-
     console.log(`Renderizzati ${renderedCount} tile visibili su ${this.tiles.size} totali`);
   }
 
@@ -709,7 +676,8 @@ class HexagonalMap {
   }
 
   // Forza un rendering completo
-  renderAll() {
+  forceFullRedraw() {
+    this.needsFullRedraw = true;
     this.render();
   }
 
@@ -1175,7 +1143,7 @@ window.generateAndShowMapWithSeed = function(seed) {
   globalHexMap.applyMapGenerator(generator);
   
   // Rendering iniziale
-  globalHexMap.renderAll();
+  globalHexMap.render();
   
   // Aggiungi controlli mouse/touch ottimizzati
   addOptimizedMapControls(canvas);
@@ -1195,7 +1163,7 @@ window.generateAndShowMapWithSeed = function(seed) {
 window.redrawMapWithNations = function() {
   if (globalHexMap) {
     console.log("Ridisegnando mappa con nazioni aggiornate");
-    globalHexMap.renderAll();
+    globalHexMap.render();
   }
 };
 
@@ -1399,7 +1367,7 @@ window.updateTile = function(q, r, newType, nation) {
         tile.setNation(nation);
       }
       // Forza un rendering completo per aggiornamenti di nazioni
-      globalHexMap.renderAll();
+      globalHexMap.render();
     }
   }
 };
