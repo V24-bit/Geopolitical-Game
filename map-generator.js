@@ -531,46 +531,31 @@ class HexagonalMap {
     
     if (!this.ctx) return;
 
-    // Controlla se la camera o lo zoom sono cambiati
-    const cameraChanged = this.cameraX !== this.lastCameraX || 
-                         this.cameraY !== this.lastCameraY ||
-                         this.zoom !== this.lastZoom;
-    
-    if (cameraChanged) {
-      this.updateVisibleTiles();
-      this.needsFullRedraw = true;
-      
-      this.lastCameraX = this.cameraX;
-      this.lastCameraY = this.cameraY;
-      this.lastZoom = this.zoom;
-    }
 
-    // Rendering ottimizzato
-    if (this.needsFullRedraw) {
-      this.renderVisible();
-      this.needsFullRedraw = false;
-    }
+    // Rendering completo della mappa
+    this.renderAll();
   }
 
-  // Renderizza solo i tile visibili
-  renderVisible() {
+  // Renderizza tutti i tile della mappa
+  renderAll() {
     if (!this.ctx) return;
     
-    // Pulisci solo se necessario
+    // Pulisci il canvas
     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
     
     let renderedCount = 0;
     const hexSize = this.hexSize * this.zoom;
     
-    // Renderizza solo i tile visibili
-    for (const tileKey of this.visibleTiles) {
-      const tile = this.tiles.get(tileKey);
-      if (tile) {
+    // Renderizza tutti i tile
+    for (const [tileKey, tile] of this.tiles) {
+      // Controlla se il tile è almeno parzialmente visibile per ottimizzare
+      if (tile.isVisible(this.cameraX, this.cameraY, this.canvas.width, this.canvas.height, this.hexSize, this.zoom)) {
         this.renderTile(tile, hexSize);
         renderedCount++;
       }
     }
     
+
     console.log(`Renderizzati ${renderedCount} tile visibili su ${this.tiles.size} totali`);
   }
 
@@ -705,8 +690,6 @@ class HexagonalMap {
 
   // Forza un rendering completo
   renderAll() {
-    this.needsFullRedraw = true;
-    this.updateVisibleTiles();
     this.render();
   }
 
