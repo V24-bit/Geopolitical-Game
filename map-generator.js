@@ -340,28 +340,26 @@ class TileAnimationSystem {
     
     if (intensity <= 0) return;
     
-    // Ottieni il path del tile
+    // Usa esattamente la stessa logica del rendering principale
     const hexSize = this.hexMap.hexSize * this.hexMap.zoom;
-    
-    // Usa la stessa logica di posizionamento del rendering principale
     const pos = this.animatingTile.getPixelPosition(this.hexMap.hexSize);
     const x = pos.x * this.hexMap.zoom + this.hexMap.cameraX;
     const y = pos.y * this.hexMap.zoom + this.hexMap.cameraY;
     
-    // Crea il path dell'esagono centrato correttamente
-    const path = new Path2D();
+    // Disegna l'esagono usando la stessa logica del rendering principale
+    this.animationCtx.beginPath();
     for (let i = 0; i < 6; i++) {
       const angle = (Math.PI / 3) * i + Math.PI / 6;
       const px = x + hexSize * Math.cos(angle);
       const py = y + hexSize * Math.sin(angle);
       
       if (i === 0) {
-        path.moveTo(px, py);
+        this.animationCtx.moveTo(px, py);
       } else {
-        path.lineTo(px, py);
+        this.animationCtx.lineTo(px, py);
       }
     }
-    path.closePath();
+    this.animationCtx.closePath();
     
     // Disegna il bordo animato
     const alpha = intensity;
@@ -371,7 +369,7 @@ class TileAnimationSystem {
     this.animationCtx.lineWidth = lineWidth;
     this.animationCtx.shadowColor = `rgba(255, 255, 255, ${alpha * 0.8})`;
     this.animationCtx.shadowBlur = 8 * intensity;
-    this.animationCtx.stroke(path);
+    this.animationCtx.stroke();
     
     // Reset shadow
     this.animationCtx.shadowColor = 'transparent';
