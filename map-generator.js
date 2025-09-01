@@ -342,13 +342,26 @@ class TileAnimationSystem {
     
     // Ottieni il path del tile
     const hexSize = this.hexMap.hexSize * this.hexMap.zoom;
-    const path = this.animatingTile.getHexPath(
-      this.animationCtx, 
-      hexSize, 
-      this.hexMap.cameraX, 
-      this.hexMap.cameraY, 
-      this.hexMap.zoom
-    );
+    
+    // Usa la stessa logica di posizionamento del rendering principale
+    const pos = this.animatingTile.getPixelPosition(this.hexMap.hexSize);
+    const x = pos.x * this.hexMap.zoom + this.hexMap.cameraX;
+    const y = pos.y * this.hexMap.zoom + this.hexMap.cameraY;
+    
+    // Crea il path dell'esagono centrato correttamente
+    const path = new Path2D();
+    for (let i = 0; i < 6; i++) {
+      const angle = (Math.PI / 3) * i + Math.PI / 6;
+      const px = x + hexSize * Math.cos(angle);
+      const py = y + hexSize * Math.sin(angle);
+      
+      if (i === 0) {
+        path.moveTo(px, py);
+      } else {
+        path.lineTo(px, py);
+      }
+    }
+    path.closePath();
     
     // Disegna il bordo animato
     const alpha = intensity;
