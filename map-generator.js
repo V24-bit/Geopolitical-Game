@@ -172,9 +172,10 @@ class HexCoordinates {
 
 // === TILE ESAGONALE OTTIMIZZATO ===
 class HexTile {
-  constructor(coordinates, type = TILE_TYPES.OCEAN) {
+  constructor(coordinates, type = TILE_TYPES.OCEAN, id = null) {
     this.coordinates = coordinates;
     this.type = type;
+    this.id = id || `tile_${coordinates.q}_${coordinates.r}`;
     this.nation = null;
     this.units = [];
     this.improvements = [];
@@ -340,9 +341,11 @@ class TileAnimationSystem {
     
     if (intensity <= 0) return;
     
-    // Usa esattamente la stessa logica del rendering principale
+    // CRITICO: Usa le coordinate CORRENTI della camera per l'animazione
     const hexSize = this.hexMap.hexSize * this.hexMap.zoom;
     const pos = this.animatingTile.getPixelPosition(this.hexMap.hexSize);
+    
+    // Usa le coordinate correnti della camera (non quelle cached)
     const x = pos.x * this.hexMap.zoom + this.hexMap.cameraX;
     const y = pos.y * this.hexMap.zoom + this.hexMap.cameraY;
     
@@ -446,7 +449,7 @@ class HexagonalMap {
       
       for (let r = r1; r <= r2; r++) {
         const coordinates = new HexCoordinates(q, r);
-        const tile = new HexTile(coordinates);
+        const tile = new HexTile(coordinates, TILE_TYPES.OCEAN, `tile_${q}_${r}`);
         this.tiles.set(coordinates.toString(), tile);
       }
     }
@@ -613,7 +616,7 @@ class HexagonalMap {
     this.cameraX += deltaX;
     this.cameraY += deltaY;
     
-    // Non forzare il rendering immediato, sarà gestito dal throttling
+    // Rendering throttled per evitare lag
     this.render();
   }
 
