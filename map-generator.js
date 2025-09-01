@@ -341,20 +341,21 @@ class TileAnimationSystem {
     
     if (intensity <= 0) return;
     
-    // CRITICO: Usa le coordinate CORRENTI della camera per l'animazione
-    const hexSize = this.hexMap.hexSize * this.hexMap.zoom;
+    // CRITICO: Usa le coordinate CORRENTI della camera E zoom per l'animazione
+    const hexSize = this.hexMap.hexSize;
     const pos = this.animatingTile.getPixelPosition(this.hexMap.hexSize);
     
-    // Usa le coordinate correnti della camera (non quelle cached)
+    // Applica zoom e camera correnti
     const x = pos.x * this.hexMap.zoom + this.hexMap.cameraX;
     const y = pos.y * this.hexMap.zoom + this.hexMap.cameraY;
+    const scaledHexSize = hexSize * this.hexMap.zoom;
     
     // Disegna l'esagono usando la stessa logica del rendering principale
     this.animationCtx.beginPath();
     for (let i = 0; i < 6; i++) {
       const angle = (Math.PI / 3) * i + Math.PI / 6;
-      const px = x + hexSize * Math.cos(angle);
-      const py = y + hexSize * Math.sin(angle);
+      const px = x + scaledHexSize * Math.cos(angle);
+      const py = y + scaledHexSize * Math.sin(angle);
       
       if (i === 0) {
         this.animationCtx.moveTo(px, py);
