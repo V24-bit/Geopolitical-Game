@@ -269,13 +269,18 @@ class HexTile {
 // === SISTEMA ANIMAZIONE SEPARATO ===
 class TileAnimationSystem {
   constructor() {
-    this.animatingTile = null;
+    this.animatingTileId = null;
     this.animationStartTime = 0;
-    this.animationDuration = 2000; // 2 secondi
+    this.animationDuration = 1500; // 1.5 secondi
     this.animationCanvas = null;
     this.animationCtx = null;
     this.isAnimating = false;
     this.animationFrameId = null;
+    
+    // Controllo FPS
+    this.targetFPS = 60;
+    this.frameInterval = 1000 / this.targetFPS; // 16.67ms per 60 FPS
+    this.lastFrameTime = 0;
   }
 
   // Inizializza il canvas per le animazioni
@@ -295,23 +300,31 @@ class TileAnimationSystem {
     mainCanvas.parentNode.insertBefore(this.animationCanvas, mainCanvas.nextSibling);
   }
 
-  // Avvia animazione per un tile
-  startAnimation(tile, hexMap) {
+  // Avvia animazione per un tile usando il suo ID
+  startAnimation(tileId, hexMap) {
     // Ferma animazione precedente
     this.stopAnimation();
     
-    this.animatingTile = tile;
+    this.animatingTileId = tileId;
     this.animationStartTime = Date.now();
     this.isAnimating = true;
     this.hexMap = hexMap;
+    this.lastFrameTime = 0;
     
     // Avvia il loop di animazione
-    this.animateLoop();
+    this.animationFrameId = requestAnimationFrame((timestamp) => this.animateLoop(timestamp));
   }
 
-  // Loop di animazione separato
-  animateLoop() {
-    if (!this.isAnimating || !this.animatingTile) return;
+  // Loop di animazione con controllo FPS
+  animateLoop(timestamp) {
+    if (!this.isAnimating || !this.animatingTileId) return;
+    
+    // Controllo FPS - limita a 60 FPS
+    if (timestamp - this.lastFrameTime < this.frameInterval) {
+      this.animationFrameId = requestAnimationFrame((ts) => this.animateLoop(ts));
+      return;
+    }
+    this.lastFrameTime = timestamp;
     
     const elapsed = Date.now() - this.animationStartTime;
     if (elapsed >= this.animationDuration) {
@@ -326,31 +339,37 @@ class TileAnimationSystem {
     this.renderTileAnimation();
     
     // Continua l'animazione
-    this.animationFrameId = requestAnimationFrame(() => this.animateLoop());
+    this.animationFrameId = requestAnimationFrame((ts) => this.animateLoop(ts));
   }
 
   // Renderizza l'animazione del tile
   renderTileAnimation() {
-    if (!this.animatingTile || !this.hexMap) return;
+    if (!this.animatingTileId || !this.hexMap) return;
+    
+    // Trova il tile usando l'ID
+    const tile = this.hexMap.tiles.get(this.animatingTileId);
+    if (!tile) return;
     
     const elapsed = Date.now() - this.animationStartTime;
     const progress = elapsed / this.animationDuration;
     
-    // Calcola intensità animazione (fade out da 0.8 a 0)
-    const intensity = Math.max(0, 0.8 * (1 - progress));
+    // Calcola intensità animazione (pulsazione)
+    const pulseSpeed = 3; // Velocità pulsazione
+    const pulse = Math.sin(elapsed * pulseSpeed / 1000) * 0.5 + 0.5;
+    const fadeOut = 1 - progress;
+    const intensity = Math.max(0, pulse * fadeOut * 0.9);
     
     if (intensity <= 0) return;
     
-    // CRITICO: Usa le coordinate CORRENTI della camera E zoom per l'animazione
-    const hexSize = this.hexMap.hexSize;
-    const pos = this.animatingTile.getPixelPosition(this.hexMap.hexSize);
+    // Usa le coordinate CORRENTI della camera e zoom
+    const pos = tile.getPixelPosition(this.hexMap.hexSize);
     
-    // Applica zoom e camera correnti
+    // Applica zoom e camera correnti (STESSA LOGICA DEL RENDERING PRINCIPALE)
+    const scaledHexSize = this.hexMap.hexSize * this.hexMap.zoom;
     const x = pos.x * this.hexMap.zoom + this.hexMap.cameraX;
     const y = pos.y * this.hexMap.zoom + this.hexMap.cameraY;
-    const scaledHexSize = hexSize * this.hexMap.zoom;
     
-    // Disegna l'esagono usando la stessa logica del rendering principale
+    // Disegna l'esagono animato con la STESSA logica del rendering principale
     this.animationCtx.beginPath();
     for (let i = 0; i < 6; i++) {
       const angle = (Math.PI / 3) * i + Math.PI / 6;
@@ -366,8 +385,8 @@ class TileAnimationSystem {
     this.animationCtx.closePath();
     
     // Disegna il bordo animato
-    const alpha = intensity;
-    const lineWidth = 2 + (intensity * 4); // Da 2 a 6 pixel
+    const alpha = Math.min(0.8, intensity);
+    const lineWidth = 1 + (intensity * 3); // Da 1 a 4 pixel
     
     this.animationCtx.strokeStyle = `rgba(255, 255, 255, ${alpha})`;
     this.animationCtx.lineWidth = lineWidth;
@@ -383,7 +402,7 @@ class TileAnimationSystem {
   // Ferma l'animazione
   stopAnimation() {
     this.isAnimating = false;
-    this.animatingTile = null;
+    this.animatingTileId = null;
     
     if (this.animationFrameId) {
       cancelAnimationFrame(this.animationFrameId);
@@ -643,8 +662,8 @@ class HexagonalMap {
     if (tile) {
       console.log(`Tile cliccato: ${tile.coordinates.toString()}, tipo: ${tile.type}`);
       
-      // Avvia l'animazione nel sistema separato
-      this.animationSystem.startAnimation(tile, this);
+      // Avvia l'animazione usando l'ID del tile
+      this.animationSystem.startAnimation(tile.id, this);
     }
   }
 
