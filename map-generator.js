@@ -285,19 +285,10 @@ class TileAnimationSystem {
 
   // Inizializza il canvas per le animazioni
   initCanvas(mainCanvas) {
-    // Crea un canvas separato per le animazioni
-    this.animationCanvas = document.createElement('canvas');
-    this.animationCanvas.width = mainCanvas.width;
-    this.animationCanvas.height = mainCanvas.height;
-    this.animationCanvas.style.position = 'absolute';
-    this.animationCanvas.style.top = '0';
-    this.animationCanvas.style.left = '0';
-    this.animationCanvas.style.pointerEvents = 'none'; // Non interferisce con i click
-    this.animationCanvas.style.zIndex = '1'; // Sopra la mappa principale
-    this.animationCtx = this.animationCanvas.getContext('2d');
-    
-    // Inserisci il canvas nel DOM
-    mainCanvas.parentNode.insertBefore(this.animationCanvas, mainCanvas.nextSibling);
+    // Usa lo stesso canvas per semplicità e visibilità garantita
+    this.animationCanvas = mainCanvas;
+    this.animationCtx = mainCanvas.getContext('2d');
+    console.log("Canvas animazione inizializzato");
   }
 
   // Avvia animazione per un tile usando il suo ID
@@ -353,23 +344,23 @@ class TileAnimationSystem {
     const elapsed = Date.now() - this.animationStartTime;
     const progress = elapsed / this.animationDuration;
     
-    // Calcola intensità animazione (pulsazione)
-    const pulseSpeed = 3; // Velocità pulsazione
+    // Calcola intensità animazione (pulsazione più visibile)
+    const pulseSpeed = 4; // Velocità pulsazione
     const pulse = Math.sin(elapsed * pulseSpeed / 1000) * 0.5 + 0.5;
-    const fadeOut = 1 - progress;
-    const intensity = Math.max(0, pulse * fadeOut * 0.9);
+    const intensity = Math.max(0.3, pulse); // Minimo 0.3 per essere sempre visibile
     
     if (intensity <= 0) return;
     
-    // Usa le coordinate CORRENTI della camera e zoom
+    // Calcola posizione con camera e zoom correnti
     const pos = tile.getPixelPosition(this.hexMap.hexSize);
-    
-    // Applica zoom e camera correnti (STESSA LOGICA DEL RENDERING PRINCIPALE)
     const scaledHexSize = this.hexMap.hexSize * this.hexMap.zoom;
     const x = pos.x * this.hexMap.zoom + this.hexMap.cameraX;
     const y = pos.y * this.hexMap.zoom + this.hexMap.cameraY;
     
-    // Disegna l'esagono animato con la STESSA logica del rendering principale
+    // Salva lo stato del contesto
+    this.animationCtx.save();
+    
+    // Disegna l'esagono animato
     this.animationCtx.beginPath();
     for (let i = 0; i < 6; i++) {
       const angle = (Math.PI / 3) * i + Math.PI / 6;
@@ -384,19 +375,19 @@ class TileAnimationSystem {
     }
     this.animationCtx.closePath();
     
-    // Disegna il bordo animato
-    const alpha = Math.min(0.8, intensity);
-    const lineWidth = 1 + (intensity * 3); // Da 1 a 4 pixel
+    // Disegna il bordo animato molto visibile
+    const alpha = Math.min(1.0, intensity);
+    const lineWidth = 2 + (intensity * 4); // Da 2 a 6 pixel
     
-    this.animationCtx.strokeStyle = `rgba(255, 255, 255, ${alpha})`;
+    // Colore più visibile - giallo brillante
+    this.animationCtx.strokeStyle = `rgba(255, 255, 0, ${alpha})`;
     this.animationCtx.lineWidth = lineWidth;
-    this.animationCtx.shadowColor = `rgba(255, 255, 255, ${alpha * 0.8})`;
-    this.animationCtx.shadowBlur = 8 * intensity;
+    this.animationCtx.shadowColor = `rgba(255, 255, 0, ${alpha})`;
+    this.animationCtx.shadowBlur = 10 + (intensity * 10);
     this.animationCtx.stroke();
     
-    // Reset shadow
-    this.animationCtx.shadowColor = 'transparent';
-    this.animationCtx.shadowBlur = 0;
+    // Ripristina lo stato del contesto
+    this.animationCtx.restore();
   }
 
   // Ferma l'animazione
@@ -408,19 +399,11 @@ class TileAnimationSystem {
       cancelAnimationFrame(this.animationFrameId);
       this.animationFrameId = null;
     }
-    
-    // Pulisci il canvas delle animazioni
-    if (this.animationCtx) {
-      this.animationCtx.clearRect(0, 0, this.animationCanvas.width, this.animationCanvas.height);
-    }
   }
 
   // Aggiorna le dimensioni del canvas
   resize(width, height) {
-    if (this.animationCanvas) {
-      this.animationCanvas.width = width;
-      this.animationCanvas.height = height;
-    }
+    // Il canvas è condiviso, non serve resize separato
   }
 }
 
@@ -577,7 +560,10 @@ class HexagonalMap {
       renderedCount++;
     }
     
-    console.log(`Renderizzati ${renderedCount} tile visibili su ${this.tiles.size} totali`);
+    // Renderizza l'animazione sopra i tile se attiva
+    if (this.animationSystem.isAnimating) {
+      this.animationSystem.renderTileAnimation();
+    }
   }
 
   // Rendering di un singolo tile (ottimizzato)
