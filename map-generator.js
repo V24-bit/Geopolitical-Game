@@ -271,11 +271,12 @@ class TileAnimationSystem {
   constructor() {
     this.animatingTileId = null;
     this.animationStartTime = 0;
-    this.animationDuration = 1500; // 1.5 secondi
+    this.animationDuration = 2500; // 2.5 secondi
     this.animationCanvas = null;
     this.animationCtx = null;
     this.isAnimating = false;
     this.animationFrameId = null;
+    this.hexMap = null;
     
     // Controllo FPS
     this.targetFPS = 60;
@@ -285,10 +286,8 @@ class TileAnimationSystem {
 
   // Inizializza il canvas per le animazioni
   initCanvas(mainCanvas) {
-    // Usa lo stesso canvas per semplicità e visibilità garantita
     this.animationCanvas = mainCanvas;
     this.animationCtx = mainCanvas.getContext('2d');
-    console.log("Canvas animazione inizializzato");
   }
 
   // Avvia animazione per un tile usando il suo ID
@@ -301,6 +300,8 @@ class TileAnimationSystem {
     this.isAnimating = true;
     this.hexMap = hexMap;
     this.lastFrameTime = 0;
+    
+    console.log(`Avviando animazione per tile: ${tileId}`);
     
     // Avvia il loop di animazione
     this.animationFrameId = requestAnimationFrame((timestamp) => this.animateLoop(timestamp));
@@ -319,11 +320,12 @@ class TileAnimationSystem {
     
     const elapsed = Date.now() - this.animationStartTime;
     if (elapsed >= this.animationDuration) {
+      console.log("Animazione completata");
       this.stopAnimation();
       return;
     }
     
-    // NON pulire il canvas - renderizza solo l'animazione sopra
+    // Renderizza l'animazione sopra la mappa esistente
     this.renderTileAnimation();
     
     // Continua l'animazione
@@ -339,16 +341,15 @@ class TileAnimationSystem {
     if (!tile) return;
     
     const elapsed = Date.now() - this.animationStartTime;
-    const progress = elapsed / this.animationDuration;
     
-    // Calcola intensità animazione (pulsazione più visibile)
-    const pulseSpeed = 4; // Velocità pulsazione
-    const pulse = Math.sin(elapsed * pulseSpeed / 1000) * 0.5 + 0.5;
-    const intensity = Math.max(0.3, pulse); // Minimo 0.3 per essere sempre visibile
+    // Calcola intensità pulsazione (da 0.4 a 1.0)
+    const pulseSpeed = 3; // Velocità pulsazione
+    const pulse = Math.sin(elapsed * pulseSpeed / 1000) * 0.3 + 0.7; // Da 0.4 a 1.0
+    const intensity = Math.max(0.4, pulse);
     
     if (intensity <= 0) return;
     
-    // Usa esattamente la stessa logica del rendering principale
+    // Calcola posizione usando la stessa logica del rendering principale
     const hexSize = this.hexMap.hexSize * this.hexMap.zoom;
     const pos = tile.getPixelPosition(this.hexMap.hexSize);
     const x = pos.x * this.hexMap.zoom + this.hexMap.cameraX;
@@ -357,7 +358,7 @@ class TileAnimationSystem {
     // Salva lo stato del contesto
     this.animationCtx.save();
     
-    // Disegna l'esagono animato
+    // Disegna il bordo pulsante dell'esagono
     this.animationCtx.beginPath();
     for (let i = 0; i < 6; i++) {
       const angle = (Math.PI / 3) * i + Math.PI / 6;
@@ -372,15 +373,15 @@ class TileAnimationSystem {
     }
     this.animationCtx.closePath();
     
-    // Disegna il bordo animato molto visibile
-    const alpha = Math.min(1.0, intensity);
-    const lineWidth = 2 + (intensity * 4); // Da 2 a 6 pixel
+    // Stile del bordo pulsante
+    const alpha = intensity;
+    const lineWidth = 3 + (intensity * 3); // Da 3 a 6 pixel
     
-    // Colore più visibile - giallo brillante
+    // Colore giallo brillante con trasparenza variabile
     this.animationCtx.strokeStyle = `rgba(255, 255, 0, ${alpha})`;
     this.animationCtx.lineWidth = lineWidth;
-    this.animationCtx.shadowColor = `rgba(255, 255, 0, ${alpha})`;
-    this.animationCtx.shadowBlur = 10 + (intensity * 10);
+    this.animationCtx.shadowColor = `rgba(255, 255, 0, ${alpha * 0.8})`;
+    this.animationCtx.shadowBlur = 8 + (intensity * 8);
     this.animationCtx.stroke();
     
     // Ripristina lo stato del contesto
@@ -389,6 +390,10 @@ class TileAnimationSystem {
 
   // Ferma l'animazione
   stopAnimation() {
+    if (this.isAnimating) {
+      console.log("Fermando animazione");
+    }
+    
     this.isAnimating = false;
     this.animatingTileId = null;
     
@@ -640,7 +645,7 @@ class HexagonalMap {
     if (tile) {
       console.log(`Tile cliccato: ${tile.coordinates.toString()}, tipo: ${tile.type}`);
       
-      // Avvia l'animazione usando l'ID del tile
+      // Avvia l'animazione del bordo pulsante
       this.animationSystem.startAnimation(tile.id, this);
     }
   }
