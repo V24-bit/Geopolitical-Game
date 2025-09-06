@@ -323,10 +323,7 @@ class TileAnimationSystem {
       return;
     }
     
-    // Pulisci solo il canvas delle animazioni
-    this.animationCtx.clearRect(0, 0, this.animationCanvas.width, this.animationCanvas.height);
-    
-    // Disegna l'animazione del tile
+    // NON pulire il canvas - renderizza solo l'animazione sopra
     this.renderTileAnimation();
     
     // Continua l'animazione
@@ -351,9 +348,9 @@ class TileAnimationSystem {
     
     if (intensity <= 0) return;
     
-    // Calcola posizione con camera e zoom correnti
+    // Usa esattamente la stessa logica del rendering principale
+    const hexSize = this.hexMap.hexSize * this.hexMap.zoom;
     const pos = tile.getPixelPosition(this.hexMap.hexSize);
-    const scaledHexSize = this.hexMap.hexSize * this.hexMap.zoom;
     const x = pos.x * this.hexMap.zoom + this.hexMap.cameraX;
     const y = pos.y * this.hexMap.zoom + this.hexMap.cameraY;
     
@@ -364,8 +361,8 @@ class TileAnimationSystem {
     this.animationCtx.beginPath();
     for (let i = 0; i < 6; i++) {
       const angle = (Math.PI / 3) * i + Math.PI / 6;
-      const px = x + scaledHexSize * Math.cos(angle);
-      const py = y + scaledHexSize * Math.sin(angle);
+      const px = x + hexSize * Math.cos(angle);
+      const py = y + hexSize * Math.sin(angle);
       
       if (i === 0) {
         this.animationCtx.moveTo(px, py);
@@ -558,11 +555,6 @@ class HexagonalMap {
     for (const [tileKey, tile] of this.tiles) {
       this.renderTile(tile, hexSize);
       renderedCount++;
-    }
-    
-    // Renderizza l'animazione sopra i tile se attiva
-    if (this.animationSystem.isAnimating) {
-      this.animationSystem.renderTileAnimation();
     }
   }
 
