@@ -273,8 +273,40 @@ class TileAnimationSystem {
     this.selectionStartTime = 0;
     this.selectionDuration = 2500; // 2.5 secondi
     this.isSelectionActive = false;
+    this.animationCanvas = null;
+    this.animationCtx = null;
+    this.animationLoop = null;
+    this.hexMap = null;
   }
 
+  // Inizializza il canvas per l'animazione
+  initialize(hexMap) {
+    this.hexMap = hexMap;
+    
+    // Crea canvas separato per l'animazione
+    this.animationCanvas = document.createElement('canvas');
+    this.animationCanvas.id = 'animation-canvas';
+    this.animationCanvas.style.position = 'fixed';
+    this.animationCanvas.style.top = '0';
+    this.animationCanvas.style.left = '0';
+    this.animationCanvas.style.pointerEvents = 'none'; // Non interferisce con i click
+    this.animationCanvas.style.zIndex = '10'; // Sopra la mappa
+    this.animationCanvas.width = window.innerWidth;
+    this.animationCanvas.height = window.innerHeight;
+    
+    this.animationCtx = this.animationCanvas.getContext('2d');
+    
+    // Aggiungi al DOM
+    document.body.appendChild(this.animationCanvas);
+    
+    // Gestisci resize
+    window.addEventListener('resize', () => {
+      this.animationCanvas.width = window.innerWidth;
+      this.animationCanvas.height = window.innerHeight;
+    });
+    
+    console.log("Sistema animazione inizializzato con canvas separato");
+  }
   // Seleziona un tile
   selectTile(tileId) {
     this.stopSelection();
@@ -283,9 +315,37 @@ class TileAnimationSystem {
     this.selectionStartTime = Date.now();
     this.isSelectionActive = true;
     
+    // Avvia il loop di animazione separato
+    this.startAnimationLoop();
+    
     console.log(`Tile selezionato: ${tileId}`);
   }
 
+  // Avvia il loop di animazione
+  startAnimationLoop() {
+    if (this.animationLoop) {
+      cancelAnimationFrame(this.animationLoop);
+    }
+    
+    const animate = () => {
+      if (!this.isSelectionActive) {
+        return; // Ferma il loop se non c'è selezione attiva
+      }
+      
+      // Pulisci il canvas dell'animazione
+      this.animationCtx.clearRect(0, 0, this.animationCanvas.width, this.animationCanvas.height);
+      
+      // Renderizza l'animazione
+      this.renderAnimation();
+      
+      // Controlla se l'animazione deve continuare
+      if (this.update()) {
+        this.animationLoop = requestAnimationFrame(animate);
+      }
+    };
+    
+    animate();
+  }
   // Controlla se la selezione è attiva e aggiorna lo stato
   update() {
     if (!this.isSelectionActive) return false;
@@ -299,11 +359,11 @@ class TileAnimationSystem {
     return true;
   }
 
-  // Renderizza la selezione (chiamata dal rendering principale)
-  render(ctx, hexMap) {
-    if (!this.isSelectionActive || !this.selectedTileId || !hexMap) return;
+  // Renderizza l'animazione sul canvas separato
+  renderAnimation() {
+    if (!this.isSelectionActive || !this.selectedTileId || !this.hexMap || !this.animationCtx) return;
     
-    const tile = hexMap.tiles.get(this.selectedTileId);
+    const tile = this.hexMap.tiles.get(this.selectedTileId);
     if (!tile) return;
     
     const elapsed = Date.now() - this.selectionStartTime;
@@ -313,53 +373,72 @@ class TileAnimationSystem {
     const pulse = Math.sin(elapsed * pulseSpeed / 1000) * 0.2 + 0.8;
     const intensity = Math.max(0.6, pulse);
     
-    // Calcola posizione
-    const hexSize = hexMap.hexSize * hexMap.zoom;
-    const pos = tile.getPixelPosition(hexMap.hexSize);
-    const x = pos.x * hexMap.zoom + hexMap.cameraX;
-    const y = pos.y * hexMap.zoom + hexMap.cameraY;
+    // Calcola posizione usando gli stessi parametri della mappa
+    const hexSize = this.hexMap.hexSize * this.hexMap.zoom;
+    const pos = tile.getPixelPosition(this.hexMap.hexSize);
+    const x = pos.x * this.hexMap.zoom + this.hexMap.cameraX;
+    const y = pos.y * this.hexMap.zoom + this.hexMap.cameraY;
     
     // Salva stato
-    ctx.save();
+    this.animationCtx.save();
     
     // Disegna bordo pulsante
-    ctx.beginPath();
+    this.animationCtx.beginPath();
     for (let i = 0; i < 6; i++) {
       const angle = (Math.PI / 3) * i + Math.PI / 6;
       const px = x + hexSize * Math.cos(angle);
       const py = y + hexSize * Math.sin(angle);
       
       if (i === 0) {
-        ctx.moveTo(px, py);
+        this.animationCtx.moveTo(px, py);
       } else {
-        ctx.lineTo(px, py);
+        this.animationCtx.lineTo(px, py);
       }
     }
-    ctx.closePath();
+    this.animationCtx.closePath();
     
     // Stile bordo bianco brillante
     const alpha = intensity;
-    const lineWidth = 2 + (intensity * 2); // Bordo da 2 a 4 pixel
+    const lineWidth = 3 + (intensity * 2); // Bordo da 3 a 5 pixel
     
-    ctx.strokeStyle = `rgba(255, 255, 255, ${alpha})`; // Bianco
-    ctx.lineWidth = lineWidth;
-    ctx.shadowColor = `rgba(255, 255, 255, ${alpha * 0.7})`;
-    ctx.shadowBlur = 6 + (intensity * 6); // Ombra da 6 a 12 pixel
-    ctx.stroke();
+    this.animationCtx.strokeStyle = `rgba(255, 255, 255, ${alpha})`; // Bianco
+    this.animationCtx.lineWidth = lineWidth;
+    this.animationCtx.shadowColor = `rgba(255, 255, 255, ${alpha * 0.8})`;
+    this.animationCtx.shadowBlur = 8 + (intensity * 8); // Ombra da 8 a 16 pixel
+    this.animationCtx.stroke();
     
     // Ripristina stato
-    ctx.restore();
+    this.animationCtx.restore();
   }
 
   // Ferma la selezione
   stopSelection() {
     this.isSelectionActive = false;
     this.selectedTileId = null;
+    
+    // Ferma il loop di animazione
+    if (this.animationLoop) {
+      cancelAnimationFrame(this.animationLoop);
+      this.animationLoop = null;
+    }
+    
+    // Pulisci il canvas dell'animazione
+    if (this.animationCtx) {
+      this.animationCtx.clearRect(0, 0, this.animationCanvas.width, this.animationCanvas.height);
+    }
   }
   
   // Ottieni il tile attualmente selezionato
   getSelectedTileId() {
     return this.isSelectionActive ? this.selectedTileId : null;
+  }
+  
+  // Pulisci il sistema
+  destroy() {
+    this.stopSelection();
+    if (this.animationCanvas && this.animationCanvas.parentNode) {
+      this.animationCanvas.parentNode.removeChild(this.animationCanvas);
+    }
   }
 }
 
@@ -512,10 +591,6 @@ class HexagonalMap {
       this.renderTile(tile, hexSize);
       renderedCount++;
     }
-    
-    // Renderizza la selezione se attiva
-    this.selectionSystem.update();
-    this.selectionSystem.render(this.ctx, this);
   }
 
   // Rendering di un singolo tile (ottimizzato)
@@ -602,9 +677,6 @@ class HexagonalMap {
       
       // Seleziona il tile (avvia bordo bianco pulsante)
       this.selectionSystem.selectTile(tile.id);
-      
-      // Forza un rendering per mostrare immediatamente la selezione
-      this.render();
     }
   }
   
@@ -1148,6 +1220,9 @@ window.redrawMapWithNations = function() {
     console.log("Ridisegnando mappa con nazioni aggiornate");
     globalHexMap.render();
   }
+    // Inizializza il sistema di animazione separato
+    globalHexMap.selectionSystem.initialize(globalHexMap);
+    
 };
 
 // Controlli ottimizzati per la mappa
