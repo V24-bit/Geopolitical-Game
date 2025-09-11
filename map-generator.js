@@ -269,49 +269,49 @@ class HexTile {
 // === SISTEMA ANIMAZIONE SEPARATO ===
 class TileAnimationSystem {
   constructor() {
-    this.animatingTileId = null;
-    this.animationStartTime = 0;
-    this.animationDuration = 2500;
-    this.isAnimating = false;
+    this.selectedTileId = null;
+    this.selectionStartTime = 0;
+    this.selectionDuration = 2500; // 2.5 secondi
+    this.isSelectionActive = false;
   }
 
-  // Avvia animazione per un tile
-  startAnimation(tileId) {
-    this.stopAnimation();
+  // Seleziona un tile
+  selectTile(tileId) {
+    this.stopSelection();
     
-    this.animatingTileId = tileId;
-    this.animationStartTime = Date.now();
-    this.isAnimating = true;
+    this.selectedTileId = tileId;
+    this.selectionStartTime = Date.now();
+    this.isSelectionActive = true;
     
-    console.log(`Avviando animazione per tile: ${tileId}`);
+    console.log(`Tile selezionato: ${tileId}`);
   }
 
-  // Controlla se l'animazione è attiva e aggiorna lo stato
+  // Controlla se la selezione è attiva e aggiorna lo stato
   update() {
-    if (!this.isAnimating) return false;
+    if (!this.isSelectionActive) return false;
 
-    const elapsed = Date.now() - this.animationStartTime;
-    if (elapsed >= this.animationDuration) {
-      this.stopAnimation();
+    const elapsed = Date.now() - this.selectionStartTime;
+    if (elapsed >= this.selectionDuration) {
+      this.stopSelection();
       return false;
     }
 
     return true;
   }
 
-  // Renderizza l'animazione (chiamata dal rendering principale)
+  // Renderizza la selezione (chiamata dal rendering principale)
   render(ctx, hexMap) {
-    if (!this.isAnimating || !this.animatingTileId || !hexMap) return;
+    if (!this.isSelectionActive || !this.selectedTileId || !hexMap) return;
     
-    const tile = hexMap.tiles.get(this.animatingTileId);
+    const tile = hexMap.tiles.get(this.selectedTileId);
     if (!tile) return;
     
-    const elapsed = Date.now() - this.animationStartTime;
+    const elapsed = Date.now() - this.selectionStartTime;
     
-    // Calcola intensità pulsazione
-    const pulseSpeed = 3;
-    const pulse = Math.sin(elapsed * pulseSpeed / 1000) * 0.3 + 0.7;
-    const intensity = Math.max(0.4, pulse);
+    // Calcola intensità pulsazione (da 0.6 a 1.0)
+    const pulseSpeed = 4; // Velocità pulsazione
+    const pulse = Math.sin(elapsed * pulseSpeed / 1000) * 0.2 + 0.8;
+    const intensity = Math.max(0.6, pulse);
     
     // Calcola posizione
     const hexSize = hexMap.hexSize * hexMap.zoom;
@@ -337,24 +337,29 @@ class TileAnimationSystem {
     }
     ctx.closePath();
     
-    // Stile bordo
+    // Stile bordo bianco brillante
     const alpha = intensity;
-    const lineWidth = 3 + (intensity * 3);
+    const lineWidth = 2 + (intensity * 2); // Bordo da 2 a 4 pixel
     
-    ctx.strokeStyle = `rgba(255, 255, 0, ${alpha})`;
+    ctx.strokeStyle = `rgba(255, 255, 255, ${alpha})`; // Bianco
     ctx.lineWidth = lineWidth;
-    ctx.shadowColor = `rgba(255, 255, 0, ${alpha * 0.8})`;
-    ctx.shadowBlur = 8 + (intensity * 8);
+    ctx.shadowColor = `rgba(255, 255, 255, ${alpha * 0.7})`;
+    ctx.shadowBlur = 6 + (intensity * 6); // Ombra da 6 a 12 pixel
     ctx.stroke();
     
     // Ripristina stato
     ctx.restore();
   }
 
-  // Ferma l'animazione
-  stopAnimation() {
-    this.isAnimating = false;
-    this.animatingTileId = null;
+  // Ferma la selezione
+  stopSelection() {
+    this.isSelectionActive = false;
+    this.selectedTileId = null;
+  }
+  
+  // Ottieni il tile attualmente selezionato
+  getSelectedTileId() {
+    return this.isSelectionActive ? this.selectedTileId : null;
   }
 }
 
@@ -387,7 +392,7 @@ class HexagonalMap {
     this.pendingRender = false;
     
     // Sistema animazioni separato
-    this.animationSystem = new TileAnimationSystem();
+    this.selectionSystem = new TileAnimationSystem();
     
     // Inizializza la mappa
     this.initializeMap();
@@ -508,9 +513,9 @@ class HexagonalMap {
       renderedCount++;
     }
     
-    // Renderizza l'animazione se attiva
-    this.animationSystem.update();
-    this.animationSystem.render(this.ctx, this);
+    // Renderizza la selezione se attiva
+    this.selectionSystem.update();
+    this.selectionSystem.render(this.ctx, this);
   }
 
   // Rendering di un singolo tile (ottimizzato)
@@ -595,12 +600,21 @@ class HexagonalMap {
     if (tile) {
       console.log(`Tile cliccato: ${tile.coordinates.toString()}, tipo: ${tile.type}`);
       
-      // Avvia l'animazione del bordo pulsante
-      this.animationSystem.startAnimation(tile.id);
+      // Seleziona il tile (avvia bordo bianco pulsante)
+      this.selectionSystem.selectTile(tile.id);
       
-      // Forza un rendering per mostrare immediatamente l'animazione
+      // Forza un rendering per mostrare immediatamente la selezione
       this.render();
     }
+  }
+  
+  // Ottieni il tile attualmente selezionato
+  getSelectedTile() {
+    const selectedId = this.selectionSystem.getSelectedTileId();
+    if (selectedId) {
+      return this.tiles.get(selectedId);
+    }
+    return null;
   }
 
   // Applica il generatore di mappe esistente
@@ -1321,6 +1335,14 @@ function addOptimizedMapControls(canvas) {
 window.getTileAtMouse = function(mouseX, mouseY) {
   if (globalHexMap) {
     return globalHexMap.getTileAtPixel(mouseX, mouseY);
+  }
+  return null;
+};
+
+// Funzione per ottenere il tile attualmente selezionato
+window.getSelectedTile = function() {
+  if (globalHexMap) {
+    return globalHexMap.getSelectedTile();
   }
   return null;
 };
