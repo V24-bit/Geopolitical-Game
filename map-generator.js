@@ -1200,6 +1200,9 @@ window.generateAndShowMapWithSeed = function(seed) {
   // Rendering iniziale
   globalHexMap.render();
   
+  // Inizializza il sistema di animazione separato
+  globalHexMap.selectionSystem.initialize(globalHexMap);
+  
   // Aggiungi controlli mouse/touch ottimizzati
   addOptimizedMapControls(canvas);
   
@@ -1220,9 +1223,6 @@ window.redrawMapWithNations = function() {
     console.log("Ridisegnando mappa con nazioni aggiornate");
     globalHexMap.render();
   }
-    // Inizializza il sistema di animazione separato
-    globalHexMap.selectionSystem.initialize(globalHexMap);
-    
 };
 
 // Controlli ottimizzati per la mappa
