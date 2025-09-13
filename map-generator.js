@@ -281,7 +281,14 @@ class TileAnimationSystem {
 
   // Inizializza il canvas per l'animazione
   initialize(hexMap) {
+    console.log("Inizializzando sistema di animazione...");
     this.hexMap = hexMap;
+    
+    // Rimuovi canvas esistente se presente
+    const existingCanvas = document.getElementById('animation-canvas');
+    if (existingCanvas) {
+      existingCanvas.remove();
+    }
     
     // Crea canvas separato per l'animazione
     this.animationCanvas = document.createElement('canvas');
@@ -300,15 +307,17 @@ class TileAnimationSystem {
     document.body.appendChild(this.animationCanvas);
     
     // Gestisci resize
-    window.addEventListener('resize', () => {
+    const resizeHandler = () => {
       this.animationCanvas.width = window.innerWidth;
       this.animationCanvas.height = window.innerHeight;
-    });
+    };
+    window.addEventListener('resize', resizeHandler);
     
     console.log("Sistema animazione inizializzato con canvas separato");
   }
   // Seleziona un tile
   selectTile(tileId) {
+    console.log(`Selezionando tile: ${tileId}`);
     this.stopSelection();
     
     this.selectedTileId = tileId;
@@ -318,7 +327,7 @@ class TileAnimationSystem {
     // Avvia il loop di animazione separato
     this.startAnimationLoop();
     
-    console.log(`Tile selezionato: ${tileId}`);
+    console.log(`Animazione avviata per tile: ${tileId}`);
   }
 
   // Avvia il loop di animazione
@@ -363,7 +372,15 @@ class TileAnimationSystem {
   renderAnimation() {
     if (!this.isSelectionActive || !this.selectedTileId || !this.hexMap || !this.animationCtx) return;
     
-    const tile = this.hexMap.tiles.get(this.selectedTileId);
+    // Trova il tile usando l'ID
+    let tile = null;
+    for (const [key, t] of this.hexMap.tiles) {
+      if (t.id === this.selectedTileId) {
+        tile = t;
+        break;
+      }
+    }
+    
     if (!tile) return;
     
     const elapsed = Date.now() - this.selectionStartTime;
@@ -378,6 +395,12 @@ class TileAnimationSystem {
     const pos = tile.getPixelPosition(this.hexMap.hexSize);
     const x = pos.x * this.hexMap.zoom + this.hexMap.cameraX;
     const y = pos.y * this.hexMap.zoom + this.hexMap.cameraY;
+    
+    // Verifica se il tile è visibile
+    if (x < -hexSize || x > window.innerWidth + hexSize || 
+        y < -hexSize || y > window.innerHeight + hexSize) {
+      return; // Non disegnare se fuori schermo
+    }
     
     // Salva stato
     this.animationCtx.save();
@@ -676,7 +699,12 @@ class HexagonalMap {
       console.log(`Tile cliccato: ${tile.coordinates.toString()}, tipo: ${tile.type}`);
       
       // Seleziona il tile (avvia bordo bianco pulsante)
-      this.selectionSystem.selectTile(tile.id);
+      if (this.selectionSystem) {
+        console.log(`Avviando animazione per tile: ${tile.id}`);
+        this.selectionSystem.selectTile(tile.id);
+      } else {
+        console.error("Sistema di selezione non inizializzato!");
+      }
     }
   }
   
@@ -1286,6 +1314,7 @@ function addOptimizedMapControls(canvas) {
       // Trova il tile sotto il mouse
       const clickedTile = globalHexMap.getTileAtPixel(mouseX, mouseY);
       if (clickedTile) {
+        console.log("Click rilevato su tile:", clickedTile.id);
         globalHexMap.handleTileClick(clickedTile);
       }
     }
@@ -1394,6 +1423,7 @@ function addOptimizedMapControls(canvas) {
       
       const clickedTile = globalHexMap.getTileAtPixel(touchX, touchY);
       if (clickedTile) {
+       console.log("Touch rilevato su tile:", clickedTile.id);
         globalHexMap.handleTileClick(clickedTile);
       }
     }
