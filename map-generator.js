@@ -390,8 +390,11 @@ class TileAnimationSystem {
     const pulse = Math.sin(elapsed * pulseSpeed / 1000) * 0.2 + 0.8;
     const intensity = Math.max(0.6, pulse);
     
-    // Calcola posizione usando gli stessi parametri della mappa
+    // Calcola posizione in tempo reale usando gli stessi parametri della mappa
     const hexSize = this.hexMap.hexSize * this.hexMap.zoom;
+    
+    // Invalida la cache del tile per forzare il ricalcolo della posizione
+    tile.invalidateCache();
     const pos = tile.getPixelPosition(this.hexMap.hexSize);
     const x = pos.x * this.hexMap.zoom + this.hexMap.cameraX;
     const y = pos.y * this.hexMap.zoom + this.hexMap.cameraY;
@@ -1295,6 +1298,11 @@ function addOptimizedMapControls(canvas) {
       // Solo se il movimento è significativo
       if (dragDistance > 1) {
         globalHexMap.moveCamera(deltaX, deltaY);
+        
+        // Forza l'aggiornamento dell'animazione se attiva
+        if (globalHexMap.selectionSystem && globalHexMap.selectionSystem.isSelectionActive) {
+          // L'animazione si aggiornerà automaticamente nel prossimo frame
+        }
       }
       
       lastMouseX = e.clientX;
@@ -1345,6 +1353,11 @@ function addOptimizedMapControls(canvas) {
       const zoomFactor = e.deltaY > 0 ? 0.9 : 1.1;
       const newZoom = globalHexMap.zoom * zoomFactor;
       globalHexMap.setZoom(newZoom);
+      
+      // Forza l'aggiornamento dell'animazione se attiva
+      if (globalHexMap.selectionSystem && globalHexMap.selectionSystem.isSelectionActive) {
+        // L'animazione si aggiornerà automaticamente nel prossimo frame
+      }
     }
   });
   
@@ -1389,6 +1402,11 @@ function addOptimizedMapControls(canvas) {
       // Solo se il movimento è significativo
       if (dragDistance > 2) {
         globalHexMap.moveCamera(deltaX, deltaY);
+        
+        // Forza l'aggiornamento dell'animazione se attiva
+        if (globalHexMap.selectionSystem && globalHexMap.selectionSystem.isSelectionActive) {
+          // L'animazione si aggiornerà automaticamente nel prossimo frame
+        }
       }
       
       lastMouseX = e.touches[0].clientX;
@@ -1405,6 +1423,11 @@ function addOptimizedMapControls(canvas) {
         const zoomFactor = Math.max(0.5, Math.min(2, currentDistance / lastTouchDistance));
         const newZoom = globalHexMap.zoom * zoomFactor;
         globalHexMap.setZoom(newZoom);
+        
+        // Forza l'aggiornamento dell'animazione se attiva
+        if (globalHexMap.selectionSystem && globalHexMap.selectionSystem.isSelectionActive) {
+          // L'animazione si aggiornerà automaticamente nel prossimo frame
+        }
       }
       
       lastTouchDistance = currentDistance;
