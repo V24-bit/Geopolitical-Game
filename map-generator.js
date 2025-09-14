@@ -270,6 +270,7 @@ class HexTile {
 class TileAnimationSystem {
   constructor() {
     this.selectedTileId = null;
+    this.selectedTileCoords = null; // Coordinate fisse del tile selezionato
     this.selectionStartTime = 0;
     this.selectionDuration = 2500; // 2.5 secondi
     this.isSelectionActive = false;
@@ -316,18 +317,22 @@ class TileAnimationSystem {
     console.log("Sistema animazione inizializzato con canvas separato");
   }
   // Seleziona un tile
-  selectTile(tileId) {
+  selectTile(tileId, tileCoordinates) {
     console.log(`Selezionando tile: ${tileId}`);
     this.stopSelection();
     
     this.selectedTileId = tileId;
+    this.selectedTileCoords = {
+      q: tileCoordinates.q,
+      r: tileCoordinates.r
+    };
     this.selectionStartTime = Date.now();
     this.isSelectionActive = true;
     
     // Avvia il loop di animazione separato
     this.startAnimationLoop();
     
-    console.log(`Animazione avviata per tile: ${tileId}`);
+    console.log(`Animazione avviata per tile: ${tileId} alle coordinate q:${tileCoordinates.q}, r:${tileCoordinates.r}`);
   }
 
   // Avvia il loop di animazione
@@ -370,18 +375,12 @@ class TileAnimationSystem {
 
   // Renderizza l'animazione sul canvas separato
   renderAnimation() {
-    if (!this.isSelectionActive || !this.selectedTileId || !this.hexMap || !this.animationCtx) return;
+    if (!this.isSelectionActive || !this.selectedTileId || !this.selectedTileCoords || !this.hexMap || !this.animationCtx) return;
     
-    // Trova il tile usando l'ID
-    let tile = null;
-    for (const [key, t] of this.hexMap.tiles) {
-      if (t.id === this.selectedTileId) {
-        tile = t;
-        break;
-      }
-    }
+    // Usa le coordinate fisse salvate invece di cercare il tile
+    const coordinates = new HexCoordinates(this.selectedTileCoords.q, this.selectedTileCoords.r);
     
-    if (!tile) return;
+    if (!coordinates) return;
     
     const elapsed = Date.now() - this.selectionStartTime;
     
@@ -390,12 +389,11 @@ class TileAnimationSystem {
     const pulse = Math.sin(elapsed * pulseSpeed / 1000) * 0.2 + 0.8;
     const intensity = Math.max(0.6, pulse);
     
-    // Calcola posizione in tempo reale usando gli stessi parametri della mappa
+    // Calcola posizione usando le coordinate fisse e i parametri correnti della mappa
     const hexSize = this.hexMap.hexSize * this.hexMap.zoom;
     
-    // Invalida la cache del tile per forzare il ricalcolo della posizione
-    tile.invalidateCache();
-    const pos = tile.getPixelPosition(this.hexMap.hexSize);
+    // Calcola la posizione pixel dalle coordinate esagonali fisse
+    const pos = coordinates.toPixel(this.hexMap.hexSize);
     const x = pos.x * this.hexMap.zoom + this.hexMap.cameraX;
     const y = pos.y * this.hexMap.zoom + this.hexMap.cameraY;
     
@@ -441,6 +439,7 @@ class TileAnimationSystem {
   stopSelection() {
     this.isSelectionActive = false;
     this.selectedTileId = null;
+    this.selectedTileCoords = null;
     
     // Ferma il loop di animazione
     if (this.animationLoop) {
@@ -513,7 +512,9 @@ class HexagonalMap {
       
       for (let r = r1; r <= r2; r++) {
         const coordinates = new HexCoordinates(q, r);
-        const tile = new HexTile(coordinates, TILE_TYPES.OCEAN, `tile_${q}_${r}`);
+        // ID che contiene le coordinate per identificazione univoca
+        const tileId = `tile_${q}_${r}`;
+        const tile = new HexTile(coordinates, TILE_TYPES.OCEAN, tileId);
         this.tiles.set(coordinates.toString(), tile);
       }
     }
@@ -703,8 +704,8 @@ class HexagonalMap {
       
       // Seleziona il tile (avvia bordo bianco pulsante)
       if (this.selectionSystem) {
-        console.log(`Avviando animazione per tile: ${tile.id}`);
-        this.selectionSystem.selectTile(tile.id);
+        console.log(`Avviando animazione per tile: ${tile.id} alle coordinate: ${tile.coordinates.toString()}`);
+        this.selectionSystem.selectTile(tile.id, tile.coordinates);
       } else {
         console.error("Sistema di selezione non inizializzato!");
       }
