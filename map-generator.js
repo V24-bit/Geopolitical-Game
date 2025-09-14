@@ -90,7 +90,7 @@ const TILE_COLORS = {
   [TILE_TYPES.COAST]: { r: 240, g: 220, b: 130 },    // Sabbia costa
   [TILE_TYPES.PLAINS]: { r: 144, g: 238, b: 144 },   // Verde chiaro pianure
   [TILE_TYPES.HILLS]: { r: 255, g: 215, b: 0 },      // Giallo colline
-  [TILE_TYPES.MOUNTAINS]: { r: 64, g: 64, b: 64 },   // Grigio scuro montagne
+  [TILE_TYPES.MOUNTAINS]: { r: 101, g: 67, b: 33 },  // Marrone montagne
   [TILE_TYPES.FOREST]: { r: 34, g: 139, b: 34 }      // Verde scuro foreste
 };
 
@@ -278,6 +278,7 @@ class TileAnimationSystem {
     this.animationCtx = null;
     this.animationLoop = null;
     this.hexMap = null;
+    this.onTileSelected = null; // Callback per quando un tile viene selezionato
   }
 
   // Inizializza il canvas per l'animazione
@@ -328,6 +329,14 @@ class TileAnimationSystem {
     };
     this.selectionStartTime = Date.now();
     this.isSelectionActive = true;
+    
+    // Chiama il callback se presente
+    if (this.onTileSelected && this.hexMap) {
+      const tile = this.hexMap.getTileAt(tileCoordinates.q, tileCoordinates.r);
+      if (tile) {
+        this.onTileSelected(tile);
+      }
+    }
     
     // Avvia il loop di animazione separato
     this.startAnimationLoop();
@@ -1199,7 +1208,240 @@ class AdvancedMapGenerator {
 
 // === VARIABILI GLOBALI ===
 let globalHexMap = null;
+let tileInfoMenu = null;
 
+// === SISTEMA MENU INFORMAZIONI TILE ===
+class TileInfoMenu {
+  constructor() {
+    this.menuElement = null;
+    this.tileImageElement = null;
+    this.tileTitleElement = null;
+    this.isVisible = false;
+    this.currentTile = null;
+    
+    this.createMenu();
+  }
+  
+  createMenu() {
+    // Crea il container principale del menu
+    this.menuElement = document.createElement('div');
+    this.menuElement.id = 'tile-info-menu';
+    this.menuElement.style.cssText = `
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      width: 250px;
+      height: 300px;
+      background: rgba(24, 24, 30, 0.95);
+      border-radius: 12px;
+      border: 2px solid #18ffff;
+      box-shadow: 0 10px 35px 0 #18ffff33, 0 2px 18px #ea00d955;
+      backdrop-filter: blur(12px);
+      padding: 20px;
+      z-index: 1000;
+      font-family: 'Segoe UI', 'Roboto', 'Arial', sans-serif;
+      color: white;
+      display: none;
+      transition: all 0.3s ease;
+    `;
+    
+    // Titolo del menu
+    const menuTitle = document.createElement('h3');
+    menuTitle.textContent = 'Informazioni Tile';
+    menuTitle.style.cssText = `
+      margin: 0 0 15px 0;
+      color: #18ffff;
+      font-size: 1.2em;
+      text-align: center;
+      text-shadow: 0 2px 8px #18ffff66;
+    `;
+    
+    // Container per l'immagine del tile
+    const imageContainer = document.createElement('div');
+    imageContainer.style.cssText = `
+      width: 100%;
+      height: 120px;
+      border-radius: 8px;
+      border: 2px solid #18ffff44;
+      margin-bottom: 15px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    `;
+    
+    // Canvas per l'immagine del tile
+    this.tileImageElement = document.createElement('canvas');
+    this.tileImageElement.width = 200;
+    this.tileImageElement.height = 100;
+    this.tileImageElement.style.cssText = `
+      max-width: 100%;
+      max-height: 100%;
+    `;
+    
+    // Titolo del tipo di tile
+    this.tileTitleElement = document.createElement('div');
+    this.tileTitleElement.style.cssText = `
+      font-size: 1.1em;
+      font-weight: bold;
+      text-align: center;
+      padding: 10px;
+      border-radius: 6px;
+      margin-bottom: 10px;
+    `;
+    
+    // Informazioni aggiuntive
+    const infoContainer = document.createElement('div');
+    infoContainer.style.cssText = `
+      font-size: 0.9em;
+      color: #ccc;
+      line-height: 1.4;
+    `;
+    
+    // Assembla il menu
+    imageContainer.appendChild(this.tileImageElement);
+    this.menuElement.appendChild(menuTitle);
+    this.menuElement.appendChild(imageContainer);
+    this.menuElement.appendChild(this.tileTitleElement);
+    this.menuElement.appendChild(infoContainer);
+    
+    // Aggiungi al DOM
+    document.body.appendChild(this.menuElement);
+  }
+  
+  // Mostra le informazioni di un tile
+  showTileInfo(tile) {
+    if (!tile) return;
+    
+    this.currentTile = tile;
+    
+    // Ottieni informazioni sul tipo di tile
+    const tileInfo = this.getTileTypeInfo(tile.type);
+    
+    // Aggiorna il titolo con colore appropriato
+    this.tileTitleElement.textContent = tileInfo.name;
+    this.tileTitleElement.style.backgroundColor = tileInfo.bgColor;
+    this.tileTitleElement.style.color = tileInfo.textColor;
+    
+    // Disegna l'immagine del tile
+    this.drawTileImage(tile);
+    
+    // Mostra il menu
+    this.menuElement.style.display = 'block';
+    this.isVisible = true;
+    
+    // Animazione di entrata
+    setTimeout(() => {
+      this.menuElement.style.transform = 'scale(1)';
+      this.menuElement.style.opacity = '1';
+    }, 10);
+  }
+  
+  // Nascondi il menu
+  hide() {
+    this.menuElement.style.display = 'none';
+    this.isVisible = false;
+    this.currentTile = null;
+  }
+  
+  // Ottieni informazioni sul tipo di tile
+  getTileTypeInfo(tileType) {
+    switch(tileType) {
+      case TILE_TYPES.OCEAN:
+        return {
+          name: 'Mare',
+          bgColor: 'rgba(30, 90, 150, 0.8)',
+          textColor: '#ffffff'
+        };
+      case TILE_TYPES.COAST:
+        return {
+          name: 'Spiaggia',
+          bgColor: 'rgba(240, 220, 130, 0.8)',
+          textColor: '#333333'
+        };
+      case TILE_TYPES.PLAINS:
+        return {
+          name: 'Pianura',
+          bgColor: 'rgba(144, 238, 144, 0.8)',
+          textColor: '#333333'
+        };
+      case TILE_TYPES.HILLS:
+        return {
+          name: 'Collina',
+          bgColor: 'rgba(255, 215, 0, 0.8)',
+          textColor: '#333333'
+        };
+      case TILE_TYPES.MOUNTAINS:
+        return {
+          name: 'Montagna',
+          bgColor: 'rgba(101, 67, 33, 0.8)',
+          textColor: '#ffffff'
+        };
+      case TILE_TYPES.FOREST:
+        return {
+          name: 'Foresta',
+          bgColor: 'rgba(34, 139, 34, 0.8)',
+          textColor: '#ffffff'
+        };
+      default:
+        return {
+          name: 'Sconosciuto',
+          bgColor: 'rgba(128, 128, 128, 0.8)',
+          textColor: '#ffffff'
+        };
+    }
+  }
+  
+  // Disegna l'immagine del tile
+  drawTileImage(tile) {
+    const ctx = this.tileImageElement.getContext('2d');
+    const canvas = this.tileImageElement;
+    
+    // Pulisci il canvas
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    // Ottieni il colore del tile
+    const color = TILE_COLORS[tile.type];
+    
+    // Disegna un esagono grande al centro
+    const centerX = canvas.width / 2;
+    const centerY = canvas.height / 2;
+    const hexSize = 35;
+    
+    // Disegna l'esagono
+    ctx.beginPath();
+    for (let i = 0; i < 6; i++) {
+      const angle = (Math.PI / 3) * i + Math.PI / 6;
+      const x = centerX + hexSize * Math.cos(angle);
+      const y = centerY + hexSize * Math.sin(angle);
+      
+      if (i === 0) {
+        ctx.moveTo(x, y);
+      } else {
+        ctx.lineTo(x, y);
+      }
+    }
+    ctx.closePath();
+    
+    // Riempi l'esagono
+    ctx.fillStyle = `rgb(${color.r}, ${color.g}, ${color.b})`;
+    ctx.fill();
+    
+    // Bordo dell'esagono
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    
+    // Aggiungi un effetto glow
+    ctx.shadowColor = `rgba(${color.r}, ${color.g}, ${color.b}, 0.5)`;
+    ctx.shadowBlur = 10;
+    ctx.stroke();
+    
+    // Reset shadow
+    ctx.shadowColor = 'transparent';
+    ctx.shadowBlur = 0;
+  }
+}
 // === FUNZIONI ESPOSTE ===
 
 // Funzione principale per generare e mostrare la mappa esagonale
@@ -1234,6 +1476,14 @@ window.generateAndShowMapWithSeed = function(seed) {
   
   // Inizializza il sistema di animazione separato
   globalHexMap.selectionSystem.initialize(globalHexMap);
+  
+  // Crea il menu delle informazioni tile
+  tileInfoMenu = new TileInfoMenu();
+  
+  // Collega il callback per la selezione dei tile
+  globalHexMap.selectionSystem.onTileSelected = (tile) => {
+    tileInfoMenu.showTileInfo(tile);
+  };
   
   // Aggiungi controlli mouse/touch ottimizzati
   addOptimizedMapControls(canvas);
