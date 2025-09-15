@@ -1228,22 +1228,57 @@ class TileInfoMenu {
     this.menuElement.id = 'tile-info-menu';
     this.menuElement.style.cssText = `
       position: fixed;
-      top: 20px;
-      left: 20px;
-      width: 250px;
-      height: 300px;
+      top: 0;
+      left: 0;
+      width: 350px;
+      height: 100vh;
       background: rgba(24, 24, 30, 0.95);
-      border-radius: 12px;
-      border: 2px solid #18ffff;
-      box-shadow: 0 10px 35px 0 #18ffff33, 0 2px 18px #ea00d955;
-      backdrop-filter: blur(12px);
-      padding: 20px;
+      border-radius: 0 12px 12px 0;
+      border-right: 2px solid #18ffff;
+      box-shadow: 2px 0 25px rgba(24, 255, 255, 0.3);
+      backdrop-filter: blur(15px);
+      padding: 0;
       z-index: 1000;
       font-family: 'Segoe UI', 'Roboto', 'Arial', sans-serif;
       color: white;
       display: none;
-      transition: all 0.3s ease;
+      transition: left 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+      overflow-y: auto;
+      flex-direction: column;
+    `;    // Header con titolo e bottone chiusura
+    const sidebarHeader = document.createElement('div');
+    sidebarHeader.style.cssText = `
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1.5rem 1.2rem 1rem 1.2rem;
     `;
+
+    const menuTitle = document.createElement('h3');
+    menuTitle.textContent = 'Informazioni Tile';
+    menuTitle.style.cssText = `
+      margin: 0;
+      color: #18ffff;
+      font-size: 1.2em;
+      text-align: left;
+      text-shadow: 0 2px 8px #18ffff66;
+    `;
+
+    const closeBtn = document.createElement('button');
+    closeBtn.innerHTML = '×';
+    closeBtn.style.cssText = `
+      background: none;
+      border: none;
+      color: #18ffff;
+      font-size: 2em;
+      cursor: pointer;
+      padding: 0 0.2em;
+    `;
+    closeBtn.onclick = () => this.hide();
+
+    sidebarHeader.appendChild(menuTitle);
+    sidebarHeader.appendChild(closeBtn);
+    this.menuElement.appendChild(sidebarHeader);
     
     // Titolo del menu
     const menuTitle = document.createElement('h3');
