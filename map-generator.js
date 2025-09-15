@@ -1,3 +1,4 @@
+
 // Mini Simplex Noise - versione compatta
 function SimplexNoise(seed = Math.random()) {
   const grad3 = [
