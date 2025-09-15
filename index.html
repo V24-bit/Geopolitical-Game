@@ -47,6 +47,40 @@
   <!-- Canvas mappa -->
   <canvas id="game-map" style="display:none; position:fixed; top:0; left:0; z-index:0;"></canvas>
 
+  <!-- Menu informazioni tile -->
+  <div id="tile-info-sidebar" class="tile-info-sidebar" style="display:none;">
+    <div class="sidebar-header">
+      <h3 class="sidebar-title">Informazioni Territorio</h3>
+      <button id="close-sidebar-btn" class="close-sidebar-btn">×</button>
+    </div>
+    <div class="sidebar-content">
+      <div class="info-section">
+        <div class="info-label">Coordinate:</div>
+        <div id="tile-coordinates" class="info-value">-</div>
+      </div>
+      <div class="info-section">
+        <div class="info-label">Tipo Terreno:</div>
+        <div id="tile-terrain" class="info-value">-</div>
+      </div>
+      <div class="info-section">
+        <div class="info-label">Proprietario:</div>
+        <div id="tile-owner" class="info-value">Neutrale</div>
+      </div>
+      <div class="info-section">
+        <div class="info-label">Risorse:</div>
+        <div id="tile-resources" class="info-value">-</div>
+      </div>
+      <div class="info-section">
+        <div class="info-label">Popolazione:</div>
+        <div id="tile-population" class="info-value">-</div>
+      </div>
+      <div class="info-section">
+        <div class="info-label">Difesa:</div>
+        <div id="tile-defense" class="info-value">-</div>
+      </div>
+    </div>
+  </div>
+
   <!-- Ordine degli script - CRITICO: map-generator.js DEVE essere caricato per primo -->
   <script src="map-generator.js"></script>
 

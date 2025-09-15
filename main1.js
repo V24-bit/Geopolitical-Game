@@ -35,6 +35,50 @@ let gameListener = null;
 window.currentGameCode = null;
 window.currentPlayerName = null;
 window.db = db;
+
+// --- Gestione Sidebar Informazioni Tile ---
+const tileInfoSidebar = document.getElementById("tile-info-sidebar");
+const closeSidebarBtn = document.getElementById("close-sidebar-btn");
+
+// Funzione per aprire la sidebar con le informazioni del tile
+window.showTileInfo = function(tileData) {
+  // Aggiorna i contenuti della sidebar
+  document.getElementById("tile-coordinates").textContent = `${tileData.x}, ${tileData.y}`;
+  document.getElementById("tile-terrain").textContent = tileData.terrain || "Sconosciuto";
+  document.getElementById("tile-owner").textContent = tileData.owner || "Neutrale";
+  document.getElementById("tile-resources").textContent = tileData.resources || "Nessuna";
+  document.getElementById("tile-population").textContent = tileData.population || "0";
+  document.getElementById("tile-defense").textContent = tileData.defense || "0";
+  
+  // Mostra la sidebar
+  tileInfoSidebar.style.display = "flex";
+  setTimeout(() => {
+    tileInfoSidebar.classList.add("open");
+  }, 10);
+};
+
+// Funzione per chiudere la sidebar
+window.hideTileInfo = function() {
+  tileInfoSidebar.classList.remove("open");
+  setTimeout(() => {
+    tileInfoSidebar.style.display = "none";
+  }, 400);
+};
+
+// Event listener per il bottone di chiusura
+closeSidebarBtn.onclick = () => {
+  window.hideTileInfo();
+};
+
+// Chiudi la sidebar se si clicca fuori da essa (opzionale)
+document.addEventListener("click", (event) => {
+  if (tileInfoSidebar.classList.contains("open") && 
+      !tileInfoSidebar.contains(event.target) && 
+      event.target.id !== "game-map") {
+    // Non chiudere automaticamente per ora, lasciamo solo il bottone X
+  }
+});
+
 // Funzione per aggiornare la lista giocatori
 function updatePlayersList(giocatori, hostName) {
   playersList.innerHTML = '';
