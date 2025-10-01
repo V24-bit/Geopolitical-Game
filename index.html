@@ -47,45 +47,6 @@
   <!-- Canvas mappa -->
   <canvas id="game-map" style="display:none; position:fixed; top:0; left:0; z-index:0;"></canvas>
 
-  <!-- Sidebar Informazioni Tile -->
-  <div id="tile-info-sidebar" class="tile-info-sidebar">
-    <div class="sidebar-header">
-      <h3 class="sidebar-title">Informazioni Tile</h3>
-      <button id="close-sidebar-btn" class="close-sidebar-btn">×</button>
-    </div>
-    <div class="sidebar-content">
-      <div class="tile-visual-container">
-        <div id="tile-hexagon" class="tile-hexagon"></div>
-      </div>
-      <button id="tile-terrain-button" class="action-btn terrain-btn">Foresta</button>
-      
-      <div class="info-section">
-        <span class="info-label">Coordinate:</span>
-        <span id="tile-coordinates" class="info-value">-</span>
-      </div>
-      
-      <div class="info-section">
-        <span class="info-label">Proprietario:</span>
-        <span id="tile-owner" class="info-value">-</span>
-      </div>
-      
-      <div class="info-section">
-        <span class="info-label">Risorse:</span>
-        <span id="tile-resources" class="info-value">-</span>
-      </div>
-      
-      <div class="info-section">
-        <span class="info-label">Popolazione:</span>
-        <span id="tile-population" class="info-value">-</span>
-      </div>
-      
-      <div class="info-section">
-        <span class="info-label">Difesa:</span>
-        <span id="tile-defense" class="info-value">-</span>
-      </div>
-    </div>
-  </div>
-
   <!-- Ordine degli script - CRITICO: map-generator.js DEVE essere caricato per primo -->
   <script src="map-generator.js"></script>
 
