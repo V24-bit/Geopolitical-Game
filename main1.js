@@ -37,6 +37,8 @@ document.addEventListener('DOMContentLoaded', function() {
   const uiContainer = document.getElementById("ui-container");
   const playersPanel = document.getElementById("players-panel");
   const playersList = document.getElementById("players-list");
+}
+)
 
 // Funzione per aggiornare la lista giocatori
 function updatePlayersList(giocatori, hostName) {
@@ -249,3 +251,5 @@ function leaveGame() {
     // Implementa la logica per rimuovere il giocatore dalla partita
     // e resettare l'interfaccia
   }
+
+}
