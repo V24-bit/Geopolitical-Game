@@ -11,20 +11,6 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
-// --- UI ---
-const createGameBtn = document.getElementById("create-game-btn");
-const joinGameBtn = document.getElementById("join-game-btn");
-const joinForm = document.getElementById("join-form");
-const joinSubmitBtn = document.getElementById("join-submit-btn");
-const gameCodeInput = document.getElementById("game-code-input");
-const startGameBtn = document.getElementById("start-game-btn");
-const gameCodePanel = document.getElementById("game-code-panel");
-const gameCodeValue = document.getElementById("game-code-value");
-const nationInput = document.getElementById("nation-name");
-const uiContainer = document.getElementById("ui-container");
-const playersPanel = document.getElementById("players-panel");
-const playersList = document.getElementById("players-list");
-
 // Variabili globali per tracciare lo stato
 let currentGameCode = null;
 let currentPlayerName = null;
@@ -35,6 +21,22 @@ let gameListener = null;
 window.currentGameCode = null;
 window.currentPlayerName = null;
 window.db = db;
+
+// Aspetta che il DOM sia completamente caricato
+document.addEventListener('DOMContentLoaded', function() {
+  // --- UI ---
+  const createGameBtn = document.getElementById("create-game-btn");
+  const joinGameBtn = document.getElementById("join-game-btn");
+  const joinForm = document.getElementById("join-form");
+  const joinSubmitBtn = document.getElementById("join-submit-btn");
+  const gameCodeInput = document.getElementById("game-code-input");
+  const startGameBtn = document.getElementById("start-game-btn");
+  const gameCodePanel = document.getElementById("game-code-panel");
+  const gameCodeValue = document.getElementById("game-code-value");
+  const nationInput = document.getElementById("nation-name");
+  const uiContainer = document.getElementById("ui-container");
+  const playersPanel = document.getElementById("players-panel");
+  const playersList = document.getElementById("players-list");
 
 // Funzione per aggiornare la lista giocatori
 function updatePlayersList(giocatori, hostName) {
@@ -247,4 +249,3 @@ function leaveGame() {
     // Implementa la logica per rimuovere il giocatore dalla partita
     // e resettare l'interfaccia
   }
-}
