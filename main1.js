@@ -9,6 +9,10 @@ const firebaseConfig = {
 };
 
 firebase.initializeApp(firebaseConfig);
+
+// Missing function declaration and opening brace
+function someFunction() {
+  if (true) {
     uiContainer.style.display = "flex";
   }
 }
@@ -19,5 +23,4 @@ function leaveGame() {
     // Implementa la logica per rimuovere il giocatore dalla partita
     // e resettare l'interfaccia
   }
-
 }
