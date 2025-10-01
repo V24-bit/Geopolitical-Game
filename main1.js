@@ -83,6 +83,53 @@ window.currentGameCode = null;
 window.currentPlayerName = null;
 window.db = db;
 
+// --- Gestione Sidebar Informazioni Tile ---
+const tileInfoSidebar = document.getElementById("tile-info-sidebar");
+const closeSidebarBtn = document.getElementById("close-sidebar-btn");
+const tileHexagon = document.getElementById("tile-hexagon");
+const tileTerrainButton = document.getElementById("tile-terrain-button");
+const tileCoordinates = document.getElementById("tile-coordinates");
+const tileOwner = document.getElementById("tile-owner");
+const tileResources = document.getElementById("tile-resources");
+const tilePopulation = document.getElementById("tile-population");
+const tileDefense = document.getElementById("tile-defense");
+
+// Funzione per mostrare le informazioni del tile
+window.showTileInfo = function(tileData) {
+  // Aggiorna le informazioni del tile
+  tileCoordinates.textContent = `${tileData.x || 0}, ${tileData.y || 0}`;
+  tileTerrainButton.textContent = tileData.terrain || "Sconosciuto";
+  tileOwner.textContent = tileData.owner || "Nessuno";
+  tileResources.textContent = tileData.resources || "Nessuna";
+  tilePopulation.textContent = tileData.population || "0";
+  tileDefense.textContent = tileData.defense || "0";
+  
+  // Aggiorna il colore dell'esagono in base al tipo di terreno
+  const terrainColors = {
+    "Foresta": "#4CAF50",
+    "Pianura": "#8BC34A", 
+    "Montagna": "#795548",
+    "Deserto": "#FFC107",
+    "Acqua": "#2196F3",
+    "Ghiaccio": "#E3F2FD"
+  };
+  
+  const terrainColor = terrainColors[tileData.terrain] || "#4CAF50";
+  tileHexagon.style.background = terrainColor;
+  tileTerrainButton.style.background = terrainColor + " !important";
+  
+  // Mostra la sidebar
+  tileInfoSidebar.classList.add("open");
+};
+
+// Funzione per nascondere le informazioni del tile
+window.hideTileInfo = function() {
+  tileInfoSidebar.classList.remove("open");
+};
+
+// Event listener per il pulsante di chiusura
+closeSidebarBtn.addEventListener("click", window.hideTileInfo);
+
 // Funzione per aggiornare la lista giocatori
 function updatePlayersList(giocatori, hostName) {
   playersList.innerHTML = '';
