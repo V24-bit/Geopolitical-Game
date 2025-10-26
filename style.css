@@ -258,20 +258,47 @@ html, body {
   position: fixed;
   top: 0;
   left: 0;
-  width: 280px;
+  width: 240px;
   height: 100vh;
   background: var(--glass-bg);
   backdrop-filter: blur(12px);
   border-right: 2px solid var(--neon-blue);
   box-shadow: 2px 0 20px rgba(24, 255, 255, 0.3);
   transform: translateX(-100%);
-  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
   z-index: 1000;
   overflow-y: auto;
 }
 
 #tile-info-sidebar.open {
   transform: translateX(0);
+  animation: slide-in-left 0.4s cubic-bezier(0.25, 0.8, 0.25, 1) forwards;
+}
+
+#tile-info-sidebar.closing {
+  animation: slide-out-left 0.4s cubic-bezier(0.25, 0.8, 0.25, 1) forwards;
+}
+
+@keyframes slide-in-left {
+  0% {
+    transform: translateX(-100%);
+    opacity: 0.7;
+  }
+  100% {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slide-out-left {
+  0% {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(-100%);
+    opacity: 0.7;
+  }
 }
 
 .sidebar-header {
@@ -387,19 +414,19 @@ html, body {
 /* Responsive per dispositivi mobili */
 @media (max-width: 768px) {
   #tile-info-sidebar {
-    width: 100vw;
+    width: 85vw;
     transform: translateX(-100%);
   }
-  
+
   .sidebar-content {
     padding: 1rem;
   }
-  
+
   .tile-visual-container {
     padding: 1.5rem;
     min-height: 100px;
   }
-  
+
   .tile-hexagon {
     width: 50px;
     height: 50px;

@@ -1481,9 +1481,33 @@ window.generateAndShowMapWithSeed = function(seed) {
   // Crea il menu delle informazioni tile
   tileInfoMenu = new TileInfoMenu();
   
-  // Collega il callback per la selezione dei tile
+  // Collega il callback per la selezione dei tile - apre automaticamente la sidebar
   globalHexMap.selectionSystem.onTileSelected = (tile) => {
-    tileInfoMenu.showTileInfo(tile);
+    // Mappa i tipi di tile ai nomi in italiano
+    const tileTypeNames = {
+      0: "Mare",
+      1: "Spiaggia",
+      2: "Pianura",
+      3: "Collina",
+      4: "Montagna",
+      5: "Foresta"
+    };
+
+    // Prepara i dati del tile per la sidebar
+    const tileData = {
+      x: tile.coordinates.q,
+      y: tile.coordinates.r,
+      terrain: tileTypeNames[tile.type] || "Sconosciuto",
+      owner: tile.nation ? tile.nation.name : "Nessuno",
+      resources: "In sviluppo",
+      population: "0",
+      defense: "0"
+    };
+
+    // Apri la sidebar automaticamente con i dati del tile
+    if (window.showTileInfo) {
+      window.showTileInfo(tileData);
+    }
   };
   
   // Aggiungi controlli mouse/touch ottimizzati

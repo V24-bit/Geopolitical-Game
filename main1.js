@@ -51,28 +51,38 @@ window.showTileInfo = function(tileData) {
   tileResources.textContent = tileData.resources || "Nessuna";
   tilePopulation.textContent = tileData.population || "0";
   tileDefense.textContent = tileData.defense || "0";
-  
+
   // Aggiorna il colore dell'esagono in base al tipo di terreno
   const terrainColors = {
     "Foresta": "#4CAF50",
-    "Pianura": "#8BC34A", 
+    "Pianura": "#8BC34A",
     "Montagna": "#795548",
     "Deserto": "#FFC107",
     "Acqua": "#2196F3",
     "Ghiaccio": "#E3F2FD"
   };
-  
+
   const terrainColor = terrainColors[tileData.terrain] || "#4CAF50";
   tileHexagon.style.background = terrainColor;
   tileTerrainButton.style.background = terrainColor + " !important";
-  
-  // Mostra la sidebar
+
+  // Rimuovi la classe closing se presente
+  tileInfoSidebar.classList.remove("closing");
+
+  // Mostra la sidebar con animazione
   tileInfoSidebar.classList.add("open");
 };
 
 // Funzione per nascondere le informazioni del tile
 window.hideTileInfo = function() {
-  tileInfoSidebar.classList.remove("open");
+  // Aggiungi classe closing per animazione di uscita
+  tileInfoSidebar.classList.add("closing");
+
+  // Dopo l'animazione, rimuovi entrambe le classi
+  setTimeout(() => {
+    tileInfoSidebar.classList.remove("open");
+    tileInfoSidebar.classList.remove("closing");
+  }, 400); // Durata dell'animazione
 };
 
 // Event listener per il pulsante di chiusura
