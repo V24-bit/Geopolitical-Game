@@ -52,19 +52,13 @@ window.showTileInfo = function(tileData) {
   tilePopulation.textContent = tileData.population || "0";
   tileDefense.textContent = tileData.defense || "0";
 
-  // Aggiorna il colore dell'esagono in base al tipo di terreno
-  const terrainColors = {
-    "Foresta": "#4CAF50",
-    "Pianura": "#8BC34A",
-    "Montagna": "#795548",
-    "Deserto": "#FFC107",
-    "Acqua": "#2196F3",
-    "Ghiaccio": "#E3F2FD"
-  };
+  // Usa il colore RGB passato dai dati del tile
+  const terrainColor = tileData.color || "rgb(144, 238, 144)"; // Fallback a verde pianura
 
-  const terrainColor = terrainColors[tileData.terrain] || "#4CAF50";
+  // Aggiorna il colore dell'esagono e del bottone
   tileHexagon.style.background = terrainColor;
-  tileTerrainButton.style.background = terrainColor + " !important";
+  tileTerrainButton.style.background = terrainColor;
+  tileTerrainButton.style.setProperty('background', terrainColor, 'important');
 
   // Rimuovi la classe closing se presente
   tileInfoSidebar.classList.remove("closing");

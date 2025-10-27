@@ -1493,6 +1493,10 @@ window.generateAndShowMapWithSeed = function(seed) {
       5: "Foresta"
     };
 
+    // Ottieni il colore RGB del tile
+    const tileColor = TILE_COLORS[tile.type];
+    const rgbColor = `rgb(${tileColor.r}, ${tileColor.g}, ${tileColor.b})`;
+
     // Prepara i dati del tile per la sidebar
     const tileData = {
       x: tile.coordinates.q,
@@ -1501,7 +1505,8 @@ window.generateAndShowMapWithSeed = function(seed) {
       owner: tile.nation ? tile.nation.name : "Nessuno",
       resources: "In sviluppo",
       population: "0",
-      defense: "0"
+      defense: "0",
+      color: rgbColor
     };
 
     // Apri la sidebar automaticamente con i dati del tile
