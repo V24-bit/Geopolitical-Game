@@ -492,6 +492,10 @@ class HexagonalMap {
     this.cameraX = 0;
     this.cameraY = 0;
     this.zoom = 1;
+
+    // Configurazione movimento camera
+    this.cameraMoveSpeed = 15; // Velocità di movimento in pixel per frame
+    this.cameraBoundaryPadding = 200; // Distanza extra oltre i bordi della mappa
     
     // Sistema di rendering ottimizzato
     this.visibleTiles = new Set();
@@ -681,11 +685,41 @@ class HexagonalMap {
     return this.getTile(hexCoords);
   }
 
-  // Muovi la camera (ottimizzato)
+  // Calcola i limiti della mappa in pixel
+  getMapBounds() {
+    let minX = Infinity, maxX = -Infinity;
+    let minY = Infinity, maxY = -Infinity;
+
+    for (const [key, tile] of this.tiles) {
+      const pos = tile.getPixelPosition(this.hexSize);
+      minX = Math.min(minX, pos.x);
+      maxX = Math.max(maxX, pos.x);
+      minY = Math.min(minY, pos.y);
+      maxY = Math.max(maxY, pos.y);
+    }
+
+    return { minX, maxX, minY, maxY };
+  }
+
+  // Muovi la camera con limiti di confine (ottimizzato)
   moveCamera(deltaX, deltaY) {
-    this.cameraX += deltaX;
-    this.cameraY += deltaY;
-    
+    const newCameraX = this.cameraX + deltaX;
+    const newCameraY = this.cameraY + deltaY;
+
+    // Calcola i limiti della mappa
+    const bounds = this.getMapBounds();
+    const padding = this.cameraBoundaryPadding * this.zoom;
+
+    // Calcola i limiti effettivi con padding
+    const minCameraX = -bounds.maxX * this.zoom - padding + this.canvas.width;
+    const maxCameraX = -bounds.minX * this.zoom + padding;
+    const minCameraY = -bounds.maxY * this.zoom - padding + this.canvas.height;
+    const maxCameraY = -bounds.minY * this.zoom + padding;
+
+    // Applica i limiti
+    this.cameraX = Math.max(minCameraX, Math.min(maxCameraX, newCameraX));
+    this.cameraY = Math.max(minCameraY, Math.min(maxCameraY, newCameraY));
+
     // Rendering throttled per evitare lag
     this.render();
   }
@@ -1717,7 +1751,7 @@ function addOptimizedMapControls(canvas) {
   
   canvas.addEventListener('touchend', (e) => {
     e.preventDefault();
-    
+
     // Gestisci il tap come click se non è stato un drag
     if (e.changedTouches.length === 1 && totalDragDistance < dragThreshold && globalHexMap) {
       const rect = canvas.getBoundingClientRect();
@@ -1738,6 +1772,88 @@ function addOptimizedMapControls(canvas) {
   
   // Imposta il cursore iniziale
   canvas.style.cursor = 'grab';
+
+  // === CONTROLLI KEYBOARD WASD ===
+  const keysPressed = new Set();
+  let keyboardAnimationFrame = null;
+
+  // Funzione per movimento continuo della camera
+  function updateCameraMovement() {
+    if (!globalHexMap || keysPressed.size === 0) {
+      keyboardAnimationFrame = null;
+      return;
+    }
+
+    const speed = globalHexMap.cameraMoveSpeed;
+    let deltaX = 0;
+    let deltaY = 0;
+
+    // Calcola il movimento in base ai tasti premuti
+    if (keysPressed.has('w') || keysPressed.has('W') || keysPressed.has('ArrowUp')) {
+      deltaY += speed; // Muovi su (aumenta Y)
+    }
+    if (keysPressed.has('s') || keysPressed.has('S') || keysPressed.has('ArrowDown')) {
+      deltaY -= speed; // Muovi giù (diminuisce Y)
+    }
+    if (keysPressed.has('a') || keysPressed.has('A') || keysPressed.has('ArrowLeft')) {
+      deltaX += speed; // Muovi sinistra (aumenta X)
+    }
+    if (keysPressed.has('d') || keysPressed.has('D') || keysPressed.has('ArrowRight')) {
+      deltaX -= speed; // Muovi destra (diminuisce X)
+    }
+
+    // Applica il movimento se c'è
+    if (deltaX !== 0 || deltaY !== 0) {
+      globalHexMap.moveCamera(deltaX, deltaY);
+    }
+
+    // Continua l'animazione
+    keyboardAnimationFrame = requestAnimationFrame(updateCameraMovement);
+  }
+
+  // Event listener per keydown
+  window.addEventListener('keydown', (e) => {
+    // Controlla se il focus è su un input, textarea o elemento editabile
+    const activeElement = document.activeElement;
+    if (activeElement && (
+      activeElement.tagName === 'INPUT' ||
+      activeElement.tagName === 'TEXTAREA' ||
+      activeElement.isContentEditable
+    )) {
+      return; // Non processare i tasti se si sta digitando
+    }
+
+    const key = e.key;
+    const validKeys = ['w', 'W', 'a', 'A', 's', 'S', 'd', 'D', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'];
+
+    if (validKeys.includes(key)) {
+      e.preventDefault(); // Previeni lo scroll della pagina con le frecce
+
+      if (!keysPressed.has(key)) {
+        keysPressed.add(key);
+
+        // Avvia l'animazione se non è già in esecuzione
+        if (!keyboardAnimationFrame) {
+          updateCameraMovement();
+        }
+      }
+    }
+  });
+
+  // Event listener per keyup
+  window.addEventListener('keyup', (e) => {
+    const key = e.key;
+    keysPressed.delete(key);
+  });
+
+  // Ferma il movimento quando la finestra perde il focus
+  window.addEventListener('blur', () => {
+    keysPressed.clear();
+    if (keyboardAnimationFrame) {
+      cancelAnimationFrame(keyboardAnimationFrame);
+      keyboardAnimationFrame = null;
+    }
+  });
 }
 
 // Funzione per ottenere il tile sotto il mouse
