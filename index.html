@@ -86,7 +86,10 @@
     </div>
   </div>
 
-  <!-- Ordine degli script - CRITICO: map-generator.js DEVE essere caricato per primo -->
+  <!-- Ordine degli script - CRITICO: camera-controller.js, render-engine.js e input-handler.js DEVONO essere caricati per primi -->
+  <script src="camera-controller.js"></script>
+  <script src="render-engine.js"></script>
+  <script src="input-handler.js"></script>
   <script src="map-generator.js"></script>
 
   <!-- Firebase -->
