@@ -495,7 +495,7 @@ class HexagonalMap {
 
     // Configurazione movimento camera
     this.cameraMoveSpeed = 15; // Velocità di movimento in pixel per frame
-    this.cameraBoundaryPadding = 200; // Distanza extra oltre i bordi della mappa
+    this.cameraBoundaryPadding = 1500; // Distanza base extra oltre i bordi della mappa (molto estesa)
     
     // Sistema di rendering ottimizzato
     this.visibleTiles = new Set();
@@ -701,16 +701,27 @@ class HexagonalMap {
     return { minX, maxX, minY, maxY };
   }
 
-  // Muovi la camera con limiti di confine (ottimizzato)
+  // Calcola il padding dinamico basato sullo zoom
+  getDynamicBoundaryPadding() {
+    // Base padding: 1500px (molto più grande)
+    // Aumenta significativamente con lo zoom
+    // A zoom 0.2x (minimo): 1500 + (0.2 * 2000) = 1900px
+    // A zoom 1.0x (normale): 1500 + (1.0 * 2000) = 3500px
+    // A zoom 2.5x (massimo): 1500 + (2.5 * 2000) = 6500px
+    const zoomMultiplier = 2000;
+    return this.cameraBoundaryPadding + (this.zoom * zoomMultiplier);
+  }
+
+  // Muovi la camera con limiti di confine dinamici (ottimizzato)
   moveCamera(deltaX, deltaY) {
     const newCameraX = this.cameraX + deltaX;
     const newCameraY = this.cameraY + deltaY;
 
     // Calcola i limiti della mappa
     const bounds = this.getMapBounds();
-    const padding = this.cameraBoundaryPadding * this.zoom;
+    const padding = this.getDynamicBoundaryPadding() * this.zoom;
 
-    // Calcola i limiti effettivi con padding
+    // Calcola i limiti effettivi con padding dinamico
     const minCameraX = -bounds.maxX * this.zoom - padding + this.canvas.width;
     const maxCameraX = -bounds.minX * this.zoom + padding;
     const minCameraY = -bounds.maxY * this.zoom - padding + this.canvas.height;

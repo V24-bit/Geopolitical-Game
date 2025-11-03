@@ -136,7 +136,15 @@ smoothingFactor: 0.25     // Position smoothing (higher = smoother)
 zoomSmoothingFactor: 0.18 // Zoom smoothing
 minZoom: 0.2              // Minimum zoom level
 maxZoom: 2.5              // Maximum zoom level
-boundaryPadding: 200      // Extra space at map edges
+boundaryPaddingBase: 1500 // Base extra space at map edges (significantly expanded)
+boundaryPaddingMultiplier: 2000 // Increases by 2000px per zoom level
+```
+
+**Dynamic Boundary Padding:**
+```
+At zoom 0.2x (far out):  1500 + (0.2 * 2000) = 1900px
+At zoom 1.0x (normal):   1500 + (1.0 * 2000) = 3500px
+At zoom 2.5x (zoomed in): 1500 + (2.5 * 2000) = 6500px
 ```
 
 ### Render Engine
@@ -164,15 +172,28 @@ zoomThrottleMs: 30        // Zoom throttle
 ✓ **Smooth Transitions:** Interpolation + momentum physics
 ✓ **Memory Efficient:** Only render visible tiles + object pooling
 
-## Boundary Handling
+## Boundary Handling with Zoom-Adaptive Padding
 
-Camera respects map boundaries with smooth constraint application:
+Camera respects map boundaries with smooth constraint application and **significantly expanded zoom-adaptive padding**:
 
 ```javascript
-clampedPosition = max(minBound, min(maxBound, targetPosition))
+// Dynamic boundary padding scales with zoom level
+dynamicPadding = basePadding + (zoom * multiplier)
+dynamicPadding = 1500 + (zoom * 2000)
+
+clampedPosition = max(minBound - padding, min(maxBound + padding, targetPosition))
 ```
 
-Prevents camera from panning beyond map edges while maintaining smooth movement.
+**Padding at Different Zoom Levels:**
+- **Zoom 0.2x (Far Out):** 1900px - Allows viewport to get very close to edges for overview
+- **Zoom 1.0x (Normal):** 3500px - Comfortable panning with generous margins
+- **Zoom 2.5x (Zoomed In):** 6500px - Large margins for smooth navigation when detailed
+
+**Benefits:**
+- At low zoom levels: User can see map edges clearly and pan near boundaries
+- At high zoom levels: Generous space allows smooth camera movement without hitting limits
+- Prevents camera clipping at any zoom level
+- Enables natural, fluid panning across entire map at all zoom scales
 
 ## Edge Cases Handled
 
