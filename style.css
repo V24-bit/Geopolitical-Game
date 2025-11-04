@@ -106,6 +106,52 @@ html, body {
   border: 1.5px solid #18ffff;
 }
 
+.color-picker-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 0.7rem;
+  margin-top: 1rem;
+  padding: 1rem;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  border: 1px solid #18ffff44;
+  width: 100%;
+}
+
+.color-option {
+  width: 48px;
+  height: 48px;
+  border-radius: 8px;
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  position: relative;
+}
+
+.color-option:hover {
+  transform: translateY(-3px) scale(1.08);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+}
+
+.color-option.selected {
+  border: 3px solid #18ffff;
+  box-shadow: 0 0 16px #18ffff88, 0 4px 20px rgba(0, 0, 0, 0.5);
+  transform: scale(1.12);
+}
+
+.color-option.selected::after {
+  content: '✓';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: #fff;
+  font-size: 1.8em;
+  font-weight: bold;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
+}
+
 .actions {
   display: flex;
   flex-direction: row;
@@ -220,27 +266,56 @@ html, body {
 }
 
 .player-item {
-  padding: 0.4rem 0.8rem;
+  padding: 0.6rem 0.9rem;
   border-radius: 6px;
   background: rgba(255,255,255,0.06);
   color: #fff;
   text-align: center;
   font-size: 0.95em;
-  border: 1px solid transparent;
-  transition: all 0.2s;
+  border: 2px solid;
+  border-color: rgba(255,255,255,0.1);
+  transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  justify-content: center;
+}
+
+.player-item:hover {
+  background: rgba(255,255,255,0.1);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+}
+
+.player-item span {
+  flex-grow: 1;
+}
+
+.player-item::before {
+  content: '';
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border-radius: 3px;
+  background-color: currentColor;
+  flex-shrink: 0;
 }
 
 .player-item.host {
   background: linear-gradient(90deg, #ffe45e22, #ffe45e11);
-  border: 1px solid var(--potato-yellow);
+  border: 2px solid var(--potato-yellow);
   color: var(--potato-yellow);
   font-weight: bold;
   box-shadow: 0 2px 8px #ffe45e33;
 }
 
 .player-item.host::before {
-  content: "👑 ";
-  margin-right: 0.3rem;
+  content: "👑";
+  width: auto;
+  height: auto;
+  border-radius: 0;
+  background-color: transparent;
+  margin-right: 0.2rem;
 }
 
 /* Canvas mappa */

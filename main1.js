@@ -107,28 +107,36 @@ function updatePlayersList(giocatori, hostName) {
 createGameBtn.onclick = async () => {
   // Nascondi il form di join se era visibile
   joinForm.style.display = "none";
-  
+
   const codice = Math.random().toString(36).substring(2, 6).toUpperCase();
   const nazione = nationInput.value.trim();
+  const colore = nationColorInput.value;
 
   if (!nazione) return alert("Inserisci il nome della nazione");
 
   try {
+    const playerColorsMap = {};
+    playerColorsMap[nazione] = colore;
+
     await db.collection("partite").doc(codice).set({
       codice,
       host: nazione,
       giocatori: [nazione],
+      playerColors: playerColorsMap,
       createdAt: firebase.firestore.FieldValue.serverTimestamp()
     });
 
     // Aggiorna variabili globali
     currentGameCode = codice;
     currentPlayerName = nazione;
-    isHost = true;
-    
+    currentPlayerColor = colore;
+    playerColors = playerColorsMap;
+
     // Aggiorna variabili globali esposte
     window.currentGameCode = codice;
     window.currentPlayerName = nazione;
+    window.currentPlayerColor = colore;
+    window.playerColors = playerColorsMap;
 
     // Mostra pannelli
     gameCodePanel.style.display = "block";
@@ -153,10 +161,17 @@ function listenToGameChanges(codice) {
   if (gameListener) {
     gameListener();
   }
-  
+
   gameListener = db.collection("partite").doc(codice).onSnapshot((doc) => {
     if (doc.exists) {
       const data = doc.data();
+
+      // Sincronizza i colori dei giocatori
+      if (data.playerColors) {
+        playerColors = { ...data.playerColors };
+        window.playerColors = playerColors;
+      }
+
       updatePlayersList(data.giocatori, data.host);
       
       // Aggiorna le nazioni posizionate se esistono
@@ -201,6 +216,7 @@ joinGameBtn.onclick = () => {
 joinSubmitBtn.onclick = async () => {
   const codice = gameCodeInput.value.trim().toUpperCase();
   const nazione = nationInput.value.trim();
+  const colore = nationColorInput.value;
 
   if (!codice || !nazione) return alert("Inserisci tutti i campi");
 
@@ -212,18 +228,31 @@ joinSubmitBtn.onclick = async () => {
     const data = doc.data();
     if (data.giocatori.includes(nazione)) return alert("Nome già usato");
 
+    // Verifica se il colore è già usato
+    const existingColors = Object.values(data.playerColors || {});
+    if (existingColors.includes(colore)) {
+      return alert("Colore già scelto da un altro giocatore. Scegline un altro.");
+    }
+
+    // Aggiorna la lista giocatori e i colori
+    const newPlayerColors = { ...data.playerColors, [nazione]: colore };
+
     await partitaRef.update({
-      giocatori: [...data.giocatori, nazione]
+      giocatori: [...data.giocatori, nazione],
+      playerColors: newPlayerColors
     });
 
     // Aggiorna variabili globali
     currentGameCode = codice;
     currentPlayerName = nazione;
-    isHost = false;
-    
+    currentPlayerColor = colore;
+    playerColors = newPlayerColors;
+
     // Aggiorna variabili globali esposte
     window.currentGameCode = codice;
     window.currentPlayerName = nazione;
+    window.currentPlayerColor = colore;
+    window.playerColors = newPlayerColors;
 
     // Nascondi form di join e mostra pannello giocatori
     joinForm.style.display = "none";
