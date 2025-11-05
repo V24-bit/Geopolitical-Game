@@ -21,6 +21,8 @@ const startGameBtn = document.getElementById("start-game-btn");
 const gameCodePanel = document.getElementById("game-code-panel");
 const gameCodeValue = document.getElementById("game-code-value");
 const nationInput = document.getElementById("nation-name");
+const nationColorInput = document.getElementById("nation-color");
+const colorPickerGrid = document.getElementById("color-picker-grid");
 const uiContainer = document.getElementById("ui-container");
 const playersPanel = document.getElementById("players-panel");
 const playersList = document.getElementById("players-list");
@@ -28,8 +30,50 @@ const playersList = document.getElementById("players-list");
 // Variabili globali per tracciare lo stato
 let currentGameCode = null;
 let currentPlayerName = null;
+let currentPlayerColor = null;
+let playerColors = {};
 let isHost = false;
 let gameListener = null;
+
+// Colori disponibili
+const AVAILABLE_COLORS = [
+  { name: "Rosso", hex: "#FF6B6B" },
+  { name: "Turchese", hex: "#00D4D4" },
+  { name: "Blu Cielo", hex: "#4DB8FF" },
+  { name: "Salmone", hex: "#FF8A80" },
+  { name: "Menta", hex: "#80E8B8" },
+  { name: "Giallo Oro", hex: "#FFD700" },
+  { name: "Lavanda", hex: "#D4A5FF" },
+  { name: "Azzurro", hex: "#5DADE2" },
+  { name: "Albicocca", hex: "#FFBE99" },
+  { name: "Blu Pastello", hex: "#A4C8E1" },
+  { name: "Verde Acqua", hex: "#66CDAA" },
+  { name: "Rosa Corallo", hex: "#FF9999" }
+];
+
+// Inizializza il color picker
+function initializeColorPicker() {
+  colorPickerGrid.innerHTML = "";
+  AVAILABLE_COLORS.forEach((color) => {
+    const option = document.createElement("div");
+    option.className = "color-option";
+    option.style.backgroundColor = color.hex;
+    option.title = color.name;
+    option.dataset.color = color.hex;
+
+    if (color.hex === nationColorInput.value) {
+      option.classList.add("selected");
+    }
+
+    option.addEventListener("click", () => {
+      document.querySelectorAll(".color-option").forEach(opt => opt.classList.remove("selected"));
+      option.classList.add("selected");
+      nationColorInput.value = color.hex;
+    });
+
+    colorPickerGrid.appendChild(option);
+  });
+}
 
 // --- Gestione Sidebar Informazioni Tile ---
 const tileInfoSidebar = document.getElementById("tile-info-sidebar");
@@ -93,12 +137,21 @@ function updatePlayersList(giocatori, hostName) {
   giocatori.forEach(player => {
     const playerDiv = document.createElement('div');
     playerDiv.className = 'player-item';
+
+    const playerColor = playerColors[player] || '#FFFFFF';
+    playerDiv.style.color = playerColor;
+
     if (player === hostName) {
       playerDiv.classList.add('host');
-      playerDiv.textContent = `${player} (Host)`;
+      const span = document.createElement('span');
+      span.textContent = `${player}`;
+      playerDiv.appendChild(span);
     } else {
-      playerDiv.textContent = player;
+      const span = document.createElement('span');
+      span.textContent = player;
+      playerDiv.appendChild(span);
     }
+
     playersList.appendChild(playerDiv);
   });
 }
@@ -328,3 +381,8 @@ function leaveGame() {
     // e resettare l'interfaccia
   }
 }
+
+// Inizializza il color picker quando la pagina si carica
+document.addEventListener("DOMContentLoaded", () => {
+  initializeColorPicker();
+});
