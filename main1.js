@@ -37,18 +37,18 @@ let gameListener = null;
 
 // Colori disponibili
 const AVAILABLE_COLORS = [
-  { name: "Rosso", hex: "#FF6B6B" },
-  { name: "Turchese", hex: "#00D4D4" },
-  { name: "Blu Cielo", hex: "#4DB8FF" },
-  { name: "Salmone", hex: "#FF8A80" },
-  { name: "Menta", hex: "#80E8B8" },
-  { name: "Giallo Oro", hex: "#FFD700" },
-  { name: "Lavanda", hex: "#D4A5FF" },
-  { name: "Azzurro", hex: "#5DADE2" },
-  { name: "Albicocca", hex: "#FFBE99" },
-  { name: "Blu Pastello", hex: "#A4C8E1" },
-  { name: "Verde Acqua", hex: "#66CDAA" },
-  { name: "Rosa Corallo", hex: "#FF9999" }
+  { name: "Rosso Vivo", hex: "#E63946" },
+  { name: "Arancione", hex: "#FF8C42" },
+  { name: "Giallo", hex: "#FFD60A" },
+  { name: "Verde Lime", hex: "#06A77D" },
+  { name: "Verde Scuro", hex: "#1B4332" },
+  { name: "Turchese", hex: "#00D9FF" },
+  { name: "Blu Reale", hex: "#1E40AF" },
+  { name: "Blu Profondo", hex: "#0066CC" },
+  { name: "Viola", hex: "#7209B7" },
+  { name: "Magenta", hex: "#E619E6" },
+  { name: "Rosa Acceso", hex: "#FF006E" },
+  { name: "Marrone", hex: "#8B4513" }
 ];
 
 // Inizializza il color picker
@@ -258,12 +258,21 @@ function listenToGameChanges(codice) {
 
 // --- Unisciti a Partita ---
 joinGameBtn.onclick = () => {
+  // Nascondi il form di creazione partita
+  const nationForm = document.getElementById("nation-form");
+  nationForm.style.display = "none";
+
+  // Nascondi i bottoni di azione
+  const actionsDiv = document.querySelector(".actions");
+  actionsDiv.style.display = "none";
+
   // Nascondi il pannello del codice partita e il bottone start se erano visibili
   gameCodePanel.style.display = "none";
   playersPanel.style.display = "none";
   startGameBtn.style.display = "none";
-  
-  joinForm.style.display = "block";
+
+  // Mostra il form di join
+  joinForm.style.display = "flex";
 };
 
 joinSubmitBtn.onclick = async () => {
