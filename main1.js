@@ -57,7 +57,7 @@ function initializeColorPicker() {
   AVAILABLE_COLORS.forEach((color) => {
     const option = document.createElement("div");
     option.className = "color-option";
-    option.style.backgroundColor = color.hex;
+    option.setAttribute("style", `background-color: ${color.hex} !important;`);
     option.title = color.name;
     option.dataset.color = color.hex;
 
@@ -380,9 +380,12 @@ function leaveGame() {
     // Implementa la logica per rimuovere il giocatore dalla partita
     // e resettare l'interfaccia
   }
-// Inizializza il color picker quando la pagina si carica
-document.addEventListener("DOMContentLoaded", () => {
+}
+
+// Inizializza il color picker
+if (document.readyState === 'loading') {
+  document.addEventListener("DOMContentLoaded", initializeColorPicker);
+} else {
   initializeColorPicker();
-});
 }
 
