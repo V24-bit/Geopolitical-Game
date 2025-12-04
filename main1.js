@@ -195,7 +195,7 @@ createGameBtn.onclick = async () => {
     gameCodePanel.style.display = "block";
     gameCodeValue.textContent = codice;
     playersPanel.style.display = "block";
-    startGameBtn.style.display = "inline-block";
+    startGameBtn.style.display = "block";
 
     // Aggiorna lista giocatori
     updatePlayersList([nazione], nazione);
