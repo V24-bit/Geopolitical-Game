@@ -184,6 +184,7 @@ createGameBtn.onclick = async () => {
     currentPlayerName = nazione;
     currentPlayerColor = colore;
     playerColors = playerColorsMap;
+    isHost = true;
 
     // Aggiorna variabili globali esposte
     window.currentGameCode = codice;
@@ -309,6 +310,7 @@ joinSubmitBtn.onclick = async () => {
     currentPlayerName = nazione;
     currentPlayerColor = colore;
     playerColors = newPlayerColors;
+    isHost = false;
 
     // Aggiorna variabili globali esposte
     window.currentGameCode = codice;
