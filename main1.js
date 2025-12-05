@@ -131,6 +131,17 @@ window.currentGameCode = null;
 window.currentPlayerName = null;
 window.db = db;
 
+// --- URL Routing ---
+function extractRoomIdFromURL() {
+  const pathname = window.location.pathname;
+  const match = pathname.match(/^\/game\/([A-Z0-9]+)$/i);
+  return match ? match[1].toUpperCase() : null;
+}
+
+function updateURLForRoom(roomId) {
+  window.history.pushState({ roomId }, "", `/game/${roomId}`);
+}
+
 // Funzione per aggiornare la lista giocatori
 function updatePlayersList(giocatori, hostName) {
   playersList.innerHTML = '';
@@ -197,6 +208,9 @@ createGameBtn.onclick = async () => {
     gameCodeValue.textContent = codice;
     playersPanel.style.display = "block";
     startGameBtn.style.display = "block";
+
+    // Aggiorna URL
+    updateURLForRoom(codice);
 
     // Aggiorna lista giocatori
     updatePlayersList([nazione], nazione);
@@ -322,6 +336,9 @@ joinSubmitBtn.onclick = async () => {
     joinForm.style.display = "none";
     playersPanel.style.display = "block";
 
+    // Aggiorna URL
+    updateURLForRoom(codice);
+
     // Aggiorna lista giocatori
     updatePlayersList([...data.giocatori, nazione], data.host);
 
@@ -393,10 +410,32 @@ function leaveGame() {
   }
 }
 
-// Inizializza il color picker
+// Funzione per inizializzare il routing basato su URL
+function initializeURLRouting() {
+  const roomId = extractRoomIdFromURL();
+  if (roomId) {
+    // Nascondi il form di creazione partita
+    const nationForm = document.getElementById("nation-form");
+    nationForm.style.display = "none";
+
+    // Nascondi i bottoni di azione
+    const actionsDiv = document.querySelector(".actions");
+    actionsDiv.style.display = "none";
+
+    // Mostra il form di join e pre-popola il codice
+    joinForm.style.display = "flex";
+    gameCodeInput.value = roomId;
+  }
+}
+
+// Inizializza il color picker e URL routing
 if (document.readyState === 'loading') {
-  document.addEventListener("DOMContentLoaded", initializeColorPicker);
+  document.addEventListener("DOMContentLoaded", () => {
+    initializeColorPicker();
+    initializeURLRouting();
+  });
 } else {
   initializeColorPicker();
+  initializeURLRouting();
 }
 
