@@ -601,10 +601,10 @@ class HexagonalMap {
     console.log(`Tile visibili: ${this.visibleTiles.size} (erano ${oldVisibleCount})`);
   }
 
-  // Rendering ottimizzato con throttling
+  // Rendering ottimizzato con virtualizzazione e batching
   render() {
     const now = Date.now();
-    
+
     // Throttling: non renderizzare più spesso di 60 FPS
     if (now - this.lastRenderTime < this.renderThrottleMs) {
       if (!this.pendingRender) {
@@ -616,21 +616,32 @@ class HexagonalMap {
       }
       return;
     }
-    
+
     this.lastRenderTime = now;
-    
+
     if (!this.ctx) return;
+
+    // Controlla se la visibilità è cambiata
+    if (this.cameraX !== this.lastCameraX || this.cameraY !== this.lastCameraY || this.zoom !== this.lastZoom) {
+      this.visibilityDirty = true;
+      this.lastCameraX = this.cameraX;
+      this.lastCameraY = this.cameraY;
+      this.lastZoom = this.zoom;
+    }
+
+    // Aggiorna tile visibili solo se camera si è mossa
+    if (this.visibilityDirty) {
+      this.updateVisibleTiles();
+    }
 
     // Pulisci il canvas
     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-    
-    let renderedCount = 0;
+
     const hexSize = this.hexSize * this.zoom;
-    
-    // Renderizza tutti i tile
-    for (const [tileKey, tile] of this.tiles) {
+
+    // Renderizza SOLO i tile visibili (virtualizzazione)
+    for (const tile of this.cachedVisibleTiles) {
       this.renderTile(tile, hexSize);
-      renderedCount++;
     }
   }
 
